@@ -1,0 +1,30 @@
+# ワークフローの名前
+name: Lint with Biome
+
+# このワークフローが実行されるタイミング
+on:
+  # mainブランチに対してプルリクエストが開かれたり、更新された時
+  pull_request:
+    branches: [main]
+
+# 実行される具体的な仕事（ジョブ）
+jobs:
+  # 'lint'という名前のジョブ
+  lint:
+    # Ubuntuの最新バージョンで実行
+    runs-on: ubuntu-latest
+
+    # 実行する手順（ステップ）
+    steps:
+      # 1. リポジトリのコードをチェックアウトする
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Biomeをセットアップする
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+
+      # 3. BiomeのCIコマンドを実行してコードをチェックする
+      # 'biome ci' はCI環境での実行に最適化されたコマンドです
+      - name: Run Biome
+        run: biome ci .
