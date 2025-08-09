@@ -3,9 +3,9 @@ name: Lint with Biome
 
 # このワークフローが実行されるタイミング
 on:
-  # mainブランチに対してプルリクエストが開かれたり、更新された時
+  # devブランチに対してプルリクエストが開かれたり、更新された時
   pull_request:
-    branches: [main]
+    branches: [dev] # 👈 ここを修正！
 
 # 実行される具体的な仕事（ジョブ）
 jobs:
