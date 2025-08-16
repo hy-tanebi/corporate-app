@@ -116,6 +116,12 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
 // 静的生成のためのパス生成
 export async function generateStaticParams() {
+	// ビルド時に環境変数が設定されていない場合は空配列を返す
+	if (!process.env.MICROCMS_SERVICE_DOMAIN || !process.env.MICROCMS_API_KEY) {
+		console.warn("microCMS環境変数が設定されていません。静的パス生成をスキップします。");
+		return [];
+	}
+
 	try {
 		const response = await getBlogPosts(100); // 最大100記事分のパスを生成
 		return response.contents.map((post) => ({
