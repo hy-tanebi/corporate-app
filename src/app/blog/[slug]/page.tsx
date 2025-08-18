@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getBlogPost, getBlogPosts } from "@/lib/microcms";
 import { Card, CardContent } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
+import { TableOfContentsClient } from "@/components/table-of-contents-client";
 
 interface BlogDetailPageProps {
 	params: Promise<{ slug: string }>;
@@ -22,12 +23,15 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 		notFound();
 	}
 
+
 	if (!post) {
 		notFound();
 	}
 
 	return (
-		<div className="container mx-auto px-4 py-8 max-w-4xl">
+		<div className="container mx-auto px-4 py-8 max-w-7xl">
+			<div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+				<div className="max-w-4xl">
 			{/* パンくずナビ */}
 			<nav className="mb-8">
 				<div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
@@ -103,14 +107,21 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 				</Card>
 			</article>
 
-			{/* ブログ一覧に戻るリンク */}
-			<div className="mt-12 text-center">
-				<Link
-					href="/blog"
-					className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-				>
-					← ブログ一覧に戻る
-				</Link>
+					{/* ブログ一覧に戻るリンク */}
+					<div className="mt-12 text-center">
+						<Link
+							href="/blog"
+							className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+						>
+							← ブログ一覧に戻る
+						</Link>
+					</div>
+				</div>
+				
+				{/* 目次（デスクトップのみ表示） */}
+				<div className="hidden lg:block">
+					<TableOfContentsClient />
+				</div>
 			</div>
 		</div>
 	);
