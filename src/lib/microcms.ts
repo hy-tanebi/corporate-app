@@ -43,6 +43,7 @@ export interface BlogPost {
 	id: string;
 	title: string;
 	content: string;
+	category?: string[]; // microCMSではカテゴリーが文字列配列で返される
 	eyecatch?: {
 		url: string;
 		width: number;
@@ -76,6 +77,8 @@ export const getBlogPosts = async (
 		queries: {
 			limit,
 			offset,
+			fields: "id,title,content,eyecatch,category,createdAt,updatedAt,publishedAt,revisedAt",
+			depth: 1, // 関連コンテンツを展開
 		},
 	});
 	return response;
@@ -90,6 +93,10 @@ export const getBlogPost = async (id: string): Promise<BlogPost> => {
 	const response = await client.get({
 		endpoint: process.env.MICROCMS_BLOG_API_ID,
 		contentId: id,
+		queries: {
+			fields: "id,title,content,eyecatch,category,createdAt,updatedAt,publishedAt,revisedAt",
+			depth: 1, // 関連コンテンツを展開
+		},
 	});
 	return response;
 };

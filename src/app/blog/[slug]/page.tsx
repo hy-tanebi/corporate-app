@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBlogPost, getBlogPosts } from "@/lib/microcms";
 import { Card, CardContent } from "@/components/ui/card";
+import { CategoryBadge } from "@/components/ui/category-badge";
 
 interface BlogDetailPageProps {
 	params: Promise<{ slug: string }>;
@@ -64,23 +65,24 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 					<h1 className="text-2xl lg:text-4xl font-bold tracking-tight mb-4">
 						{post.title}
 					</h1>
-					<div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-						<time dateTime={post.publishedAt}>
-							公開日: {new Date(post.publishedAt).toLocaleDateString("ja-JP", {
-								year: "numeric",
-								month: "2-digit",
-								day: "2-digit",
-							})}
-						</time>
-						{post.updatedAt !== post.publishedAt && (
-							<time dateTime={post.updatedAt}>
-								更新日: {new Date(post.updatedAt).toLocaleDateString("ja-JP", {
-									year: "numeric",
-									month: "2-digit",
-									day: "2-digit",
-								})}
-							</time>
+					<div className="flex items-center gap-4 flex-wrap">
+						{post.category && post.category.length > 0 && (
+							<div className="flex flex-wrap gap-2">
+								{post.category.map((cat, index) => (
+									<CategoryBadge key={index} category={cat} />
+								))}
+							</div>
 						)}
+						<div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+							<time dateTime={post.publishedAt}>
+								公開日: {new Date(post.publishedAt).toISOString().split('T')[0].replace(/-/g, '/')}
+							</time>
+							{post.updatedAt !== post.publishedAt && (
+								<time dateTime={post.updatedAt}>
+									更新日: {new Date(post.updatedAt).toISOString().split('T')[0].replace(/-/g, '/')}
+								</time>
+							)}
+						</div>
 					</div>
 				</header>
 
