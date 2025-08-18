@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getBlogPosts, type BlogPost } from "@/lib/microcms";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CategoryBadge } from "@/components/ui/category-badge";
 
 export default async function BlogPage() {
 	let posts: BlogPost[] = [];
@@ -54,6 +55,13 @@ export default async function BlogPage() {
 									</div>
 								)}
 								<CardHeader className="pb-3">
+									{post.category && post.category.length > 0 && (
+										<div className="mb-2 flex flex-wrap gap-1">
+											{post.category.map((cat, index) => (
+												<CategoryBadge key={index} category={cat} size="sm" />
+											))}
+										</div>
+									)}
 									<CardTitle className="text-sm lg:text-base line-clamp-2">
 										{post.title}
 									</CardTitle>
@@ -63,11 +71,7 @@ export default async function BlogPage() {
 										className="text-xs text-gray-500 dark:text-gray-400"
 										dateTime={post.publishedAt}
 									>
-										{new Date(post.publishedAt).toLocaleDateString("ja-JP", {
-											year: "numeric",
-											month: "2-digit",
-											day: "2-digit",
-										})}
+										{new Date(post.publishedAt).toISOString().split('T')[0].replace(/-/g, '/')}
 									</time>
 								</CardContent>
 							</Card>
