@@ -1,0 +1,17 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
+	"files": {
+		"ignoreUnknown": false,
+		"experimentalScannerIgnores": [".next/**", "node_modules/**"]
+	},
+	"formatter": {
+		"enabled": true
+	},
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true
+		}
+	}
+}
