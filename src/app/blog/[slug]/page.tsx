@@ -28,10 +28,16 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 		notFound();
 	}
 
-	return (
-		<div className="container mx-auto px-4 py-8 max-w-7xl">
-			<div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
-				<div className="max-w-4xl">
+	// 見出しの存在チェック用の関数
+	const hasHeadings = (content: string) => {
+		return /<h[123]/.test(content);
+	};
+
+	const shouldShowToc = typeof post.content === 'string' && hasHeadings(post.content);
+
+	// 共通コンテンツを作成
+	const renderContent = () => (
+		<>
 			{/* パンくずナビ */}
 			<nav className="mb-8">
 				<div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
@@ -93,7 +99,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 				{/* 記事本文 */}
 				<Card>
 					<CardContent className="p-6 lg:p-8">
-						<div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-4 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-img:rounded-lg prose-img:shadow-md">
+						<div className={`prose dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-4 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-img:rounded-lg prose-img:shadow-md ${shouldShowToc ? 'prose-lg' : 'prose-xl'}`}>
 							{typeof post.content === 'string' ? (
 								// biome-ignore lint/security/noDangerouslySetInnerHtml: microCMSからの安全なコンテンツ
 								<div dangerouslySetInnerHTML={{ __html: post.content }} />
@@ -107,21 +113,41 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 				</Card>
 			</article>
 
-					{/* ブログ一覧に戻るリンク */}
-					<div className="mt-12 text-center">
-						<Link
-							href="/blog"
-							className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-						>
-							← ブログ一覧に戻る
-						</Link>
+			{/* ブログ一覧に戻るリンク */}
+			<div className="mt-12 text-center">
+				<Link
+					href="/blog"
+					className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+				>
+					← ブログ一覧に戻る
+				</Link>
+			</div>
+		</>
+	);
+
+	if (shouldShowToc) {
+		// 目次がある場合（2カラムレイアウト）
+		return (
+			<div className="container mx-auto px-4 py-8 max-w-7xl">
+				<div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+					<div className="max-w-4xl">
+						{renderContent()}
+					</div>
+					
+					{/* 目次（デスクトップのみ表示） */}
+					<div className="hidden lg:block">
+						<TableOfContentsClient />
 					</div>
 				</div>
-				
-				{/* 目次（デスクトップのみ表示） */}
-				<div className="hidden lg:block">
-					<TableOfContentsClient />
-				</div>
+			</div>
+		);
+	}
+
+	// 目次がない場合（1カラムレイアウト）
+	return (
+		<div className="container mx-auto px-4 py-8 max-w-6xl">
+			<div className="mx-auto">
+				{renderContent()}
 			</div>
 		</div>
 	);
