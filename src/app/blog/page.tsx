@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getBlogPosts, type BlogPost } from "@/lib/microcms";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
+import { type BlogPost, getBlogPosts } from "@/lib/microcms";
 
 export default async function BlogPage() {
 	let posts: BlogPost[] = [];
@@ -67,11 +67,14 @@ export default async function BlogPage() {
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="pt-0">
-									<time 
+									<time
 										className="text-xs text-gray-500 dark:text-gray-400"
 										dateTime={post.publishedAt}
 									>
-										{new Date(post.publishedAt).toISOString().split('T')[0].replace(/-/g, '/')}
+										{new Date(post.publishedAt)
+											.toISOString()
+											.split("T")[0]
+											.replace(/-/g, "/")}
 									</time>
 								</CardContent>
 							</Card>
