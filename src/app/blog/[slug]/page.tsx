@@ -1,13 +1,33 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { TableOfContentsClient } from "@/components/table-of-contents-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import { getAuthorProfile, getBlogPost, getBlogPosts } from "@/lib/microcms";
+import { generateBlogMetadata } from "@/lib/seo";
 
 interface BlogDetailPageProps {
 	params: Promise<{ slug: string }>;
+}
+
+// 動的メタデータ生成
+export async function generateMetadata({
+	params,
+}: BlogDetailPageProps): Promise<Metadata> {
+	const { slug } = await params;
+
+	try {
+		const post = await getBlogPost(slug);
+		return generateBlogMetadata(post);
+	} catch (error) {
+		console.error("Error generating metadata:", error);
+		return {
+			title: "記事が見つかりません",
+			description: "指定された記事は存在しないか、削除された可能性があります。",
+		};
+	}
 }
 
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {

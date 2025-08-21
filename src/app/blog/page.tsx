@@ -1,8 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import { type BlogPost, getBlogPosts } from "@/lib/microcms";
+import { BLOG_LIST_METADATA } from "@/lib/seo";
+
+export const metadata: Metadata = BLOG_LIST_METADATA;
 
 export default async function BlogPage() {
 	let posts: BlogPost[] = [];
