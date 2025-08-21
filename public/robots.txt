@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# サイトマップの場所
+Sitemap: https://your-domain.com/sitemap.xml
+
+# クロール遅延（オプション）
+Crawl-delay: 1
+
+# 除外するパス（必要に応じて）
+# Disallow: /admin/
+# Disallow: /private/
