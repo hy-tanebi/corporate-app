@@ -17,7 +17,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
 				<div className="relative h-12 w-12 flex-shrink-0 cursor-pointer group">
 					{/* 光る外縁リング */}
 					<div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse"></div>
-					
+
 					{/* プロフィール画像 */}
 					<div className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-primary/20 group-hover:border-primary/50 transition-all duration-300 group-hover:scale-105">
 						<Image
@@ -28,7 +28,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
 							sizes="48px"
 						/>
 					</div>
-					
+
 					{/* さらなる光る効果 */}
 					<div className="absolute -inset-1 rounded-full bg-gradient-to-r from-blue-400/30 via-purple-400/30 to-pink-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
 				</div>
