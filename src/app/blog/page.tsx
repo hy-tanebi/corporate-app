@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { type BlogPost, getBlogPosts } from "@/lib/microcms";
 import { BLOG_LIST_METADATA } from "@/lib/seo";
-import { BlogPageClient } from "@/components/blog/blog-page-client";
+import { BlogTabs } from "@/components/blog/blog-tabs";
 
 export const metadata: Metadata = BLOG_LIST_METADATA;
 
@@ -20,29 +20,11 @@ export default async function BlogPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-4">ブログ</h1>
-        </div>
-        <div className="text-center py-12">
-          <p className="text-red-600 dark:text-red-400">{error}</p>
-          <p className="text-sm text-gray-500 mt-2">
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 text-xl mb-2">{error}</p>
+          <p className="text-sm text-gray-500">
             環境変数の設定を確認してください
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (posts.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-4">ブログ</h1>
-        </div>
-        <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400">
-            まだブログ記事がありません
           </p>
         </div>
       </div>
@@ -52,20 +34,14 @@ export default async function BlogPage() {
   return (
     <Suspense
       fallback={
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight mb-4">ブログ</h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              技術的な知見や学習記録を発信しています
-            </p>
-          </div>
-          <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400">読み込み中...</p>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-600 dark:text-gray-400 text-xl">読み込み中...</p>
           </div>
         </div>
       }
     >
-      <BlogPageClient initialPosts={posts} />
+      <BlogTabs initialPosts={posts} />
     </Suspense>
   );
 }

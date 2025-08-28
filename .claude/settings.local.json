@@ -1,12 +1,15 @@
 {
-	"permissions": {
-		"allow": [
-			"mcp__context7__get-library-docs",
-			"mcp__context7__resolve-library-id",
-			"Bash(pnpm lint:*)",
-			"Bash(pnpm biome lint:*)"
-		]
-	},
-	"enableAllProjectMcpServers": true,
-	"enabledMcpjsonServers": ["context7"]
+  "permissions": {
+    "allow": [
+      "mcp__context7__get-library-docs",
+      "mcp__context7__resolve-library-id",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm biome lint:*)",
+      "WebFetch(domain:azukiazusa.dev)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "context7"
+  ]
 }
