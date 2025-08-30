@@ -19,7 +19,7 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("dark");
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
 
   // 初期化処理
@@ -76,7 +76,7 @@ export function useTheme() {
     if (typeof window === "undefined") {
       return {
         theme: "system" as Theme,
-        resolvedTheme: "dark" as const,
+        resolvedTheme: "light" as const,
         setTheme: () => {}
       };
     }
