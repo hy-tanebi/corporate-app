@@ -196,8 +196,8 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
                         block w-full text-left py-3 pr-2 transition-all duration-200 ease-out hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-r-md
                         ${
 													isActive
-														? "bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
-														: "text-gray-700 dark:text-gray-300"
+														? "bg-blue-50 text-blue-700 dark:bg-blue-50 dark:text-blue-700"
+														: "text-gray-700 dark:text-gray-700"
 												}
                       `}
 												style={{
