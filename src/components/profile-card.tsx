@@ -33,10 +33,10 @@ export function ProfileCard({ profile }: ProfileCardProps) {
 					<div className="absolute -inset-1 rounded-full bg-gradient-to-r from-blue-400/30 via-purple-400/30 to-pink-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
 				</div>
 				<div className="flex-1 min-w-0">
-					<h3 className="font-semibold text-sm text-foreground truncate">
+					<h3 className="font-semibold text-sm text-gray-900 dark:text-gray-900 truncate">
 						{profile.name}
 					</h3>
-					<p className="text-xs text-muted-foreground line-clamp-1">
+					<p className="text-xs text-gray-600 dark:text-gray-600 line-clamp-1">
 						{profile.tagline}
 					</p>
 				</div>

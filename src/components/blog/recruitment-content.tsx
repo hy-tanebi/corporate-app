@@ -4,7 +4,8 @@ import { MapPin, Clock, Users, Briefcase, Mail, ExternalLink } from "lucide-reac
 
 export function RecruitmentContent() {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* ヘッダー */}
       <div className="text-center mb-12">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
@@ -121,7 +122,7 @@ export function RecruitmentContent() {
         </Card>
 
         {/* 労働条件・待遇 */}
-        <Card className="bg-gray-50 dark:bg-gray-900/50">
+        <Card className="bg-gray-50 dark:bg-white border-gray-200 dark:border-gray-300">
           <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
               <Briefcase className="w-5 h-5" />
@@ -212,11 +213,11 @@ export function RecruitmentContent() {
                 </a>
               </div>
               
-              <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">
+              <div className="bg-blue-50 dark:bg-blue-50 p-4 rounded-lg border border-blue-200 dark:border-blue-300">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-900 mb-2">
                   応募時にお送りください
                 </h4>
-                <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+                <ul className="text-sm text-blue-800 dark:text-blue-800 space-y-1">
                   <li>• 履歴書・職務経歴書</li>
                   <li>• ポートフォリオ（GitHub等）</li>
                   <li>• 志望動機（簡潔で構いません）</li>
@@ -226,6 +227,7 @@ export function RecruitmentContent() {
           </CardContent>
         </Card>
       </div>
+    </div>
     </div>
   );
 }

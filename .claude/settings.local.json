@@ -5,7 +5,12 @@
       "mcp__context7__resolve-library-id",
       "Bash(pnpm lint:*)",
       "Bash(pnpm biome lint:*)",
-      "WebFetch(domain:azukiazusa.dev)"
+      "WebFetch(domain:azukiazusa.dev)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpx biome lint:*)",
+      "Bash(pkill:*)",
+      "Bash(rg:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

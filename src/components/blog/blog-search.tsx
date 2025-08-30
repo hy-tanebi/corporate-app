@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, X, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -87,10 +87,13 @@ export function BlogSearch({
 
   // 検索結果を計算
   const filteredPosts = useMemo(() => {
-    const results = searchPosts(posts, localSearchQuery, localSelectedCategory);
-    onFilteredResults(results);
-    return results;
-  }, [posts, localSearchQuery, localSelectedCategory, onFilteredResults]);
+    return searchPosts(posts, localSearchQuery, localSelectedCategory);
+  }, [posts, localSearchQuery, localSelectedCategory]);
+
+  // 検索結果が変更されたときに親コンポーネントに通知
+  useEffect(() => {
+    onFilteredResults(filteredPosts);
+  }, [filteredPosts, onFilteredResults]);
 
   // 検索クエリの変更
   const handleSearchChange = (value: string) => {

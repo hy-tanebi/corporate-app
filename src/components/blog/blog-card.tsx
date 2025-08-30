@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,13 +14,16 @@ interface BlogCardProps {
 
 // 記事の概要を取得（HTMLタグを除去して最初の100文字）
 function getPostSummary(content: string): string {
-  const textOnly = content.replace(/<[^>]*>/g, '').replace(/\n/g, ' ').trim();
+  const textOnly = content
+    .replace(/<[^>]*>/g, "")
+    .replace(/\n/g, " ")
+    .trim();
   return textOnly.length > 100 ? `${textOnly.substring(0, 100)}...` : textOnly;
 }
 
 // 読了時間を計算（日本語の平均読書速度: 600文字/分）
 function getReadingTime(content: string): number {
-  const textOnly = content.replace(/<[^>]*>/g, '');
+  const textOnly = content.replace(/<[^>]*>/g, "");
   const charactersCount = textOnly.length;
   return Math.max(1, Math.ceil(charactersCount / 600));
 }
@@ -31,6 +34,16 @@ export function BlogCard({ post }: BlogCardProps) {
   const summary = getPostSummary(post.content);
   const readingTime = getReadingTime(post.content);
 
+  // Force white background in dark mode
+  useEffect(() => {
+    const cards = document.querySelectorAll('[data-card="blog-card"]');
+    cards.forEach((card) => {
+      const element = card as HTMLElement;
+      element.style.backgroundColor = 'white';
+      element.style.setProperty('background-color', 'white', 'important');
+    });
+  }, []);
+
   const handleMobileImageClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -40,15 +53,30 @@ export function BlogCard({ post }: BlogCardProps) {
   return (
     <>
       {/* デスクトップ版（lg以上）- フリップアニメーション */}
-      <div 
+      <div
         className="perspective-1000 h-full hidden lg:block"
         onMouseEnter={() => setIsFlipped(true)}
         onMouseLeave={() => setIsFlipped(false)}
       >
-        <div className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
+        <div
+          className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
+            isFlipped ? "rotate-y-180" : ""
+          } `}
+        >
           {/* 表面 */}
-          <Link href={`/blog/${post.id}`} className="block absolute inset-0 backface-hidden">
-            <Card className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+          <Link
+            href={`/blog/${post.id}`}
+            className="block absolute inset-0 backface-hidden"
+          >
+            <Card 
+              className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer !bg-white dark:!bg-white relative z-10" 
+              data-card="blog-card"
+              style={{ 
+                backgroundColor: 'white !important', 
+                borderColor: 'rgb(229 231 235) !important',
+                color: 'rgb(3 7 18) !important'
+              }}
+            >
               {post.eyecatch && (
                 <div className="relative aspect-video overflow-hidden rounded-t-lg">
                   <Image
@@ -87,13 +115,24 @@ export function BlogCard({ post }: BlogCardProps) {
           </Link>
 
           {/* 裏面 */}
-          <Link href={`/blog/${post.id}`} className="block absolute inset-0 backface-hidden rotate-y-180">
-            <Card className="h-full bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700 border-2 border-blue-200 dark:border-gray-600 cursor-pointer">
+          <Link
+            href={`/blog/${post.id}`}
+            className="block absolute inset-0 backface-hidden rotate-y-180"
+          >
+            <Card 
+              className="h-full bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-50 dark:to-indigo-100 border-2 border-blue-200 dark:border-blue-200 cursor-pointer !bg-white dark:!bg-white relative z-10" 
+              data-card="blog-card"
+              style={{ 
+                backgroundColor: 'white !important', 
+                borderColor: 'rgb(59 130 246) !important',
+                color: 'rgb(3 7 18) !important'
+              }}
+            >
               <CardHeader className="pb-3">
-                <CardTitle className="text-base line-clamp-2 text-gray-800 dark:text-gray-200">
+                <CardTitle className="text-base line-clamp-2 text-gray-800 dark:text-gray-800">
                   {post.title}
                 </CardTitle>
-                <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400 mt-2">
+                <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-600 mt-2">
                   <div className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     <span>{readingTime}分で読める</span>
@@ -101,13 +140,14 @@ export function BlogCard({ post }: BlogCardProps) {
                   <div className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     <time dateTime={post.publishedAt}>
-                      {new Date(post.publishedAt).getMonth() + 1}/{new Date(post.publishedAt).getDate()}
+                      {new Date(post.publishedAt).getMonth() + 1}/
+                      {new Date(post.publishedAt).getDate()}
                     </time>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-4 leading-relaxed">
+                <p className="text-sm text-gray-700 dark:text-gray-700 line-clamp-4 leading-relaxed">
                   {summary}
                 </p>
                 <div className="mt-4 flex items-center justify-between">
@@ -118,7 +158,7 @@ export function BlogCard({ post }: BlogCardProps) {
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                  <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-600">
                     <Eye className="w-3 h-3" />
                     <span>続きを読む</span>
                   </div>
@@ -132,9 +172,17 @@ export function BlogCard({ post }: BlogCardProps) {
       {/* モバイル・タブレット版（lg未満）- 画像拡大アニメーション */}
       <div className="h-full block lg:hidden">
         <Link href={`/blog/${post.id}`}>
-          <Card className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+          <Card 
+            className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer !bg-white dark:!bg-white relative z-10" 
+            data-card="blog-card"
+            style={{ 
+              backgroundColor: 'white !important', 
+              borderColor: 'rgb(229 231 235) !important',
+              color: 'rgb(3 7 18) !important'
+            }}
+          >
             {post.eyecatch && (
-              <div 
+              <div
                 className="relative aspect-video overflow-hidden rounded-t-lg cursor-pointer"
                 onClick={handleMobileImageClick}
               >
@@ -143,7 +191,7 @@ export function BlogCard({ post }: BlogCardProps) {
                   alt={post.title}
                   fill
                   className={`object-cover transition-transform duration-500 ease-out ${
-                    isImageExpanded ? 'scale-125' : 'scale-100 hover:scale-105'
+                    isImageExpanded ? "scale-125" : "scale-100 hover:scale-105"
                   }`}
                   sizes="(max-width: 768px) 50vw, 50vw"
                 />
