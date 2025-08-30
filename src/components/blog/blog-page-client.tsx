@@ -44,15 +44,16 @@ export function BlogPageClient({ initialPosts, hideHeader = false }: BlogPageCli
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {!hideHeader && (
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-4">ブログ</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            技術的な知見や学習記録を発信しています
-          </p>
-        </div>
-      )}
+    <div className="min-h-screen">
+      <div className="container mx-auto px-4 py-8">
+        {!hideHeader && (
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight mb-4 text-gray-900 dark:text-white">ブログ</h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              技術的な知見や学習記録を発信しています
+            </p>
+          </div>
+        )}
 
       {/* 検索機能 */}
       <div className="mb-14">
@@ -66,23 +67,24 @@ export function BlogPageClient({ initialPosts, hideHeader = false }: BlogPageCli
         />
       </div>
 
-      {/* 記事一覧 */}
-      {filteredPosts.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400 mb-2">
-            検索条件に一致する記事が見つかりませんでした
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-500">
-            検索キーワードやフィルタを変更してお試しください
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredPosts.map((post) => (
-            <BlogCard key={post.id} post={post} />
-          ))}
-        </div>
-      )}
+        {/* 記事一覧 */}
+        {filteredPosts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 dark:text-gray-400 mb-2">
+              検索条件に一致する記事が見つかりませんでした
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-500">
+              検索キーワードやフィルタを変更してお試しください
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredPosts.map((post) => (
+              <BlogCard key={post.id} post={post} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
