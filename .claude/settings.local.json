@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "mcp__context7__get-library-docs",
-      "mcp__context7__resolve-library-id"
+      "mcp__context7__resolve-library-id",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm biome lint:*)",
+      "WebFetch(domain:azukiazusa.dev)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpx biome lint:*)",
+      "Bash(pkill:*)",
+      "Bash(rg:*)",
+      "Bash(git checkout:*)",
+      "Bash(pnpm add:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

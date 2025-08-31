@@ -1,7 +1,7 @@
 import { createClient } from "microcms-js-sdk";
 
 // 開発環境でのみエラーを投げる（本番ビルド時はワーニングのみ）
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === "development";
 
 if (!process.env.MICROCMS_SERVICE_DOMAIN) {
 	const message = "MICROCMS_SERVICE_DOMAIN is required";
@@ -31,12 +31,24 @@ if (!process.env.MICROCMS_BLOG_API_ID) {
 }
 
 // 環境変数が設定されている場合のみクライアントを作成
-export const client = process.env.MICROCMS_SERVICE_DOMAIN && process.env.MICROCMS_API_KEY 
-	? createClient({
-			serviceDomain: process.env.MICROCMS_SERVICE_DOMAIN,
-			apiKey: process.env.MICROCMS_API_KEY,
-		})
-	: null;
+export const client =
+	process.env.MICROCMS_SERVICE_DOMAIN && process.env.MICROCMS_API_KEY
+		? createClient({
+				serviceDomain: process.env.MICROCMS_SERVICE_DOMAIN,
+				apiKey: process.env.MICROCMS_API_KEY,
+			})
+		: null;
+
+// プロフィール情報の型定義
+export interface AuthorProfile {
+	name: string;
+	tagline: string;
+	avatar: {
+		url: string;
+		width: number;
+		height: number;
+	};
+}
 
 // ブログ記事の型定義
 export interface BlogPost {
@@ -71,13 +83,14 @@ export const getBlogPosts = async (
 	if (!client || !process.env.MICROCMS_BLOG_API_ID) {
 		throw new Error("microCMS client is not configured");
 	}
-	
+
 	const response = await client.get({
 		endpoint: process.env.MICROCMS_BLOG_API_ID,
 		queries: {
 			limit,
 			offset,
-			fields: "id,title,content,eyecatch,category,createdAt,updatedAt,publishedAt,revisedAt",
+			fields:
+				"id,title,content,eyecatch,category,createdAt,updatedAt,publishedAt,revisedAt",
 			depth: 1, // 関連コンテンツを展開
 		},
 	});
@@ -89,13 +102,73 @@ export const getBlogPost = async (id: string): Promise<BlogPost> => {
 	if (!client || !process.env.MICROCMS_BLOG_API_ID) {
 		throw new Error("microCMS client is not configured");
 	}
-	
+
 	const response = await client.get({
 		endpoint: process.env.MICROCMS_BLOG_API_ID,
 		contentId: id,
 		queries: {
-			fields: "id,title,content,eyecatch,category,createdAt,updatedAt,publishedAt,revisedAt",
+			fields:
+				"id,title,content,eyecatch,category,createdAt,updatedAt,publishedAt,revisedAt",
 			depth: 1, // 関連コンテンツを展開
+		},
+	});
+	return response;
+};
+
+// プロフィール情報を取得
+export const getAuthorProfile = async (): Promise<AuthorProfile> => {
+	if (!client) {
+		throw new Error("microCMS client is not configured");
+	}
+
+	const response = await client.get({
+		endpoint: "author",
+		queries: {
+			fields: "name,tagline,avatar",
+		},
+	});
+	return response;
+};
+
+// 練習情報の型定義（繰り返しフィールド）
+export interface PracticeInfo {
+	date: string; // 練習日（YYYY-MM-DD形式）
+	location: string; // 練習場所
+}
+
+// 楽器の型定義（繰り返しフィールド）
+export interface Instrument {
+	instrumentName: string; // 楽器名
+	instrumentImage?: {
+		url: string;
+		width: number;
+		height: number;
+	}; // 楽器画像
+}
+
+// 団体情報の型定義（繰り返しフィールド対応版）
+export interface GroupInfo {
+	id: string;
+	groupName: string; // 団体名
+	description: string; // 活動内容（HTML形式）
+	applicationEmail: string; // 応募メール
+	practiceInfo: PracticeInfo[]; // 練習情報（繰り返しフィールド）
+	instruments: Instrument[]; // 楽器（繰り返しフィールド）
+	publishedAt: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+// 団体情報を取得
+export const getGroupInfo = async (): Promise<GroupInfo> => {
+	if (!client) {
+		throw new Error("microCMS client is not configured");
+	}
+
+	const response = await client.get({
+		endpoint: "group-info",
+		queries: {
+			fields: "groupName,description,applicationEmail,practiceInfo,instruments",
 		},
 	});
 	return response;

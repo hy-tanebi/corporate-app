@@ -1,28 +1,53 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBlogPost, getBlogPosts } from "@/lib/microcms";
+import type { Metadata } from "next";
+import { TableOfContentsClient } from "@/components/table-of-contents-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
-import { TableOfContentsClient } from "@/components/table-of-contents-client";
+import { getAuthorProfile, getBlogPost, getBlogPosts } from "@/lib/microcms";
+import { generateBlogMetadata } from "@/lib/seo";
 
 interface BlogDetailPageProps {
 	params: Promise<{ slug: string }>;
 }
 
-export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
+// 動的メタデータ生成
+export async function generateMetadata({
+	params,
+}: BlogDetailPageProps): Promise<Metadata> {
 	const { slug } = await params;
-	
-	let post;
-	let error: string | null = null;
 
 	try {
-		post = await getBlogPost(slug);
+		const post = await getBlogPost(slug);
+		return generateBlogMetadata(post);
+	} catch (error) {
+		console.error("Error generating metadata:", error);
+		return {
+			title: "記事が見つかりません",
+			description: "指定された記事は存在しないか、削除された可能性があります。",
+		};
+	}
+}
+
+export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
+	const { slug } = await params;
+
+	let post;
+	let profile;
+
+	try {
+		[post, profile] = await Promise.all([
+			getBlogPost(slug),
+			getAuthorProfile().catch((err) => {
+				console.warn("プロフィール取得エラー:", err);
+				return null;
+			}),
+		]);
 	} catch (err) {
 		console.error("Error fetching blog post:", err);
 		notFound();
 	}
-
 
 	if (!post) {
 		notFound();
@@ -33,7 +58,8 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 		return /<h[123]/.test(content);
 	};
 
-	const shouldShowToc = typeof post.content === 'string' && hasHeadings(post.content);
+	const shouldShowToc =
+		typeof post.content === "string" && hasHeadings(post.content);
 
 	// 共通コンテンツを作成
 	const renderContent = () => (
@@ -41,11 +67,17 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 			{/* パンくずナビ */}
 			<nav className="mb-8">
 				<div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-					<Link href="/" className="hover:text-gray-900 dark:hover:text-gray-100">
+					<Link
+						href="/"
+						className="hover:text-gray-900 dark:hover:text-gray-100"
+					>
 						ホーム
 					</Link>
 					<span className="mx-2">/</span>
-					<Link href="/blog" className="hover:text-gray-900 dark:hover:text-gray-100">
+					<Link
+						href="/blog"
+						className="hover:text-gray-900 dark:hover:text-gray-100"
+					>
 						ブログ
 					</Link>
 					<span className="mx-2">/</span>
@@ -85,11 +117,19 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 						)}
 						<div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
 							<time dateTime={post.publishedAt}>
-								公開日: {new Date(post.publishedAt).toISOString().split('T')[0].replace(/-/g, '/')}
+								公開日:{" "}
+								{new Date(post.publishedAt)
+									.toISOString()
+									.split("T")[0]
+									.replace(/-/g, "/")}
 							</time>
 							{post.updatedAt !== post.publishedAt && (
 								<time dateTime={post.updatedAt}>
-									更新日: {new Date(post.updatedAt).toISOString().split('T')[0].replace(/-/g, '/')}
+									更新日:{" "}
+									{new Date(post.updatedAt)
+										.toISOString()
+										.split("T")[0]
+										.replace(/-/g, "/")}
 								</time>
 							)}
 						</div>
@@ -99,8 +139,10 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 				{/* 記事本文 */}
 				<Card>
 					<CardContent className="p-6 lg:p-8">
-						<div className={`prose dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-4 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-img:rounded-lg prose-img:shadow-md ${shouldShowToc ? 'prose-lg' : 'prose-xl'}`}>
-							{typeof post.content === 'string' ? (
+						<div
+							className={`prose dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-4 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-img:rounded-lg prose-img:shadow-md ${shouldShowToc ? "prose-lg" : "prose-xl"}`}
+						>
+							{typeof post.content === "string" ? (
 								// biome-ignore lint/security/noDangerouslySetInnerHtml: microCMSからの安全なコンテンツ
 								<div dangerouslySetInnerHTML={{ __html: post.content }} />
 							) : (
@@ -117,7 +159,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 			<div className="mt-12 text-center">
 				<Link
 					href="/blog"
-					className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+					className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-300 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-700 bg-white dark:bg-white hover:bg-gray-50 dark:hover:bg-gray-50 transition-colors duration-200"
 				>
 					← ブログ一覧に戻る
 				</Link>
@@ -130,13 +172,11 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 		return (
 			<div className="container mx-auto px-4 py-8 max-w-7xl">
 				<div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
-					<div className="max-w-4xl">
-						{renderContent()}
-					</div>
-					
+					<div className="max-w-4xl">{renderContent()}</div>
+
 					{/* 目次（デスクトップのみ表示） */}
 					<div className="hidden lg:block">
-						<TableOfContentsClient />
+						<TableOfContentsClient profile={profile || undefined} />
 					</div>
 				</div>
 			</div>
@@ -146,9 +186,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 	// 目次がない場合（1カラムレイアウト）
 	return (
 		<div className="container mx-auto px-4 py-8 max-w-6xl">
-			<div className="mx-auto">
-				{renderContent()}
-			</div>
+			<div className="mx-auto">{renderContent()}</div>
 		</div>
 	);
 }
@@ -157,7 +195,9 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 export async function generateStaticParams() {
 	// ビルド時に環境変数が設定されていない場合は空配列を返す
 	if (!process.env.MICROCMS_SERVICE_DOMAIN || !process.env.MICROCMS_API_KEY) {
-		console.warn("microCMS環境変数が設定されていません。静的パス生成をスキップします。");
+		console.warn(
+			"microCMS環境変数が設定されていません。静的パス生成をスキップします。",
+		);
 		return [];
 	}
 
