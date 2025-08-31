@@ -59,6 +59,19 @@ html.dark .rounded-lg.border.border-gray-200 {
 	color: rgb(3 7 18) !important;
 }
 
+/* Ensure blog cards always have borders and shadows */
+[data-card="blog-card"] {
+	border: 2px solid rgb(209 213 219) !important;
+	border-radius: 0 !important;
+	box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+	background-color: white !important;
+}
+
+html.dark [data-card="blog-card"] {
+	border-color: rgb(209 213 219) !important;
+	background-color: white !important;
+}
+
 /* 3D Flip Animation Styles */
 .perspective-1000 {
 	perspective: 1000px;

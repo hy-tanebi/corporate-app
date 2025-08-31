@@ -57,13 +57,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     applyTheme(newTheme);
   };
 
-  // SSRとCSRの不一致を防ぐため、マウント前は何も表示しない
-  if (!mounted) {
-    return <>{children}</>;
-  }
+  // SSRとCSRの不一致を防ぐため、マウント前もProviderを提供
+  const contextValue = mounted 
+    ? { theme, resolvedTheme, setTheme }
+    : { theme: "system" as Theme, resolvedTheme: "light" as const, setTheme: () => {} };
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );
@@ -72,15 +72,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    // SSR中はエラーを投げずにデフォルト値を返す
-    if (typeof window === "undefined") {
-      return {
-        theme: "system" as Theme,
-        resolvedTheme: "light" as const,
-        setTheme: () => {}
-      };
-    }
-    throw new Error("useTheme must be used within a ThemeProvider");
+    // SSR中やマウント前はエラーを投げずにデフォルト値を返す
+    return {
+      theme: "system" as Theme,
+      resolvedTheme: "light" as const,
+      setTheme: () => {}
+    };
   }
   return context;
 }
