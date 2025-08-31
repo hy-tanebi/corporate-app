@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BlogSearch } from "./blog-search";
 import { BlogCard } from "./blog-card";
-import { type BlogPost } from "@/lib/microcms";
+import type { BlogPost } from "@/lib/microcms";
 
 interface BlogPageClientProps {
   initialPosts: BlogPost[];
@@ -45,7 +45,7 @@ export function BlogPageClient({ initialPosts, hideHeader = false }: BlogPageCli
 
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
         {!hideHeader && (
           <div className="mb-8">
             <h1 className="text-3xl font-bold tracking-tight mb-4 text-gray-900 dark:text-white">ブログ</h1>
@@ -56,7 +56,7 @@ export function BlogPageClient({ initialPosts, hideHeader = false }: BlogPageCli
         )}
 
       {/* 検索機能 */}
-      <div className="mb-14">
+      <div className="mb-8 sm:mb-14">
         <BlogSearch
           posts={initialPosts}
           onFilteredResults={setFilteredPosts}
@@ -78,7 +78,7 @@ export function BlogPageClient({ initialPosts, hideHeader = false }: BlogPageCli
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {filteredPosts.map((post) => (
               <BlogCard key={post.id} post={post} />
             ))}

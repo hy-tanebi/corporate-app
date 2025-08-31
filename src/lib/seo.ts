@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { type BlogPost } from "./microcms";
+import type { BlogPost } from "./microcms";
 
 // サイトの基本情報
 const SITE_CONFIG = {

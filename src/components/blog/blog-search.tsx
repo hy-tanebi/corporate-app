@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { type BlogPost } from "@/lib/microcms";
+import type { BlogPost } from "@/lib/microcms";
 
 interface BlogSearchProps {
   posts: BlogPost[];

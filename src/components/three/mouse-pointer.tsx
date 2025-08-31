@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef, useState, useEffect } from "react";
-import { Mesh } from "three";
+import type { Mesh } from "three";
 
 function MovingPointer() {
 	const meshRef = useRef<Mesh>(null);

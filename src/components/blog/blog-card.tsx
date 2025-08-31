@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
-import { type BlogPost } from "@/lib/microcms";
+import type { BlogPost } from "@/lib/microcms";
 import { Clock, Eye, Calendar } from "lucide-react";
 
 interface BlogCardProps {

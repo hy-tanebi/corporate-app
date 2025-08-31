@@ -1,4 +1,4 @@
-import { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
 import { getBlogPosts } from "@/lib/microcms";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://your-domain.com";
