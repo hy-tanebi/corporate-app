@@ -10,7 +10,8 @@
       "Bash(pnpm dev:*)",
       "Bash(pnpx biome lint:*)",
       "Bash(pkill:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(git checkout:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

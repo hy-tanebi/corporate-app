@@ -39,8 +39,8 @@ export function BlogCard({ post }: BlogCardProps) {
     const cards = document.querySelectorAll('[data-card="blog-card"]');
     cards.forEach((card) => {
       const element = card as HTMLElement;
-      element.style.backgroundColor = 'white';
-      element.style.setProperty('background-color', 'white', 'important');
+      element.style.backgroundColor = "white";
+      element.style.setProperty("background-color", "white", "important");
     });
   }, []);
 
@@ -62,23 +62,29 @@ export function BlogCard({ post }: BlogCardProps) {
           className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
             isFlipped ? "rotate-y-180" : ""
           } `}
+          style={{
+            border: "2px solid rgb(209 213 219)",
+            backgroundColor: "white",
+            boxShadow:
+              "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+          }}
         >
           {/* 表面 */}
           <Link
             href={`/blog/${post.id}`}
             className="block absolute inset-0 backface-hidden"
           >
-            <Card 
-              className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer !bg-white dark:!bg-white relative z-10" 
+            <Card
+              className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer !bg-white dark:!bg-white relative z-10"
               data-card="blog-card"
-              style={{ 
-                backgroundColor: 'white !important', 
-                borderColor: 'rgb(229 231 235) !important',
-                color: 'rgb(3 7 18) !important'
+              style={{
+                backgroundColor: "white !important",
+                border: "none !important",
+                color: "rgb(3 7 18) !important",
               }}
             >
               {post.eyecatch && (
-                <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                <div className="relative aspect-video overflow-hidden">
                   <Image
                     src={post.eyecatch.url}
                     alt={post.title}
@@ -88,7 +94,7 @@ export function BlogCard({ post }: BlogCardProps) {
                   />
                 </div>
               )}
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-3 border-l-2 border-t-2 border-r-2">
                 {post.category && post.category.length > 0 && (
                   <div className="mb-2 flex flex-wrap gap-1">
                     {post.category.map((cat, index) => (
@@ -100,7 +106,7 @@ export function BlogCard({ post }: BlogCardProps) {
                   {post.title}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="pt-0 border-l-2 border-b-2 border-r-2">
                 <time
                   className="text-xs text-gray-500 dark:text-gray-400"
                   dateTime={post.publishedAt}
@@ -119,38 +125,42 @@ export function BlogCard({ post }: BlogCardProps) {
             href={`/blog/${post.id}`}
             className="block absolute inset-0 backface-hidden rotate-y-180"
           >
-            <Card 
-              className="h-full bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-50 dark:to-indigo-100 border-2 border-blue-200 dark:border-blue-200 cursor-pointer !bg-white dark:!bg-white relative z-10" 
+            <Card
+              className="h-full bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-50 dark:to-indigo-100 cursor-pointer !bg-white dark:!bg-white relative z-10 flex flex-col"
               data-card="blog-card"
-              style={{ 
-                backgroundColor: 'white !important', 
-                borderColor: 'rgb(59 130 246) !important',
-                color: 'rgb(3 7 18) !important'
+              style={{
+                backgroundColor: "white !important",
+                border: "none !important",
+                color: "rgb(3 7 18) !important",
               }}
             >
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base line-clamp-2 text-gray-800 dark:text-gray-800">
-                  {post.title}
-                </CardTitle>
-                <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-600 mt-2">
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>{readingTime}分で読める</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    <time dateTime={post.publishedAt}>
-                      {new Date(post.publishedAt).getMonth() + 1}/
-                      {new Date(post.publishedAt).getDate()}
-                    </time>
+              <div className="flex flex-col h-full p-6">
+                <div className="flex-shrink-0 mb-4">
+                  <h3 className="text-lg line-clamp-2 text-gray-800 dark:text-gray-800 font-semibold mb-3 leading-tight">
+                    {post.title}
+                  </h3>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-600 mb-4">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>{readingTime}分で読める</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      <time dateTime={post.publishedAt}>
+                        {new Date(post.publishedAt).getMonth() + 1}/
+                        {new Date(post.publishedAt).getDate()}
+                      </time>
+                    </div>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-sm text-gray-700 dark:text-gray-700 line-clamp-4 leading-relaxed">
-                  {summary}
-                </p>
-                <div className="mt-4 flex items-center justify-between">
+
+                <div className="flex-grow flex flex-col justify-center mb-6">
+                  <p className="text-base text-gray-700 dark:text-gray-700 leading-relaxed line-clamp-4 h-24 overflow-hidden">
+                    {summary}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200 dark:border-gray-300">
                   {post.category && post.category.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {post.category.slice(0, 2).map((cat, index) => (
@@ -158,12 +168,12 @@ export function BlogCard({ post }: BlogCardProps) {
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-600">
-                    <Eye className="w-3 h-3" />
+                  <div className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-600 font-medium">
+                    <Eye className="w-4 h-4" />
                     <span>続きを読む</span>
                   </div>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           </Link>
         </div>
@@ -172,18 +182,18 @@ export function BlogCard({ post }: BlogCardProps) {
       {/* モバイル・タブレット版（lg未満）- 画像拡大アニメーション */}
       <div className="h-full block lg:hidden">
         <Link href={`/blog/${post.id}`}>
-          <Card 
-            className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer !bg-white dark:!bg-white relative z-10" 
+          <Card
+            className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer !bg-white dark:!bg-white relative z-10 shadow-lg"
             data-card="blog-card"
-            style={{ 
-              backgroundColor: 'white !important', 
-              borderColor: 'rgb(229 231 235) !important',
-              color: 'rgb(3 7 18) !important'
+            style={{
+              backgroundColor: "white !important",
+              border: "2px solid rgb(209 213 219) !important",
+              color: "rgb(3 7 18) !important",
             }}
           >
             {post.eyecatch && (
               <div
-                className="relative aspect-video overflow-hidden rounded-t-lg cursor-pointer"
+                className="relative aspect-video overflow-hidden cursor-pointer"
                 onClick={handleMobileImageClick}
               >
                 <Image
