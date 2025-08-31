@@ -5,13 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { BlogPageClient } from "./blog-page-client";
 import { RecruitmentContent } from "./recruitment-content";
-import { type BlogPost } from "@/lib/microcms";
+import type { BlogPost, GroupInfo } from "@/lib/microcms";
 
 interface BlogTabsProps {
   initialPosts: BlogPost[];
+  groupInfo: GroupInfo;
 }
 
-export function BlogTabs({ initialPosts }: BlogTabsProps) {
+export function BlogTabs({ initialPosts, groupInfo }: BlogTabsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "blog");
@@ -48,7 +49,7 @@ export function BlogTabs({ initialPosts }: BlogTabsProps) {
               ブログ & 募集要項
             </h1>
             <p className="text-lg md:text-xl opacity-90 max-w-2xl">
-              技術的な知見やプロジェクトの学習記録、そして一緒に働く仲間の募集について
+              技術的な知見やプロジェクトの学習記録、そして一緒に音楽を奏でる仲間の募集について
             </p>
           </div>
         </div>
@@ -85,7 +86,7 @@ export function BlogTabs({ initialPosts }: BlogTabsProps) {
       {/* タブコンテンツ */}
       <section className="flex-1">
         {activeTab === "blog" && <BlogPageClient initialPosts={initialPosts} hideHeader />}
-        {activeTab === "recruitment" && <RecruitmentContent />}
+        {activeTab === "recruitment" && <RecruitmentContent groupInfo={groupInfo} />}
       </section>
     </div>
   );
