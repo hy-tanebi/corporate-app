@@ -6,7 +6,11 @@ import { Music, Mail } from "lucide-react";
 import Image from "next/image";
 import { RecruitmentCalendar } from "./recruitment-calendar";
 import { ImageModal } from "@/components/ui/image-modal";
+import { ApplicationForm } from "./application-form";
+import { createApplication } from "@/app/actions/application";
 import type { GroupInfo } from "@/lib/microcms";
+import type { CreateApplicationData } from "@/lib/types/application";
+import { toast } from "sonner";
 
 interface RecruitmentContentProps {
   groupInfo: GroupInfo;
@@ -25,6 +29,21 @@ export function RecruitmentContent({ groupInfo }: RecruitmentContentProps) {
 
   const handleCloseModal = () => {
     setSelectedImage(null);
+  };
+
+  const handleApplicationSubmit = async (data: CreateApplicationData) => {
+    try {
+      const result = await createApplication(data);
+      
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error("Application submission error:", error);
+      toast.error("送信中にエラーが発生しました。");
+    }
   };
   return (
     <div className="min-h-screen">
@@ -110,41 +129,31 @@ export function RecruitmentContent({ groupInfo }: RecruitmentContentProps) {
             </CardContent>
           </Card>
 
-          {/* お問い合わせ・応募方法 */}
-          <Card className="border-2 border-blue-200 dark:border-blue-800">
+          {/* お問い合わせ・応募フォーム */}
+          <ApplicationForm onSubmit={handleApplicationSubmit} />
+
+          {/* 従来のメール連絡先 */}
+          <Card className="border border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
+              <CardTitle className="text-lg flex items-center gap-2">
                 <Mail className="w-5 h-5" />
-                お問い合わせ・応募方法
+                または直接メールでお問い合わせ
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <p className="text-gray-600 dark:text-gray-400">
-                  ご興味をお持ちいただいた方は、以下のメールアドレスまでお気軽にご連絡ください。
-                  見学やお試し参加も大歓迎です。
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  フォームでの応募が難しい場合は、メールでもお気軽にご連絡ください。
                 </p>
                 
-                <div className="flex items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <Mail className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                   <a
                     href={`mailto:${groupInfo.applicationEmail}`}
-                    className="text-lg font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                    className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300 transition-colors"
                   >
                     {groupInfo.applicationEmail}
                   </a>
-                </div>
-                
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                    お問い合わせの際にお聞かせください
-                  </h4>
-                  <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                    <li>• お名前</li>
-                    <li>• 演奏経験・レベル</li>
-                    <li>• 参加可能な曜日・時間帯</li>
-                    <li>• 質問やご不明な点</li>
-                  </ul>
                 </div>
               </div>
             </CardContent>
