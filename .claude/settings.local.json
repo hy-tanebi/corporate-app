@@ -12,7 +12,13 @@
       "Bash(pkill:*)",
       "Bash(rg:*)",
       "Bash(git checkout:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull origin dev)",
+      "Bash(git merge:*)",
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm prisma generate:*)",
+      "Bash(git add:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
