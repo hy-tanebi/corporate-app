@@ -135,8 +135,8 @@ export function BlogCard({ post }: BlogCardProps) {
                 color: "rgb(3 7 18) !important",
               }}
             >
-              <div className="flex flex-col h-full p-6">
-                <div className="flex-shrink-0 mb-4">
+              <div className="flex flex-col h-full p-6 bg-white">
+                <div className="flex-shrink-0 mb-4 bg-white">
                   <h3 className="text-lg line-clamp-2 text-gray-800 dark:text-gray-800 font-semibold mb-3 leading-tight">
                     {post.title}
                   </h3>
@@ -155,13 +155,13 @@ export function BlogCard({ post }: BlogCardProps) {
                   </div>
                 </div>
 
-                <div className="flex-grow flex flex-col justify-center mb-6">
-                  <p className="text-base text-gray-700 dark:text-gray-700 leading-relaxed line-clamp-4 h-24 overflow-hidden">
+                <div className="flex-grow flex flex-col justify-center mb-6 bg-white">
+                  <p className="text-base text-gray-700 dark:text-gray-700 leading-relaxed line-clamp-4 h-24 overflow-hidden bg-white">
                     {summary}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200 dark:border-gray-300">
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200 dark:border-gray-300 bg-white">
                   {post.category && post.category.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {post.category.slice(0, 2).map((cat, index) => (
@@ -169,7 +169,7 @@ export function BlogCard({ post }: BlogCardProps) {
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-600 font-medium">
+                  <div className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-600 font-medium bg-white">
                     <Eye className="w-4 h-4" />
                     <span>続きを読む</span>
                   </div>
