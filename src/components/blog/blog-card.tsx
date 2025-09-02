@@ -126,10 +126,11 @@ export function BlogCard({ post }: BlogCardProps) {
             className="block absolute inset-0 backface-hidden rotate-y-180"
           >
             <Card
-              className="h-full bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-50 dark:to-indigo-100 cursor-pointer !bg-white dark:!bg-white relative z-10 flex flex-col"
+              className="h-full cursor-pointer !bg-white dark:!bg-white relative z-10 flex flex-col"
               data-card="blog-card"
               style={{
                 backgroundColor: "white !important",
+                backgroundImage: "none !important",
                 border: "none !important",
                 color: "rgb(3 7 18) !important",
               }}
