@@ -137,9 +137,9 @@ export function BlogSearch({
               variant="ghost"
               size="sm"
               onClick={() => handleSearchChange("")}
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 bg-white dark:bg-white hover:bg-gray-50 dark:hover:bg-gray-50"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3 w-3 text-gray-600 dark:text-gray-600" />
             </Button>
           )}
         </div>
@@ -166,7 +166,12 @@ export function BlogSearch({
 
           {/* フィルタクリアボタン */}
           {hasActiveFilters && (
-            <Button variant="outline" size="sm" onClick={clearSearch}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={clearSearch}
+              className="bg-white dark:bg-white hover:bg-gray-50 dark:hover:bg-gray-50 text-gray-600 dark:text-gray-600"
+            >
               <X className="h-4 w-4 mr-1" />
               クリア
             </Button>

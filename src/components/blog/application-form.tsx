@@ -78,7 +78,7 @@ export function ApplicationForm({ onSubmit }: ApplicationFormProps) {
   };
 
   return (
-    <Card className="border-2 border-blue-200 dark:border-blue-800">
+    <Card className="border-2 border-blue-200">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
           <Mail className="w-5 h-5" />
