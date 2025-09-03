@@ -72,6 +72,23 @@ html.dark [data-card="blog-card"] {
 	background-color: white !important;
 }
 
+/* Remove any gradient backgrounds from blog cards */
+[data-card="blog-card"],
+html.dark [data-card="blog-card"] {
+	background-image: none !important;
+}
+
+/* Force white background for all elements inside blog cards */
+[data-card="blog-card"] div,
+[data-card="blog-card"] p,
+[data-card="blog-card"] span,
+html.dark [data-card="blog-card"] div,
+html.dark [data-card="blog-card"] p,
+html.dark [data-card="blog-card"] span {
+	background-color: white !important;
+	background-image: none !important;
+}
+
 /* 3D Flip Animation Styles */
 .perspective-1000 {
 	perspective: 1000px;
