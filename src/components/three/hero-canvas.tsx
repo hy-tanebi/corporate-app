@@ -21,7 +21,18 @@ const HeroShaderMaterial = shaderMaterial(
   vertexShader,
   fragmentShader
 );
+
+// TypeScript型エラー回避のために、型拡張を行う
 extend({ HeroShaderMaterial });
+
+// TypeScriptのJSX型拡張
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      heroShaderMaterial: any;
+    }
+  }
+}
 
 // メインの3Dコンポーネント
 function HeroScene() {
@@ -73,12 +84,14 @@ function HeroScene() {
       {/* 画面全体を覆う流動的な背景 */}
       <mesh ref={backgroundMeshRef} position={[0, 0, -5]} scale={[20, 20, 1]}>
         <planeGeometry args={[1, 1, 64, 64]} />
+        {/* @ts-ignore */}
         <heroShaderMaterial ref={materialRef} transparent={true} />
       </mesh>
 
       {/* 新しい三角形のオブジェクト */}
       <mesh ref={triangleMeshRef} position={[0, 0, 0]}>
         <tetrahedronGeometry args={[2, 0]} />
+        {/* @ts-ignore */}
         <heroShaderMaterial ref={materialRef} transparent={true} />
       </mesh>
 
