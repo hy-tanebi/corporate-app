@@ -1,17 +1,17 @@
 // src/components/three/hero-canvas.tsx
-
 "use client";
 
 import { Canvas, extend, useFrame } from "@react-three/fiber";
 import { shaderMaterial } from "@react-three/drei";
 import { useRef, useMemo } from "react";
 import * as THREE from "three";
+import { StarParticles } from "./StarParticles";
+import { Suspense } from "react";
 
-// シェーダーファイルのインポート
 import vertexShader from "../../../public/shaders/top-vertex.glsl?raw";
 import fragmentShader from "../../../public/shaders/top-fragment.glsl?raw";
 
-// カスタムシェーダーマテリアルの定義と拡張
+// 元の uniform セットに戻す
 const HeroShaderMaterial = shaderMaterial(
   {
     uTime: 0,
@@ -21,27 +21,21 @@ const HeroShaderMaterial = shaderMaterial(
   vertexShader,
   fragmentShader
 );
-
-// 型定義は src/types/three.d.ts に移動
-
-// react-three/fiberに拡張を登録
 extend({ HeroShaderMaterial });
 
-// メインの3Dコンポーネント
 function HeroScene() {
-  const triangleMeshRef = useRef<any>(null);
+  const triangleMeshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<any>(null);
-  const edgesRef = useRef<any>(null);
+  const starGroupRef = useRef<THREE.Group>(null);
+  const lineSegmentsRef = useRef<THREE.LineSegments>(null);
 
-  // useMemoを使ってジオメトリを再計算しないようにする
+  // 元のライン用ジオメトリ（detail=0）
   const lineGeometry = useMemo(() => {
     const geometry = new THREE.TetrahedronGeometry(2, 0);
-    const position = geometry.attributes.position;
-    const colors = [];
+    const position = geometry.attributes.position as THREE.BufferAttribute;
+    const colors: number[] = [];
     const color = new THREE.Color();
-
     for (let i = 0; i < position.count; i++) {
-      // 頂点のY座標に基づいて色相を計算
       const hue = position.getY(i) / 2 + 0.5;
       color.setHSL(hue, 1.0, 0.5);
       colors.push(color.r, color.g, color.b);
@@ -50,40 +44,59 @@ function HeroScene() {
     return geometry;
   }, []);
 
+  const lineSegments = useMemo(() => {
+    return new THREE.LineSegments(
+      lineGeometry,
+      new THREE.LineBasicMaterial({ vertexColors: true })
+    );
+  }, [lineGeometry]);
+
   useFrame((state, delta) => {
     const mouse = state.mouse;
 
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value += delta;
+      // 元の実装どおり、-1〜1のNDCをそのまま渡す
       materialRef.current.uniforms.uMouse.value = [mouse.x, mouse.y];
+      // 解像度も渡すなら（任意）
+      materialRef.current.uniforms.uResolution.value = [
+        state.size.width,
+        state.size.height,
+      ];
     }
 
-    // 三角形の回転アニメーション
     if (triangleMeshRef.current) {
       triangleMeshRef.current.rotation.x += delta * 0.5;
       triangleMeshRef.current.rotation.y += delta * 0.5;
     }
-
-    // 線を回転させる
-    if (edgesRef.current) {
-      edgesRef.current.rotation.x += delta * 0.5;
-      edgesRef.current.rotation.y += delta * 0.5;
+    if (lineSegmentsRef.current) {
+      lineSegmentsRef.current.rotation.x += delta * 0.5;
+      lineSegmentsRef.current.rotation.y += delta * 0.5;
+    }
+    if (starGroupRef.current) {
+      starGroupRef.current.rotation.y += 0.0005;
     }
   });
 
   return (
     <>
-      {/* 新しい三角形のオブジェクト */}
-      <mesh ref={triangleMeshRef} position={[0, 0, 0]}>
-        <tetrahedronGeometry args={[2, 0]} />
-        <heroShaderMaterial ref={materialRef} transparent={true} />
-      </mesh>
+      <group ref={starGroupRef}>
+        <Suspense fallback={null}>
+          <StarParticles selfRotate={false} position={[0, 0, -10]} />
+        </Suspense>
 
-      {/* 輪郭をレインボーカラーで描画 */}
-      <lineSegments ref={edgesRef} position={[0, 0, 0]}>
-        <primitive object={lineGeometry} attach="geometry" />
-        <lineBasicMaterial vertexColors={true} />
-      </lineSegments>
+        <mesh ref={triangleMeshRef} position={[0, 0, 0]} renderOrder={0}>
+          <tetrahedronGeometry args={[2, 0]} />
+          <heroShaderMaterial ref={materialRef} transparent={false} />
+        </mesh>
+      </group>
+
+      <primitive
+        ref={lineSegmentsRef}
+        object={lineSegments}
+        position={[0, 0, 0]}
+        renderOrder={1}
+      />
     </>
   );
 }
@@ -100,7 +113,9 @@ export default function HeroCanvas() {
         height: "100vh",
         zIndex: -1,
       }}
+      gl={{ antialias: true, alpha: false }}
     >
+      <color attach="background" args={["black"]} />
       <HeroScene />
     </Canvas>
   );

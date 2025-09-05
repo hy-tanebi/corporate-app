@@ -1,14 +1,14 @@
-import { Object3DNode } from '@react-three/fiber';
-import * as THREE from 'three';
+// src/types/three.d.ts
+import type { Object3DNode } from "@react-three/fiber";
+import * as THREE from "three";
 
-// HeroShaderMaterial クラスの型定義
 declare class HeroShaderMaterial extends THREE.ShaderMaterial {
+  // 型は「uniforms を直参照しない」シンプル版でOK
   uTime: number;
   uMouse: [number, number];
   uResolution: [number, number];
 }
 
-// react-three/fiber の型拡張
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -17,8 +17,10 @@ declare global {
   }
 }
 
-declare module '@react-three/fiber' {
+declare module "@react-three/fiber" {
   interface ThreeElements {
     heroShaderMaterial: Object3DNode<HeroShaderMaterial, typeof HeroShaderMaterial>;
   }
 }
+
+export {};
