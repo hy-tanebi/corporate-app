@@ -29,7 +29,6 @@ extend({ HeroShaderMaterial });
 
 // メインの3Dコンポーネント
 function HeroScene() {
-  const backgroundMeshRef = useRef<any>(null);
   const triangleMeshRef = useRef<any>(null);
   const materialRef = useRef<any>(null);
   const edgesRef = useRef<any>(null);
@@ -74,12 +73,6 @@ function HeroScene() {
 
   return (
     <>
-      {/* 画面全体を覆う流動的な背景 */}
-      <mesh ref={backgroundMeshRef} position={[0, 0, -5]} scale={[20, 20, 1]}>
-        <planeGeometry args={[1, 1, 64, 64]} />
-        <heroShaderMaterial ref={materialRef} transparent={true} />
-      </mesh>
-
       {/* 新しい三角形のオブジェクト */}
       <mesh ref={triangleMeshRef} position={[0, 0, 0]}>
         <tetrahedronGeometry args={[2, 0]} />
