@@ -3,9 +3,28 @@
 "use client";
 
 import { useRef, useMemo } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree, extend } from "@react-three/fiber";
 import * as THREE from "three";
 import { useLoader } from "@react-three/fiber";
+import { shaderMaterial } from "@react-three/drei";
+
+// 新しいシェーダーをインポート
+import starVertexShader from "../../../public/shaders/star-vertex.glsl?raw";
+import starFragmentShader from "../../../public/shaders/star-fragment.glsl?raw";
+
+// カスタムシェーダーマテリアルの定義
+const StarShaderMaterial = shaderMaterial(
+  {
+    uTime: 0,
+    uMouse: new THREE.Vector2(),
+    uTexture: new THREE.Texture(),
+    uSize: 0.5,
+  },
+  starVertexShader,
+  starFragmentShader
+);
+// Three.jsに拡張を登録
+extend({ StarShaderMaterial });
 
 type Props = {
   /** 親から自転を制御したくない場合は true */
@@ -21,8 +40,9 @@ export function StarParticles({
   position = [0, 0, 0],
   renderOrder = 10,
 }: Props) {
-  // THREE.Points 型で ref を明示的に型付け
   const mesh = useRef<THREE.Points>(null);
+  const materialRef = useRef<any>(null); // materialRefを追加
+  const { mouse } = useThree();
 
   const particleTexture = useLoader(
     THREE.TextureLoader,
@@ -57,26 +77,30 @@ export function StarParticles({
     return geometry;
   }, []);
 
-  useFrame(() => {
+  useFrame((state, delta) => {
     if (selfRotate && mesh.current) {
       mesh.current.rotation.y += 0.0005;
+    }
+
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value += delta;
+      materialRef.current.uniforms.uMouse.value.x = mouse.x;
+      materialRef.current.uniforms.uMouse.value.y = mouse.y;
     }
   });
 
   return (
     <points ref={mesh} position={position} renderOrder={renderOrder}>
       <bufferGeometry attach="geometry" {...particles} />
-      <pointsMaterial
-        attach="material"
-        size={0.5}
-        vertexColors
+      <starShaderMaterial
+        ref={materialRef}
+        // ---- uniforms ----
+        uTexture={particleTexture}
+        uSize={0.5}
+        // ---- material props ----
         transparent
-        sizeAttenuation
-        map={particleTexture}
-        alphaTest={0.05}
-        depthWrite={false}
-        depthTest
         blending={THREE.AdditiveBlending}
+        depthWrite={false}
       />
     </points>
   );
