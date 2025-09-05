@@ -52,13 +52,10 @@ function HeroScene() {
   }, [lineGeometry]);
 
   useFrame((state, delta) => {
-    const mouse = state.mouse;
-
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value += delta;
-      // 元の実装どおり、-1〜1のNDCをそのまま渡す
-      materialRef.current.uniforms.uMouse.value = [mouse.x, mouse.y];
-      // 解像度も渡すなら（任意）
+      // マウスオーバー効果を無効化：固定値を設定
+      materialRef.current.uniforms.uMouse.value = [0, 0];
       materialRef.current.uniforms.uResolution.value = [
         state.size.width,
         state.size.height,

@@ -3,10 +3,9 @@
 "use client";
 
 import { useRef, useMemo } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree, extend } from "@react-three/fiber";
 import * as THREE from "three";
 import { useLoader } from "@react-three/fiber";
-
 type Props = {
   /** 親から自転を制御したくない場合は true */
   selfRotate?: boolean;
@@ -21,8 +20,8 @@ export function StarParticles({
   position = [0, 0, 0],
   renderOrder = 10,
 }: Props) {
-  // THREE.Points 型で ref を明示的に型付け
   const mesh = useRef<THREE.Points>(null);
+  const { mouse } = useThree();
 
   const particleTexture = useLoader(
     THREE.TextureLoader,
@@ -34,7 +33,6 @@ export function StarParticles({
   particleTexture.wrapS = THREE.ClampToEdgeWrapping;
   particleTexture.wrapT = THREE.ClampToEdgeWrapping;
   particleTexture.premultiplyAlpha = true;
-
   const particles = useMemo(() => {
     const count = 5000;
     const positions = new Float32Array(count * 3);
