@@ -9,9 +9,11 @@ attribute vec3 color;
 
 varying vec3 vColor;
 varying float vDistance;
+varying vec3 vPosition;
 
 void main() {
     vColor = color;
+    vPosition = position; // フラグメントシェーダーで使用するため
 
     // カメラ座標系へ
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
