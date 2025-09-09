@@ -25,7 +25,6 @@ const StarShaderMaterial = shaderMaterial(
 );
 // Three.jsに拡張を登録
 extend({ StarShaderMaterial });
-
 type Props = {
   /** 親から自転を制御したくない場合は true */
   selfRotate?: boolean;
@@ -54,7 +53,6 @@ export function StarParticles({
   particleTexture.wrapS = THREE.ClampToEdgeWrapping;
   particleTexture.wrapT = THREE.ClampToEdgeWrapping;
   particleTexture.premultiplyAlpha = true;
-
   const particles = useMemo(() => {
     const count = 5000;
     const positions = new Float32Array(count * 3);
@@ -91,7 +89,8 @@ export function StarParticles({
 
   return (
     <points ref={mesh} position={position} renderOrder={renderOrder}>
-      <bufferGeometry attach="geometry" {...particles} />
+      <primitive object={particles} />
+      {/* @ts-ignore */}
       <starShaderMaterial
         ref={materialRef}
         // ---- uniforms ----

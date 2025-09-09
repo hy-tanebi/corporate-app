@@ -59,6 +59,8 @@ function HeroScene() {
     const offset = scroll.offset;
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value += delta;
+      // マウスオーバー効果を無効化：固定値を設定
+      materialRef.current.uniforms.uMouse.value = [0, 0];
       materialRef.current.uniforms.uResolution.value = [
         state.size.width,
         state.size.height,
