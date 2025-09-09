@@ -2,6 +2,7 @@
 
 "use client";
 
+import { ReactNode } from "react";
 import dynamic from "next/dynamic";
 
 const HeroCanvas = dynamic(
@@ -17,6 +18,10 @@ const HeroCanvas = dynamic(
   }
 );
 
-export default function HeroCanvasClient() {
-  return <HeroCanvas />;
+interface HeroCanvasClientProps {
+  children: ReactNode;
+}
+
+export default function HeroCanvasClient({ children }: HeroCanvasClientProps) {
+  return <HeroCanvas>{children}</HeroCanvas>;
 }

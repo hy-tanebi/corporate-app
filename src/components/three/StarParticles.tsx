@@ -6,6 +6,25 @@ import { useRef, useMemo } from "react";
 import { useFrame, useThree, extend } from "@react-three/fiber";
 import * as THREE from "three";
 import { useLoader } from "@react-three/fiber";
+import { shaderMaterial } from "@react-three/drei";
+
+// 新しいシェーダーをインポート
+import starVertexShader from "../../../public/shaders/star-vertex.glsl?raw";
+import starFragmentShader from "../../../public/shaders/star-fragment.glsl?raw";
+
+// カスタムシェーダーマテリアルの定義
+const StarShaderMaterial = shaderMaterial(
+  {
+    uTime: 0,
+    uMouse: new THREE.Vector2(),
+    uTexture: new THREE.Texture(),
+    uSize: 0.5,
+  },
+  starVertexShader,
+  starFragmentShader
+);
+// Three.jsに拡張を登録
+extend({ StarShaderMaterial });
 type Props = {
   /** 親から自転を制御したくない場合は true */
   selfRotate?: boolean;
@@ -21,7 +40,8 @@ export function StarParticles({
   renderOrder = 10,
 }: Props) {
   const mesh = useRef<THREE.Points>(null);
-  const { mouse } = useThree();
+  const materialRef = useRef<any>(null); // materialRefを追加
+  const { pointer } = useThree();
 
   const particleTexture = useLoader(
     THREE.TextureLoader,
@@ -55,26 +75,31 @@ export function StarParticles({
     return geometry;
   }, []);
 
-  useFrame(() => {
+  useFrame((_state, delta) => {
     if (selfRotate && mesh.current) {
       mesh.current.rotation.y += 0.0005;
+    }
+
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value += delta;
+      materialRef.current.uniforms.uMouse.value.x = pointer.x;
+      materialRef.current.uniforms.uMouse.value.y = pointer.y;
     }
   });
 
   return (
     <points ref={mesh} position={position} renderOrder={renderOrder}>
-      <bufferGeometry attach="geometry" {...particles} />
-      <pointsMaterial
-        attach="material"
-        size={0.5}
-        vertexColors
+      <primitive object={particles} />
+      {/* @ts-ignore */}
+      <starShaderMaterial
+        ref={materialRef}
+        // ---- uniforms ----
+        uTexture={particleTexture}
+        uSize={0.5}
+        // ---- material props ----
         transparent
-        sizeAttenuation
-        map={particleTexture}
-        alphaTest={0.05}
-        depthWrite={false}
-        depthTest
         blending={THREE.AdditiveBlending}
+        depthWrite={false}
       />
     </points>
   );
