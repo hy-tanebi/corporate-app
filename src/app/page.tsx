@@ -1,16 +1,12 @@
 // src/app/page.tsx
 
-"use client";
-
 import Link from "next/link";
-// 'HeroCanvasClient' を 'HeroCanvas' に名前を合わせるか、
-// 下のインポートパスを実際のファイル名に合わせてください。
-import HeroCanvas from "@/components/three/hero-canvas"; // パスを修正
+import HeroCanvasClient from "@/app/components/HeroCanvasClient";
 
 export default function Home() {
   return (
-    // HeroCanvasが全画面表示を管理するので、単純に呼び出すだけでOK
-    <HeroCanvas>
+    // HeroCanvasClientが全画面表示を管理するので、単純に呼び出すだけでOK
+    <HeroCanvasClient>
       {/* ===== ここから下が children として HeroCanvas に渡されます ===== */}
 
       {/* --- 1ページ目のコンテンツ --- */}
@@ -47,6 +43,6 @@ export default function Home() {
       </div>
 
       {/* ===== ここまでが children ===== */}
-    </HeroCanvas>
+    </HeroCanvasClient>
   );
 }

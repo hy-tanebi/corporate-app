@@ -41,7 +41,7 @@ export function StarParticles({
 }: Props) {
   const mesh = useRef<THREE.Points>(null);
   const materialRef = useRef<any>(null); // materialRefを追加
-  const { mouse } = useThree();
+  const { pointer } = useThree();
 
   const particleTexture = useLoader(
     THREE.TextureLoader,
@@ -75,15 +75,15 @@ export function StarParticles({
     return geometry;
   }, []);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (selfRotate && mesh.current) {
       mesh.current.rotation.y += 0.0005;
     }
 
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value += delta;
-      materialRef.current.uniforms.uMouse.value.x = mouse.x;
-      materialRef.current.uniforms.uMouse.value.y = mouse.y;
+      materialRef.current.uniforms.uMouse.value.x = pointer.x;
+      materialRef.current.uniforms.uMouse.value.y = pointer.y;
     }
   });
 

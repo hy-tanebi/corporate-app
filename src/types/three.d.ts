@@ -36,4 +36,3 @@ declare module "@react-three/fiber" {
   }
 }
 
-export {};
