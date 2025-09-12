@@ -25,8 +25,6 @@ export default function Home() {
   const h1Opacity = Math.max(0, Math.min(1, (scrollProgress - 0.25) * 4));
   // ブログボタンの表示タイミング（第2段階: 25-50%、少し遅らせる）
   const buttonOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.3) * 4));
-
-
   return (
     // HeroCanvasClientが全画面表示を管理するので、単純に呼び出すだけでOK
     <HeroCanvasClient>
@@ -61,10 +59,9 @@ export default function Home() {
         </Link>
       </div>
 
-
       {/* スクロール可能なコンテンツエリア（透明） */}
-      <div className="w-full" style={{ height: "100vh" }}>
-        {/* 最後の段階用の空間 */}
+      <div className="w-full" style={{ height: "300vh" }}>
+        {/* 空のコンテンツでスクロールを可能にする */}
       </div>
 
       {/* ===== ここまでが children ===== */}

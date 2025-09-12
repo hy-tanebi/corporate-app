@@ -18,10 +18,19 @@ import VideoCard3D from "./VideoCard3D";
 import vertexShader from "../../../public/shaders/top-vertex.glsl?raw";
 import fragmentShader from "../../../public/shaders/top-fragment.glsl?raw";
 
-// ===== 引き具合（相対関係を保ったまま全体を縮尺） =====
+// ===== 全体スケール =====
 const SCENE_SCALE = 0.8;
 
-// HeroShaderMaterial
+// ===== パラメータ =====
+const GAP_TURNS = 0.15; // 出現→消失のギャップ（回転回数）
+const FADE_FRAC = 0.7; // フェード割合（各スロット内 0..1）
+const TAU = Math.PI * 2;
+
+const THIRD_PHASE_START = 0.5;
+const THIRD_PHASE_END = 0.75;
+const VIDEO_START_PROGRESS = 0.57; // 表示開始
+
+// ===== シェーダ =====
 const HeroShaderMaterial = shaderMaterial(
   { uTime: 0, uMouse: [0, 0], uResolution: [0, 0] },
   vertexShader,
@@ -29,32 +38,31 @@ const HeroShaderMaterial = shaderMaterial(
 );
 extend({ HeroShaderMaterial });
 
-// 動画データ
+// ===== 動画データ =====
 const videoSlides = [
   {
     id: "slide-1",
     mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
     title: "プロジェクト 1",
-    description: "スクロール同期による動画体験の実装デモンストレーション。",
+    description: "",
   },
   {
     id: "slide-2",
     mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
     title: "プロジェクト 2",
-    description:
-      "レスポンシブデザインとアクセシビリティを重視した動画プレイヤー。",
+    description: "",
   },
   {
     id: "slide-3",
     mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     title: "プロジェクト 3",
-    description: "パフォーマンス最適化された動画配信システム。",
+    description: "",
   },
   {
     id: "slide-4",
     mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
     title: "プロジェクト 4",
-    description: "インタラクティブな動画体験プラットフォーム。",
+    description: "",
   },
 ];
 
@@ -66,27 +74,41 @@ function HeroScene({ scrollProgress }: { scrollProgress: number }) {
   const videoCardsRef = useRef<THREE.Group>(null);
   const rootRef = useRef<THREE.Group>(null);
 
-  // ===== 回転シーケンスのための角度レイアウト =====
-  const TAU = Math.PI * 2;
-  const baseAngle = -Math.PI / 2; // 左(-90°)基準
+  // ===== レイアウト（ゲートは左：-90°、右回転順）=====
+  const gateAngle = -Math.PI / 2;
   const radius = 4;
 
-  // 「左回転」がスクロールで進む前提（rotation.y が + 方向）
-  // 表示も消えるのも「右回転順」にしたいので、角度昇順（左回転順）の配列を逆順に使う
   const layout = useMemo(() => {
     const n = videoSlides.length;
-    const items = Array.from({ length: n }, (_, index) => {
-      const angle = baseAngle + (index / n) * TAU;
+    const slotStep = TAU / n;
+    const items = Array.from({ length: n }, (_, i) => {
+      const angle = gateAngle - (i / n) * TAU; // 右回転順
       const x = Math.sin(angle) * radius;
-      const z = Math.cos(angle) * radius - 2; // 三角形より奥へ
-      return { index, angle, x, z };
+      const z = Math.cos(angle) * radius;
+      return { index: i, angle, x, z, rank: i };
     });
-    const itemsForward = [...items].sort((a, b) => a.angle - b.angle); // 左回転方向
-    const itemsReverse = [...itemsForward].reverse(); // 右回転方向（= 表示/消去の順）
-    const rankReverse = new Map<number, number>(); // 右回転順のランク
-    itemsReverse.forEach((it, rank) => rankReverse.set(it.index, rank));
-    return { n, items: itemsForward, itemsReverse, rankReverse };
+    return { n, items, slotStep };
   }, []);
+
+  // ===== 表示開始時の thirdPhase と角度オフセット =====
+  const thirdPhaseAtStart =
+    (VIDEO_START_PROGRESS - THIRD_PHASE_START) /
+    (THIRD_PHASE_END - THIRD_PHASE_START); // 例: 0.28
+  const availablePhase = Math.max(0, 1 - thirdPhaseAtStart); // 例: 0.72
+
+  // ===== 退場完了まで“必要な回転数”を算出し、表示時間尺に合わせて自動調整 =====
+  const requiredTurns = useMemo(() => {
+    const { n } = layout;
+    // 出現1回転 + ギャップ + 最後のカードが消え切るまでの分
+    const fadeTurnsLast = (n - 1 + FADE_FRAC) / n; // 例: n=4, 0.925
+    return 1 + GAP_TURNS + fadeTurnsLast; // 例: 2.075
+  }, [layout]);
+
+  const ROT_TURNS = useMemo(() => {
+    // 表示開始後に使える進捗幅(=availablePhase)だけで requiredTurns を消化する
+    // ほんの少し余裕(5%)を持たせる
+    return (requiredTurns / Math.max(0.0001, availablePhase)) * 1.05;
+  }, [requiredTurns, availablePhase]);
 
   const smooth01 = (x: number) => {
     const t = THREE.MathUtils.clamp(x, 0, 1);
@@ -126,86 +148,154 @@ function HeroScene({ scrollProgress }: { scrollProgress: number }) {
         state.size.height,
       ];
     }
-
     if (rootRef.current) {
       rootRef.current.scale.set(SCENE_SCALE, SCENE_SCALE, SCENE_SCALE);
     }
 
-    // 三角形の回転・スケール
+    // 三角形演出
     if (triangleGroupRef.current) {
       triangleGroupRef.current.rotation.x += delta * 0.1;
       triangleGroupRef.current.rotation.y += delta * 0.2;
 
-      const thirdPhaseStart = 0.5;
-      const scaleTransitionEnd = 0.55;
-      if (scrollProgress < thirdPhaseStart) {
+      if (scrollProgress < THIRD_PHASE_START) {
         triangleGroupRef.current.scale.set(1, 1, 1);
-      } else if (scrollProgress <= scaleTransitionEnd) {
-        const transitionProgress =
-          (scrollProgress - thirdPhaseStart) /
-          (scaleTransitionEnd - thirdPhaseStart);
-        const scale = 1.0 - transitionProgress * 0.3;
-        triangleGroupRef.current.scale.set(scale, scale, scale);
+      } else if (scrollProgress <= 0.55) {
+        const t =
+          (scrollProgress - THIRD_PHASE_START) / (0.55 - THIRD_PHASE_START);
+        const s = 1.0 - t * 0.3;
+        triangleGroupRef.current.scale.set(s, s, s);
       } else {
         triangleGroupRef.current.scale.set(0.7, 0.7, 0.7);
       }
     }
 
-    // 第3段階：動画カード群の回転（左回転）
+    // カード群の回転（左回転）
     if (videoCardsRef.current) {
-      const thirdPhaseStart = 0.5;
-      const thirdPhaseEnd = 0.75;
       const thirdPhase = THREE.MathUtils.clamp(
-        (scrollProgress - thirdPhaseStart) / (thirdPhaseEnd - thirdPhaseStart),
+        (scrollProgress - THIRD_PHASE_START) /
+          (THIRD_PHASE_END - THIRD_PHASE_START),
         0,
         1
       );
-      const videoStartProgress = 0.57;
-      if (scrollProgress >= videoStartProgress) {
-        // 回転量は必要に応じて係数を小さくしてOK
-        videoCardsRef.current.rotation.y = thirdPhase * Math.PI;
+      if (scrollProgress >= VIDEO_START_PROGRESS) {
+        const thetaRaw = thirdPhase * TAU * ROT_TURNS;
+        videoCardsRef.current.rotation.y = thetaRaw;
         videoCardsRef.current.visible = true;
       } else {
         videoCardsRef.current.visible = false;
       }
     }
 
-    // 第4段階：黒円の拡大
+    // 黒円の拡大：★ 全カード消滅後のみ
     if (circleRef.current) {
-      const thirdPhaseStart = 0.5;
-      const thirdPhaseEnd = 0.75;
       const thirdPhase = THREE.MathUtils.clamp(
-        (scrollProgress - thirdPhaseStart) / (thirdPhaseEnd - thirdPhaseStart),
+        (scrollProgress - THIRD_PHASE_START) /
+          (THIRD_PHASE_END - THIRD_PHASE_START),
         0,
         1
       );
-      const allCardsFaded = thirdPhase >= 0.9;
+      const thetaRaw = thirdPhase * TAU * ROT_TURNS;
+      const thetaStart = thirdPhaseAtStart * TAU * ROT_TURNS;
+      const thetaRel = Math.max(0, thetaRaw - thetaStart);
 
-      const fourthPhaseStart = 0.75;
-      const fourthPhase = Math.max(
-        (scrollProgress - fourthPhaseStart) / (1 - fourthPhaseStart),
-        0
-      );
+      // 全カード消滅が完了する角度
+      const fadeAllDoneTheta = requiredTurns * TAU;
 
-      if (allCardsFaded && scrollProgress >= fourthPhaseStart) {
-        const scale = 15 * fourthPhase;
-        circleRef.current.scale.set(scale, scale, 1);
+      if (thetaRel >= fadeAllDoneTheta) {
+        // 好みで拡大スピードを thirdPhase 連動に（または thetaRel ベースでもOK）
+        const t = THREE.MathUtils.clamp(
+          (thetaRel - fadeAllDoneTheta) / (TAU * 0.2),
+          0,
+          1
+        ); // 0.2周で最大まで
+        const s = 15 * t;
+        circleRef.current.scale.set(s, s, 1);
       } else {
         circleRef.current.scale.set(0, 0, 1);
       }
     }
 
-    // 星の回転
     if (starGroupRef.current) {
       starGroupRef.current.rotation.y += 0.0005;
     }
   });
 
+  // ====== 描画（ステートレス） ======
+  const renderCards = () => {
+    const thirdPhase = THREE.MathUtils.clamp(
+      (scrollProgress - THIRD_PHASE_START) /
+        (THIRD_PHASE_END - THIRD_PHASE_START),
+      0,
+      1
+    );
+    const thetaRaw = thirdPhase * TAU * ROT_TURNS;
+
+    // 表示開始を0起点に
+    const thetaStart = thirdPhaseAtStart * TAU * ROT_TURNS;
+    const thetaRel = Math.max(0, thetaRaw - thetaStart);
+
+    const { slotStep } = layout;
+
+    // フェーズ境界
+    const appearStart = 0;
+    const appearEnd = TAU;
+    const holdEnd = TAU * (1 + GAP_TURNS);
+    const fadeEnd = requiredTurns * TAU; // = 1周 + ギャップ + 最後のカードの消失完了
+
+    return layout.items.map(({ index, angle, x, z, rank }) => {
+      // rankごとのトリガ角
+      const appearAt = rank * slotStep;
+      const fadeInEnd = appearAt + slotStep * FADE_FRAC;
+
+      const fadeStartAt = TAU * (1 + GAP_TURNS) + rank * slotStep;
+      const fadeOutEnd = fadeStartAt + slotStep * FADE_FRAC;
+
+      let opacity = 0;
+
+      // A) 出現（0..TAU）
+      if (thetaRel >= appearStart && thetaRel < appearEnd) {
+        if (thetaRel < appearAt) opacity = 0;
+        else if (thetaRel < fadeInEnd) {
+          const k = (thetaRel - appearAt) / (slotStep * FADE_FRAC);
+          opacity = smooth01(THREE.MathUtils.clamp(k, 0, 1));
+        } else {
+          opacity = 1;
+        }
+      }
+      // B) 保持（TAU..TAU*(1+GAP_TURNS)）
+      else if (thetaRel >= appearEnd && thetaRel < holdEnd) {
+        opacity = 1;
+      }
+      // C) 退場（TAU*(1+GAP_TURNS)..fadeEnd）
+      else if (thetaRel >= holdEnd && thetaRel < fadeEnd) {
+        if (thetaRel < fadeStartAt) opacity = 1;
+        else if (thetaRel < fadeOutEnd) {
+          const k = (thetaRel - fadeStartAt) / (slotStep * FADE_FRAC);
+          opacity = 1 - smooth01(THREE.MathUtils.clamp(k, 0, 1));
+        } else opacity = 0;
+      }
+      // D) それ以降は 0
+      else opacity = 0;
+
+      return (
+        <VideoCard3D
+          key={videoSlides[index].id}
+          videoSrc={videoSlides[index].mp4}
+          title={videoSlides[index].title}
+          position={[x, 0, z]}
+          rotation={[0, angle + Math.PI, 0]}
+          isActive={opacity > 0.05}
+          progress={thirdPhase}
+          scale={1}
+          opacity={opacity}
+        />
+      );
+    });
+  };
+
   return (
     <>
       <color attach="background" args={["black"]} />
-
-      {/* ルート：一括スケール */}
       <group ref={rootRef}>
         <group ref={starGroupRef}>
           <Suspense fallback={null}>
@@ -221,87 +311,9 @@ function HeroScene({ scrollProgress }: { scrollProgress: number }) {
           <primitive object={lineSegments} renderOrder={11} />
         </group>
 
-        {/* 動画カード群：表示も消えるのも「右回転順」で“常に1枚ずつ” */}
-        <group ref={videoCardsRef} renderOrder={5}>
-          <Suspense fallback={null}>
-            {layout.items.map(({ index, angle, x, z }) => {
-              // 進行度
-              const thirdPhaseStart = 0.5;
-              const thirdPhaseEnd = 0.75;
-              const videoStartProgress = 0.57;
-
-              // videoStart からの 0..1
-              const tLocal = THREE.MathUtils.clamp(
-                (scrollProgress - videoStartProgress) /
-                  (thirdPhaseEnd - videoStartProgress),
-                0,
-                1
-              );
-
-              const n = layout.n;
-              const appearRank = layout.rankReverse.get(index)!; // 右回転順（登場・退場ともこの順）
-              const appearSpan = 0.5; // 前半: 登場
-              const fadeSpan = 0.5; // 後半: 退場
-              const perAppear = appearSpan / n;
-              const perFade = fadeSpan / n;
-              const fadeFrac = 0.8; // フェードに使う割合
-
-              let opacity = 0;
-
-              if (tLocal <= 0) {
-                opacity = 0;
-              } else if (tLocal < appearSpan) {
-                // === 登場（右回転順）：常に1枚だけフェード中 ===
-                let idx = Math.floor(tLocal / perAppear);
-                idx = Math.min(idx, n - 1); // 端数安全
-                const slotT = (tLocal - idx * perAppear) / perAppear; // 0..1
-
-                if (appearRank < idx) {
-                  opacity = 1; // 既に出終わった
-                } else if (appearRank === idx) {
-                  opacity = smooth01(slotT / fadeFrac); // 今フェードイン中の1枚
-                } else {
-                  opacity = 0; // まだ
-                }
-              } else {
-                // === 退場（右回転順）：常に1枚だけフェード中 ===
-                const tf = (tLocal - appearSpan) / fadeSpan; // 0..1
-                let idx = Math.floor(tf / perFade);
-                idx = Math.min(idx, n - 1);
-                const slotT = (tf - idx * perFade) / perFade; // 0..1
-
-                if (appearRank < idx) {
-                  opacity = 0; // 既に消えた
-                } else if (appearRank === idx) {
-                  opacity = 1 - smooth01(slotT / fadeFrac); // 今フェードアウト中の1枚
-                } else {
-                  opacity = 1; // まだ残る
-                }
-              }
-
-              // VideoCard3D 内の演出用（必要なら）
-              const thirdPhase = THREE.MathUtils.clamp(
-                (scrollProgress - thirdPhaseStart) /
-                  (thirdPhaseEnd - thirdPhaseStart),
-                0,
-                1
-              );
-
-              return (
-                <VideoCard3D
-                  key={videoSlides[index].id}
-                  videoSrc={videoSlides[index].mp4}
-                  title={videoSlides[index].title}
-                  position={[x, 0, z]}
-                  rotation={[0, angle + Math.PI, 0]}
-                  isActive={opacity > 0.05}
-                  progress={opacity > 0.05 ? thirdPhase : 0}
-                  scale={1}
-                  opacity={opacity}
-                />
-              );
-            })}
-          </Suspense>
+        {/* ▼ カード群（回転中心合わせのため z=-2） */}
+        <group ref={videoCardsRef} renderOrder={5} position={[0, 0, -2]}>
+          <Suspense fallback={null}>{renderCards()}</Suspense>
         </group>
 
         <mesh ref={circleRef} position={[0, 0, 0.1]} renderOrder={4}>
@@ -313,7 +325,7 @@ function HeroScene({ scrollProgress }: { scrollProgress: number }) {
   );
 }
 
-// HeroCanvas
+// ===== HeroCanvas =====
 const HeroCanvas = ({ children }: { children: ReactNode }) => {
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -323,7 +335,7 @@ const HeroCanvas = ({ children }: { children: ReactNode }) => {
       const docHeight =
         document.documentElement.scrollHeight - window.innerHeight;
       const scrolled = scrollTop / docHeight;
-      setScrollProgress(Math.min(scrolled, 1));
+      setScrollProgress(Math.min(Math.max(scrolled, 0), 1));
     };
 
     window.addEventListener("scroll", handleScroll);
