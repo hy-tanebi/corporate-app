@@ -20,7 +20,8 @@
       "Bash(pnpm prisma generate:*)",
       "Bash(git add:*)",
       "Bash(rm:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "mcp__ide__getDiagnostics"
     ]
   },
   "enableAllProjectMcpServers": true,
