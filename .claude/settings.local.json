@@ -19,7 +19,8 @@
       "Bash(pnpm dlx:*)",
       "Bash(pnpm prisma generate:*)",
       "Bash(git add:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git push:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
