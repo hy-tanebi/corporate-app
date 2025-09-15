@@ -524,6 +524,7 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
           <Suspense fallback={null}>{renderCards()}</Suspense>
         </group>
 
+
         {/* 黒円（三角形が戻った後に開始） */}
         <mesh
           ref={circleRef}
