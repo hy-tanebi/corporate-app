@@ -98,32 +98,40 @@ const FeatherCircleMaterial = shaderMaterial(
   `
 );
 
-// ===== 動画データ =====
-const videoSlides = [
+// ===== デフォルトの動画データ =====
+const defaultVideoSlides = [
   {
-    id: "slide-1",
+    id: "fallback-1",
+    title: "サンプル プロジェクト 1",
+    mediaType: 'video' as const,
     mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    title: "プロジェクト 1",
+    imageSrc: undefined,
     description: "",
   },
   {
-    id: "slide-2",
+    id: "fallback-2", 
+    title: "サンプル プロジェクト 2",
+    mediaType: 'video' as const,
     mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-    title: "プロジェクト 2",
+    imageSrc: undefined,
     description: "",
   },
   {
-    id: "slide-3",
+    id: "fallback-3",
+    title: "サンプル プロジェクト 3", 
+    mediaType: 'video' as const,
     mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    title: "プロジェクト 3",
+    imageSrc: undefined,
     description: "",
   },
   {
-    id: "slide-4",
+    id: "fallback-4",
+    title: "サンプル プロジェクト 4", 
+    mediaType: 'video' as const,
     mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    title: "プロジェクト 4",
+    imageSrc: undefined,
     description: "",
-  },
+  }
 ];
 
 // ===== カード大きさ =====
@@ -162,7 +170,12 @@ function dwellWithOffset(
   return nearestCenter + Math.sign(d) * newAbs;
 }
 
-function HeroScene({ scrollProgress }: { scrollProgress: number }) {
+interface HeroSceneProps {
+  scrollProgress: number;
+  videoSlides: any[];
+}
+
+function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
   const heroMatRef = useRef<any>(null);
   const starGroupRef = useRef<THREE.Group>(null);
   const triangleGroupRef = useRef<THREE.Group>(null);
@@ -189,7 +202,7 @@ function HeroScene({ scrollProgress }: { scrollProgress: number }) {
   const orbitRadius = tetraRadius + halfDiagCard + 0.25;
 
   const layout = useMemo(() => {
-    const n = videoSlides.length;
+    const n = videoSlides.length || 1; // 0除算を防ぐ
     const slotStep = TAU / n;
     const items = Array.from({ length: n }, (_, i) => {
       const angle = gateAngle - (i / n) * TAU; // 右回転順
@@ -198,8 +211,7 @@ function HeroScene({ scrollProgress }: { scrollProgress: number }) {
       return { index: i, angle, x, z, rank: i };
     });
     return { n, items, slotStep };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orbitRadius]);
+  }, [orbitRadius, videoSlides.length]);
 
   // ===== thirdPhase 算出 =====
   const thirdPhaseAtStart =
@@ -470,6 +482,8 @@ function HeroScene({ scrollProgress }: { scrollProgress: number }) {
         <VideoCard3D
           key={videoSlides[index].id}
           videoSrc={videoSlides[index].mp4}
+          imageSrc={videoSlides[index].imageSrc}
+          mediaType={videoSlides[index].mediaType || 'video'}
           title={videoSlides[index].title}
           position={[x, 0, z]}
           rotation={[0, angle + Math.PI, 0]}
@@ -527,7 +541,12 @@ function HeroScene({ scrollProgress }: { scrollProgress: number }) {
 }
 
 // ===== HeroCanvas =====
-const HeroCanvas = ({ children }: { children: ReactNode }) => {
+interface HeroCanvasProps {
+  children: ReactNode;
+  videoSlides?: any[];
+}
+
+const HeroCanvas = ({ children, videoSlides = defaultVideoSlides }: HeroCanvasProps) => {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
@@ -558,7 +577,7 @@ const HeroCanvas = ({ children }: { children: ReactNode }) => {
         }}
         gl={{ antialias: true, alpha: false }}
       >
-        <HeroScene scrollProgress={scrollProgress} />
+        <HeroScene scrollProgress={scrollProgress} videoSlides={videoSlides} />
       </Canvas>
 
       <div style={{ position: "relative", zIndex: 1, minHeight: "1000vh" }}>

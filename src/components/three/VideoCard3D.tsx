@@ -1,13 +1,15 @@
 // src/components/three/VideoCard3D.tsx
 "use client";
 
-import { useRef, useEffect, useMemo } from "react";
-import { useFrame, useLoader } from "@react-three/fiber";
+import { useRef, useEffect, useMemo, useState } from "react";
+import { useFrame } from "@react-three/fiber";
 import { TextureLoader, VideoTexture } from "three";
 import * as THREE from "three";
 
 interface VideoCard3DProps {
-  videoSrc: string;
+  videoSrc?: string;
+  imageSrc?: string;
+  mediaType: "image" | "video";
   title: string;
   position: [number, number, number];
   rotation: [number, number, number];
@@ -19,6 +21,8 @@ interface VideoCard3DProps {
 
 export default function VideoCard3D({
   videoSrc,
+  imageSrc,
+  mediaType,
   title,
   position,
   rotation,
@@ -30,162 +34,193 @@ export default function VideoCard3D({
   const meshRef = useRef<THREE.Mesh>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const videoTexture = useRef<VideoTexture | null>(null);
+  const imageTexture = useRef<THREE.Texture | null>(null);
+  const [textureLoaded, setTextureLoaded] = useState(false);
 
-  // 動画要素を作成
+  // ── テクスチャのセットアップ ──────────────────────────────
   useEffect(() => {
-    const video = document.createElement("video");
-    video.src = videoSrc;
-    video.crossOrigin = "anonymous";
-    video.loop = false;
-    video.muted = true;
-    video.playsInline = true;
-    video.preload = "metadata";
+    // cleanup
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.src = "";
+      videoRef.current = null;
+    }
+    if (videoTexture.current) {
+      videoTexture.current.dispose();
+      videoTexture.current = null;
+    }
+    if (imageTexture.current) {
+      imageTexture.current.dispose();
+      imageTexture.current = null;
+    }
+    setTextureLoaded(false);
 
-    videoRef.current = video;
-    videoTexture.current = new VideoTexture(video);
-    videoTexture.current.minFilter = THREE.LinearFilter;
-    videoTexture.current.magFilter = THREE.LinearFilter;
+    if (mediaType === "video" && videoSrc) {
+      const video = document.createElement("video");
+      video.src = videoSrc;
+      video.crossOrigin = "anonymous";
+      video.loop = false;
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = "metadata";
+
+      videoRef.current = video;
+      const tex = new VideoTexture(video);
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.generateMipmaps = false;
+
+      // あなたの現行値を踏襲
+      tex.flipY = true;
+      // @ts-ignore
+      if ("colorSpace" in tex) (tex as any).colorSpace = THREE.SRGBColorSpace;
+
+      videoTexture.current = tex;
+      setTextureLoaded(true);
+    } else if (mediaType === "image" && imageSrc) {
+      const loader = new TextureLoader();
+      loader.setCrossOrigin("anonymous");
+      loader.load(
+        imageSrc,
+        (texture) => {
+          texture.minFilter = THREE.LinearFilter;
+          texture.magFilter = THREE.LinearFilter;
+          texture.generateMipmaps = true;
+          texture.flipY = true;
+          // @ts-ignore
+          if ("colorSpace" in texture)
+            (texture as any).colorSpace = THREE.SRGBColorSpace;
+          imageTexture.current = texture;
+          setTextureLoaded(true);
+        },
+        undefined,
+        (error) => {
+          console.error("画像の読み込みに失敗:", imageSrc, error);
+        }
+      );
+    }
 
     return () => {
       if (videoRef.current) {
         videoRef.current.pause();
         videoRef.current.src = "";
       }
-      if (videoTexture.current) {
-        videoTexture.current.dispose();
-      }
+      if (videoTexture.current) videoTexture.current.dispose();
+      if (imageTexture.current) imageTexture.current.dispose();
     };
-  }, [videoSrc]);
+  }, [videoSrc, imageSrc, mediaType]);
 
-  // 動画の再生制御
+  // ── 動画の再生制御 ────────────────────────────────────────
   useEffect(() => {
+    if (mediaType !== "video") return;
     const video = videoRef.current;
     if (!video) return;
 
     if (isActive && progress > 0) {
       const duration = video.duration || 10;
       const targetTime = progress * duration * 0.7;
-
       if (Math.abs(video.currentTime - targetTime) > 0.1) {
         video.currentTime = targetTime;
       }
-
       if (video.paused) {
         video.play().catch(() => {});
       }
     } else {
-      if (!video.paused) {
-        video.pause();
-      }
+      if (!video.paused) video.pause();
     }
-  }, [isActive, progress]);
+  }, [isActive, progress, mediaType]);
 
-  // 角丸四角形のシェイプを作成（ネオモルフィズム風）
-  const cardGeometry = useMemo(() => {
-    const shape = new THREE.Shape();
-    const width = 2;
-    const height = 2;
-    const radius = 0.2;
 
-    shape.moveTo(-width / 2, -height / 2 + radius);
-    shape.lineTo(-width / 2, height / 2 - radius);
-    shape.quadraticCurveTo(
-      -width / 2,
-      height / 2,
-      -width / 2 + radius,
-      height / 2
-    );
-    shape.lineTo(width / 2 - radius, height / 2);
-    shape.quadraticCurveTo(
-      width / 2,
-      height / 2,
-      width / 2,
-      height / 2 - radius
-    );
-    shape.lineTo(width / 2, -height / 2 + radius);
-    shape.quadraticCurveTo(
-      width / 2,
-      -height / 2,
-      width / 2 - radius,
-      -height / 2
-    );
-    shape.lineTo(-width / 2 + radius, -height / 2);
-    shape.quadraticCurveTo(
-      -width / 2,
-      -height / 2,
-      -width / 2,
-      -height / 2 + radius
-    );
-
-    const geometry = new THREE.ShapeGeometry(shape);
-    return geometry;
-  }, []);
-
-  // フレーム更新
-  useFrame((state, delta) => {
+  // ── 漂い・微回転 ───────────────────────────────────────────
+  useFrame((state) => {
     if (meshRef.current) {
-      // 浮遊効果
       meshRef.current.position.y =
         position[1] + Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
-
-      // ホバー効果のような微細な回転
       meshRef.current.rotation.z =
         rotation[2] + Math.sin(state.clock.elapsedTime * 0.3) * 0.02;
     }
   });
 
+  const currentTexture =
+    mediaType === "video" ? videoTexture.current : imageTexture.current;
+
+  // ── 透過で“抜ける”のを防ぐ：マテリアル設定を明示 ───────────────
+  // 不透明閾値。ここを 0.999 のように高めに取ると、ほぼ1のときは完全不透明で描く
+  const OPAQUE_THRESH = 0.999;
+
+  const mediaFrontMat = useMemo(() => {
+    const isOpaque = opacity >= OPAQUE_THRESH;
+    const mat = new THREE.MeshBasicMaterial({
+      map: currentTexture || null,
+      opacity,
+      transparent: !isOpaque,
+      side: THREE.FrontSide,
+      depthTest: true,
+      depthWrite: isOpaque,
+      alphaTest: isOpaque ? 0.0 : 0.001,
+    });
+
+    // テクスチャのアスペクト比を保持してフィットさせる
+    if (currentTexture) {
+      currentTexture.wrapS = THREE.ClampToEdgeWrapping;
+      currentTexture.wrapT = THREE.ClampToEdgeWrapping;
+      currentTexture.repeat.set(1, 1);
+      currentTexture.offset.set(0, 0);
+      currentTexture.center.set(0.5, 0.5);
+      currentTexture.needsUpdate = true;
+    }
+    mat.needsUpdate = true;
+    return mat;
+  }, [currentTexture, opacity]);
+
+  const mediaBackMat = useMemo(() => {
+    const isOpaque = opacity >= OPAQUE_THRESH;
+    const mat = new THREE.MeshBasicMaterial({
+      map: currentTexture || null,
+      opacity,
+      transparent: !isOpaque,
+      side: THREE.FrontSide, // 回転で背面側を“表”として描く
+      depthTest: true,
+      depthWrite: isOpaque,
+      alphaTest: isOpaque ? 0.0 : 0.001,
+    });
+    
+    if (currentTexture) {
+      currentTexture.wrapS = THREE.ClampToEdgeWrapping;
+      currentTexture.wrapT = THREE.ClampToEdgeWrapping;
+      currentTexture.repeat.set(1, 1);
+      currentTexture.offset.set(0, 0);
+      currentTexture.center.set(0.5, 0.5);
+      currentTexture.needsUpdate = true;
+    }
+    mat.needsUpdate = true;
+    return mat;
+  }, [currentTexture, opacity]);
+
   return (
     <group position={position} rotation={rotation} scale={scale}>
-      {/* カードと動画を同じタイミングで表示制御 */}
-      {opacity > 0 && (
-        <>
-          {/* 背景カード（ネオモルフィズム風） */}
-          <mesh ref={meshRef} position={[0, 0, -0.01]} geometry={cardGeometry}>
-            <meshStandardMaterial
-              color="#2a2a2a"
-              transparent
-              opacity={opacity * 0.9}
-              roughness={0.1}
-              metalness={0.1}
-            />
-          </mesh>
+      {/* いままで通り：+Z が外側に向くよう内側グループを 180° */}
+      <group rotation={[0, Math.PI, 0]}>
+        {opacity > 0 && (
+          <>
+            {/* メディア前面（+Z） */}
+            <mesh ref={meshRef} position={[0, 0, 0]} renderOrder={21}>
+              <planeGeometry args={[4, 2]} />
+              <primitive object={mediaFrontMat} attach="material" />
+            </mesh>
 
-          {/* 動画テクスチャ */}
-          <mesh position={[0, 0, 0]}>
-            <planeGeometry args={[1.8, 1.8]} />
-            <meshBasicMaterial
-              map={videoTexture.current}
-              transparent
-              opacity={opacity}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        </>
-      )}
-
-      {/* グローエフェクト（アクティブ時） */}
-      {isActive && (
-        <mesh position={[0, 0, -0.02]} scale={1.1}>
-          <planeGeometry args={[2.2, 2.2]} />
-          <meshBasicMaterial
-            color="#3b82f6"
-            transparent
-            opacity={0.2 * opacity}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      )}
-
-      {/* フレーム */}
-      <mesh position={[0, 0, 0.01]}>
-        <ringGeometry args={[0.9, 1.0, 32]} />
-        <meshStandardMaterial
-          color="#ffffff"
-          transparent
-          opacity={opacity * 0.3}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
+            {/* メディア背面（-Z 側から読めるよう反転） */}
+            <mesh
+              position={[0, 0, -0.001]}
+              rotation={[0, Math.PI, 0]}
+              renderOrder={20}
+            >
+              <planeGeometry args={[4, 2]} />
+              <primitive object={mediaBackMat} attach="material" />
+            </mesh>
+          </>
+        )}
+      </group>
     </group>
   );
 }
