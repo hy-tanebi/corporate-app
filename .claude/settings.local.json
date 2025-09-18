@@ -29,7 +29,10 @@
       "mcp__playwright__browser_take_screenshot",
       "Bash(npx tsc:*)",
       "Bash(PORT=3000 pnpm dev)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git restore:*)",
+      "Bash(grep:*)",
+      "Bash(sed:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
