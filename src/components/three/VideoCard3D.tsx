@@ -157,7 +157,7 @@ export default function VideoCard3D({
     const segX = 64,
       segY = 42,
       curveAmt = 0.06,
-      sign = -1;
+      sign = 1;
     const g = new THREE.PlaneGeometry(CARD_W, CARD_H, segX, segY);
     const pos = g.attributes.position as THREE.BufferAttribute;
     for (let i = 0; i < pos.count; i++) {
@@ -256,7 +256,7 @@ export default function VideoCard3D({
       <group ref={floatingGroupRef}>
         <group ref={exitGroupRef}>
           {textureLoaded && (shouldRender || opacity > 0.01) && (
-            <mesh ref={meshRef} position={[0, 0, 0]} rotation={[0, Math.PI, 0]} renderOrder={100}>
+            <mesh ref={meshRef} position={[0, 0, 0]} rotation={[Math.PI, Math.PI, 0]} renderOrder={100}>
               <primitive object={curvedPlaneGeometry} attach="geometry" />
               <meshBasicMaterial
                 map={
