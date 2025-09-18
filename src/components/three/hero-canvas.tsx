@@ -66,11 +66,29 @@ const smooth01 = (x: number) => {
 const sstep = (x: number, a: number, b: number) =>
   THREE.MathUtils.clamp((x - a) / Math.max(1e-6, b - a), 0, 1);
 
-// 直後のセンター(次のスロット中心)へ丸める
-const snapToNextCenter = (theta: number, slotStep: number, offset: number) => {
-  const s = Math.max(1e-6, slotStep);
-  return offset + Math.ceil((theta - offset) / s) * s;
-};
+function dwellWithOffset(
+  theta: number,
+  slotStep: number,
+  dwellFrac: number,
+  offset: number
+) {
+  if (slotStep <= 0) return theta;
+  const s = slotStep;
+  const holdHalf = Math.min(0.5, Math.max(0, dwellFrac * 0.5));
+  const nearestCenter = offset + Math.round((theta - offset) / s) * s;
+  const s2 = s * 0.5;
+  let d = theta - nearestCenter;
+  if (d > s2) d -= s;
+  if (d < -s2) d += s;
+  const absd = Math.abs(d);
+  const holdWidth = holdHalf * s;
+  if (absd <= holdWidth) return nearestCenter;
+  const moveRange = s2 - holdWidth;
+  const t = (absd - holdWidth) / Math.max(1e-6, moveRange);
+  const eased = smooth01(t);
+  const newAbs = holdWidth + eased * moveRange;
+  return nearestCenter + Math.sign(d) * newAbs;
+}
 
 // ===== テトラ用シェーダ =====
 const HeroShaderMaterial = shaderMaterial(
@@ -156,69 +174,9 @@ const FeatherCircleMaterial = shaderMaterial(
   `
 );
 
-// ===== デフォルト動画 =====
-const defaultVideoSlides = [
-  {
-    id: "fallback-1",
-    title: "サンプル プロジェクト 1",
-    mediaType: "video" as const,
-    mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    imageSrc: undefined,
-    description: "",
-  },
-  {
-    id: "fallback-2",
-    title: "サンプル プロジェクト 2",
-    mediaType: "video" as const,
-    mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-    imageSrc: undefined,
-    description: "",
-  },
-  {
-    id: "fallback-3",
-    title: "サンプル プロジェクト 3",
-    mediaType: "video" as const,
-    mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    imageSrc: undefined,
-    description: "",
-  },
-  {
-    id: "fallback-4",
-    title: "サンプル プロジェクト 4",
-    mediaType: "video" as const,
-    mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    imageSrc: undefined,
-    description: "",
-  },
-];
-
 // ===== カード大きさ =====
 const CARD_W = 1.2;
 const CARD_H = 0.7;
-
-function dwellWithOffset(
-  theta: number,
-  slotStep: number,
-  dwellFrac: number,
-  offset: number
-) {
-  if (slotStep <= 0) return theta;
-  const s = slotStep;
-  const holdHalf = Math.min(0.5, Math.max(0, dwellFrac * 0.5));
-  const nearestCenter = offset + Math.round((theta - offset) / s) * s;
-  const s2 = s * 0.5;
-  let d = theta - nearestCenter;
-  if (d > s2) d -= s;
-  if (d < -s2) d += s;
-  const absd = Math.abs(d);
-  const holdWidth = holdHalf * s;
-  if (absd <= holdWidth) return nearestCenter;
-  const moveRange = s2 - holdWidth;
-  const t = (absd - holdWidth) / Math.max(1e-6, moveRange);
-  const eased = smooth01(t);
-  const newAbs = holdWidth + eased * moveRange;
-  return nearestCenter + Math.sign(d) * newAbs;
-}
 
 interface HeroSceneProps {
   scrollProgress: number;
@@ -273,17 +231,17 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
     return () => window.removeEventListener("pointermove", onMove);
   }, []);
 
-  // レイアウト（右回転配置）
+  // レイアウト（★時計回りの並びに戻す）
   const gateAngle = -Math.PI / 2;
   const centerOffset = -gateAngle;
   const halfDiagCard = Math.sqrt(CARD_W ** 2 + CARD_H ** 2) / 2;
   const orbitRadius = tetraRadius + halfDiagCard + 0.25;
 
   const layout = useMemo(() => {
-    const n = videoSlides.length || 1;
+    const n = Math.max(1, videoSlides.length);
     const slotStep = TAU / n;
     const items = Array.from({ length: n }, (_, i) => {
-      const angle = gateAngle - (i / n) * TAU; // 右回転順
+      const angle = gateAngle - (i / n) * TAU; // ← 右回り（時計回り）
       const x = Math.sin(angle) * orbitRadius;
       const z = Math.cos(angle) * orbitRadius;
       return { index: i, angle, x, z, rank: i };
@@ -311,38 +269,6 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
     return (requiredTurns / Math.max(0.0001, availablePhaseEased)) * 1.05;
   }, [requiredTurns, availablePhaseEased]);
 
-  // 正式な登場開始角（ROT_TURNS 反映版）
-  const thetaStartDisplayFinal = useMemo(() => {
-    const thetaStart =
-      Math.pow(
-        smooth01(
-          (VIDEO_START_PROGRESS - THIRD_PHASE_START) /
-            (THIRD_PHASE_END - THIRD_PHASE_START)
-        ),
-        VIDEO_EASE
-      ) *
-      TAU *
-      ROT_TURNS;
-
-    return dwellWithOffset(
-      thetaStart,
-      layout.slotStep,
-      CARD_DWELL_FRAC,
-      centerOffset
-    );
-  }, [ROT_TURNS, layout.slotStep, centerOffset]);
-
-  // “次のセンター”にバイアスした開始スナップ角（初期化専用）
-  const thetaStartNextCenter = useMemo(() => {
-    // θ_start_raw を算出
-    const t =
-      (VIDEO_START_PROGRESS - THIRD_PHASE_START) /
-      (THIRD_PHASE_END - THIRD_PHASE_START);
-    const eased = Math.pow(smooth01(t), VIDEO_EASE);
-    const thetaStartRaw = eased * TAU * ROT_TURNS;
-    return snapToNextCenter(thetaStartRaw, layout.slotStep, centerOffset);
-  }, [ROT_TURNS, layout.slotStep, centerOffset]);
-
   // 装飾ライン
   const lineGeometry = useMemo(() => {
     const geometry = new THREE.TetrahedronGeometry(tetraRadius, 0);
@@ -366,10 +292,12 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
     [lineGeometry]
   );
 
-  // 慣性メモリ
+  // 慣性メモリ（★カード用）
   const smoothedTheta = useRef(0);
+  const didEnterPhase = useRef(false); // 閾値を初めて上抜けた瞬間か
+
+  // 黒円などで使用
   const circleTRef = useRef(0);
-  const didInitCards = useRef(false);
 
   // ヒーロー領域の自動算出用
   const box = useMemo(() => new THREE.Box3(), []);
@@ -379,7 +307,7 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
     []
   );
 
-  // 毎フレーム
+  // ===== 毎フレーム =====
   useFrame((state, delta) => {
     // 1) FBOにシーン描画（歪みメッシュは除外）
     if (fluidRef.current) {
@@ -401,7 +329,7 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
     velSmoothed.current.lerp(velNow, 0.22); // 粘性
     lastMouse.current.copy(m);
 
-    // 3) ヒーロー領域を自動算出（三角形＋カード群の投影）
+    // 3) HoverFluid のヒーロー領域更新
     const u = hoverMatRef.current?.uniforms;
     if (u) {
       let minX = 1,
@@ -439,7 +367,6 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
       const hx = (maxX - minX) * 0.25;
       const hy = (maxY - minY) * 0.25;
 
-      // 少しだけパディング
       const pad = 0.06;
       u.uHeroCenter.value.set(
         THREE.MathUtils.clamp(cx, 0.0, 1.0),
@@ -451,20 +378,16 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
       );
       u.uHeroRadius.value = 0.06;
 
-      // マテリアル更新
       const dpr = state.gl.getPixelRatio();
       u.uTime.value += delta;
       u.uScene.value = fbo.texture; // Linear のまま
       u.uResolution.value.set(state.size.width * dpr, state.size.height * dpr);
-
       u.uMouse.value.copy(m);
       u.uVel.value.copy(velSmoothed.current);
 
-      // 止まるとすぐ収束（減衰強め）
       hoverStrength.current = Math.max(0, hoverStrength.current - delta * 1.8);
       u.uIntensity.value = hoverStrength.current;
 
-      // 影響と強度（小さめ）
       u.uRadius.value = 0.08;
       u.uFalloff.value = 0.12;
       u.uDispAmp.value = 0.05;
@@ -473,8 +396,7 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
       u.uBaseAmp.value = 0.015;
       u.uBaseScale.value = 1.2;
 
-      u.uChromAb.value = 0.0; // 完全オフ
-      // u.uShowMask.value = 1; // デバッグ
+      u.uChromAb.value = 0.0;
     }
 
     // 4) 通常シーン更新
@@ -491,7 +413,7 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
       rootRef.current.position.z = ROOT_Z_OFFSET;
     }
 
-    // テトラ回転＆スケール（元ロジック）
+    // テトラ回転＆スケール（元ロジックそのまま）
     if (triangleGroupRef.current) {
       triangleGroupRef.current.rotation.x += delta * 0.1;
       triangleGroupRef.current.rotation.y += delta * 0.2;
@@ -518,8 +440,9 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
       }
     }
 
-    // カード回転慣性（初回ズレ修正＋順序そのまま）
+    // ===== ★カード回転：初回だけ正方向に出るよう同期 =====
     if (videoCardsRef.current) {
+      // 現在ターゲット角
       const phaseLin = THREE.MathUtils.clamp(
         (scrollProgress - THIRD_PHASE_START) /
           (THIRD_PHASE_END - THIRD_PHASE_START),
@@ -527,26 +450,41 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
         1
       );
       const phaseEased = Math.pow(smooth01(phaseLin), VIDEO_EASE);
+      const thetaRaw = phaseEased * TAU * ROT_TURNS;
+      const thetaDwell = dwellWithOffset(
+        thetaRaw,
+        layout.slotStep,
+        CARD_DWELL_FRAC,
+        centerOffset
+      );
 
       if (scrollProgress >= VIDEO_START_PROGRESS) {
-        // ★ 初回のみ、次スロット中心の少し手前から開始 → 正方向で自然に登場
-        if (!didInitCards.current) {
-          smoothedTheta.current = thetaStartNextCenter - layout.slotStep * 0.45;
-          didInitCards.current = true;
+        if (!didEnterPhase.current) {
+          // 閾値到達“その瞬間”のセンター角を算出
+          const startLin =
+            (VIDEO_START_PROGRESS - THIRD_PHASE_START) /
+            (THIRD_PHASE_END - THIRD_PHASE_START);
+          const startEased = Math.pow(smooth01(startLin), VIDEO_EASE);
+          const thetaStartRaw = startEased * TAU * ROT_TURNS;
+          const thetaStartDisplay = dwellWithOffset(
+            thetaStartRaw,
+            layout.slotStep,
+            CARD_DWELL_FRAC,
+            centerOffset
+          );
+
+          // ★最初のカードが正順に入るよう、センターの少し手前から開始
+          smoothedTheta.current = thetaStartDisplay - layout.slotStep * 0.48;
+
+          didEnterPhase.current = true;
+          videoCardsRef.current.visible = true;
+          videoCardsRef.current.rotation.y = smoothedTheta.current;
+        } else {
+          // 以後は慣性追従（反転しない）
+          const kRot = 1 - Math.exp(-delta * VIDEO_ROT_INERTIA);
+          smoothedTheta.current += (thetaDwell - smoothedTheta.current) * kRot;
+          videoCardsRef.current.rotation.y = smoothedTheta.current;
         }
-
-        const thetaRaw = phaseEased * TAU * ROT_TURNS;
-        const thetaDwell = dwellWithOffset(
-          thetaRaw,
-          layout.slotStep,
-          CARD_DWELL_FRAC,
-          centerOffset
-        );
-        const kRot = 1 - Math.exp(-delta * VIDEO_ROT_INERTIA);
-        smoothedTheta.current += (thetaDwell - smoothedTheta.current) * kRot;
-
-        videoCardsRef.current.rotation.y = smoothedTheta.current;
-        videoCardsRef.current.visible = true;
 
         // 背面が前に来ないよう明示
         videoCardsRef.current.traverse((obj) => {
@@ -566,11 +504,11 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
         });
       } else {
         videoCardsRef.current.visible = false;
-        didInitCards.current = false; // 閾値を下回ったら再初期化
+        didEnterPhase.current = false; // 次回のため再武装
       }
     }
 
-    // 黒円（復活）
+    // ===== 黒円（既存ロジック） =====
     if (circleRef.current) {
       const endClamped = Math.max(
         CIRCLE_SCROLL_START + 1e-6,
@@ -626,8 +564,10 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
     }
   });
 
-  // ====== カード描画（“前の順序”ロジック） ======
+  // ====== カード描画（出現/退場の不透明度だけ） ======
   const renderCards = () => {
+    if (videoSlides.length === 0) return null;
+
     const phaseLin = THREE.MathUtils.clamp(
       (scrollProgress - THIRD_PHASE_START) /
         (THIRD_PHASE_END - THIRD_PHASE_START),
@@ -655,14 +595,14 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
       TAU *
       ROT_TURNS;
 
-    const thetaStartDisplayLocal = dwellWithOffset(
+    const thetaStartDisplay = dwellWithOffset(
       thetaStart,
       layout.slotStep,
       CARD_DWELL_FRAC,
       centerOffset
     );
 
-    const thetaRel = Math.max(0, thetaDisplay - thetaStartDisplayLocal);
+    const thetaRel = Math.max(0, thetaDisplay - thetaStartDisplay);
 
     const { slotStep } = layout;
     const appearStart = 0;
@@ -698,13 +638,14 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
         opacity = 0;
       }
 
+      const slide = videoSlides[index]; // videoSlides は外から渡す
       return (
         <VideoCard3D
-          key={videoSlides[index].id}
-          videoSrc={videoSlides[index].mp4}
-          imageSrc={videoSlides[index].imageSrc}
-          mediaType={videoSlides[index].mediaType || "video"}
-          title={videoSlides[index].title}
+          key={slide.id}
+          videoSrc={slide.mp4}
+          imageSrc={slide.imageSrc}
+          mediaType={slide.mediaType || "video"}
+          title={slide.title}
           position={[x, 0, z]}
           rotation={[0, angle + Math.PI, 0]}
           isActive={opacity > 0.05}
@@ -782,13 +723,10 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
 // ===== HeroCanvas =====
 interface HeroCanvasProps {
   children: ReactNode;
-  videoSlides?: any[];
+  videoSlides?: any[]; // ← defaultVideoSlides は削除
 }
 
-const HeroCanvas = ({
-  children,
-  videoSlides = defaultVideoSlides,
-}: HeroCanvasProps) => {
+const HeroCanvas = ({ children, videoSlides = [] }: HeroCanvasProps) => {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
