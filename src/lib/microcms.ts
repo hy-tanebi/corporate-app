@@ -61,6 +61,9 @@ export interface BlogPost {
 		width: number;
 		height: number;
 	};
+	mediaType?: 'image' | 'video' | string | string[]; // メディア種別（実際のレスポンスに合わせて柔軟に）
+	videoUrl?: string; // 動画URL（動画選択時のみ使用）
+	isShowcase?: boolean; // 3Dカードに表示するか
 	createdAt: string;
 	updatedAt: string;
 	publishedAt: string;
@@ -90,7 +93,7 @@ export const getBlogPosts = async (
 			limit,
 			offset,
 			fields:
-				"id,title,content,eyecatch,category,createdAt,updatedAt,publishedAt,revisedAt",
+				"id,title,content,eyecatch,category,mediaType,videoUrl,isShowcase,createdAt,updatedAt,publishedAt,revisedAt",
 			depth: 1, // 関連コンテンツを展開
 		},
 	});
@@ -108,7 +111,7 @@ export const getBlogPost = async (id: string): Promise<BlogPost> => {
 		contentId: id,
 		queries: {
 			fields:
-				"id,title,content,eyecatch,category,createdAt,updatedAt,publishedAt,revisedAt",
+				"id,title,content,eyecatch,category,mediaType,videoUrl,isShowcase,createdAt,updatedAt,publishedAt,revisedAt",
 			depth: 1, // 関連コンテンツを展開
 		},
 	});
