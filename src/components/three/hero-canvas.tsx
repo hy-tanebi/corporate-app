@@ -1,8 +1,8 @@
 // src/components/three/hero-canvas.tsx
 "use client";
 
-import { Canvas, extend, useFrame } from "@react-three/fiber";
-import { shaderMaterial, useFBO } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useFBO } from "@react-three/drei";
 import {
   useRef,
   useMemo,
@@ -13,14 +13,11 @@ import {
 } from "react";
 import * as THREE from "three";
 import { StarParticles } from "./StarParticles";
-import VideoCard3D from "./VideoCard3D";
-
-import vertexShader from "../../../public/shaders/top-vertex.glsl?raw";
-import fragmentShader from "../../../public/shaders/top-fragment.glsl?raw";
-
-// “水っぽい”エフェクト用（分離GLSL）
-import hoverFluidVert from "../../../public/shaders/hover-fluid-vertex.glsl?raw";
-import hoverFluidFrag from "../../../public/shaders/hover-fluid-fragment.glsl?raw";
+import VideoCardsRenderer from "./VideoCardsRenderer";
+import NextSection from "./NextSection";
+import { FeatherCircleMaterial } from "./materials";
+import { getSafeVideoSlides } from "../../data/fallback-content";
+import { VideoSlide } from "../../types/content";
 
 // ===== 全体スケール =====
 const SCENE_SCALE = 1.2;
@@ -90,122 +87,6 @@ function dwellWithOffset(
   return nearestCenter + Math.sign(d) * newAbs;
 }
 
-// ===== テトラ用シェーダ =====
-const HeroShaderMaterial = shaderMaterial(
-  { uTime: 0, uMouse: [0, 0], uResolution: [0, 0] },
-  vertexShader,
-  fragmentShader
-);
-extend({ HeroShaderMaterial });
-
-/**
- * 画面“水っぽい”オーバーレイ（FBO合成）
- * - FBO は Linear にし、シェーダ側で色デコードしない
- */
-const HoverFluidMaterial = shaderMaterial(
-  {
-    uScene: null as unknown as THREE.Texture,
-    uResolution: new THREE.Vector2(1, 1),
-
-    // ポインター（0..1, 上向きY）
-    uMouse: new THREE.Vector2(0.5, 0.5),
-    uVel: new THREE.Vector2(0, 0),
-
-    uTime: 0,
-    uIntensity: 0,
-
-    // 影響半径/ソフト幅
-    uRadius: 0.08,
-    uFalloff: 0.12,
-
-    // 水っぽさ
-    uDispAmp: 0.05,
-    uNoiseAmp: 0.45,
-
-    // ベースとろみ
-    uBaseAmp: 0.015,
-    uBaseScale: 1.2,
-
-    // ヒーロー領域
-    uHeroCenter: new THREE.Vector2(0.5, 0.5),
-    uHeroSize: new THREE.Vector2(0.35, 0.22),
-    uHeroRadius: 0.06,
-
-    uChromAb: 0.0,
-    uShowMask: 0,
-  },
-  hoverFluidVert,
-  hoverFluidFrag
-);
-extend({ HoverFluidMaterial });
-
-// JSX global augmentation（スペース無しの IntrinsicElements が正解）
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      hoverFluidMaterial: any;
-    }
-  }
-}
-
-// ===== フェザー付き黒円（暗転用） =====
-const FeatherCircleMaterial = shaderMaterial(
-  { uColor: new THREE.Color(0x000000), uFeather: CIRCLE_FEATHER },
-  `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-  `,
-  `
-  varying vec2 vUv;
-  uniform vec3 uColor;
-  uniform float uFeather;
-  void main() {
-    vec2 p = vUv * 2.0 - 1.0;
-    float r = length(p);
-    float alpha = 1.0 - smoothstep(1.0 - uFeather, 1.0, r);
-    gl_FragColor = vec4(uColor, alpha);
-  }
-  `
-);
-
-// ===== デフォルト動画 =====
-const defaultVideoSlides = [
-  {
-    id: "fallback-1",
-    title: "サンプル プロジェクト 1",
-    mediaType: "video" as const,
-    mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    imageSrc: undefined,
-    description: "",
-  },
-  {
-    id: "fallback-2",
-    title: "サンプル プロジェクト 2",
-    mediaType: "video" as const,
-    mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-    imageSrc: undefined,
-    description: "",
-  },
-  {
-    id: "fallback-3",
-    title: "サンプル プロジェクト 3",
-    mediaType: "video" as const,
-    mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    imageSrc: undefined,
-    description: "",
-  },
-  {
-    id: "fallback-4",
-    title: "サンプル プロジェクト 4",
-    mediaType: "video" as const,
-    mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    imageSrc: undefined,
-    description: "",
-  },
-];
 
 // ===== カード大きさ =====
 const CARD_W = 1.2;
@@ -214,7 +95,7 @@ const CARD_H = 0.7;
 // ===== ヒーローシーン =====
 interface HeroSceneProps {
   scrollProgress: number;
-  videoSlides: any[];
+  videoSlides: VideoSlide[];
 }
 
 function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
@@ -269,7 +150,6 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
 
   // 並び（時計回り）
   const gateAngle = -Math.PI / 2;
-  const centerOffset = -gateAngle; // 正面
   const halfDiagCard = Math.sqrt(CARD_W ** 2 + CARD_H ** 2) / 2;
   const orbitRadius = tetraRadius + halfDiagCard + 0.25;
 
@@ -332,6 +212,9 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
   // 慣性
   const smoothedTheta = useRef(0);
   const circleTRef = useRef(0);
+  
+  // 次のセクションの表示状態
+  const [isNextSectionVisible, setIsNextSectionVisible] = useState(false);
 
   // ヒーロー領域算出ワーク
   const box = useMemo(() => new THREE.Box3(), []);
@@ -478,7 +361,7 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
       }
     }
 
-    // ====== 参照コード準拠：カードの“中央停止 + 慣性”だけ ======
+    // ====== 参照コード準拠：カードの"中央停止 + 慣性"だけ ======
     if (videoCardsRef.current) {
       const phaseLin = THREE.MathUtils.clamp(
         (scrollProgress - THIRD_PHASE_START) /
@@ -560,6 +443,12 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
 
         if (starGroupRef.current)
           starGroupRef.current.visible = growT < HIDE_BG_AT_T;
+          
+        // 黒い円が完全に拡大したら次のセクションを表示
+        const isFullyExpanded = growT >= 0.98;
+        if (isFullyExpanded && !isNextSectionVisible) {
+          setIsNextSectionVisible(true);
+        }
       } else {
         circleRef.current.visible = false;
         circleRef.current.scale.set(0.001, 0.001, 1);
@@ -568,6 +457,11 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
           triangleVisibleMeshRef.current.visible = true;
         if (lineSegmentsRef.current) lineSegmentsRef.current.visible = true;
         if (starGroupRef.current) starGroupRef.current.visible = true;
+        
+        // 黒い円が縮小したら次のセクションを非表示
+        if (isNextSectionVisible) {
+          setIsNextSectionVisible(false);
+        }
       }
     }
 
@@ -577,86 +471,6 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
     }
   });
 
-  // ====== カード描画（★参照コードそのまま：一枚ずつフェード） ======
-  const renderCards = () => {
-    const phaseLin = THREE.MathUtils.clamp(
-      (scrollProgress - THIRD_PHASE_START) /
-        (THIRD_PHASE_END - THIRD_PHASE_START),
-      0,
-      1
-    );
-    const phaseEased = Math.pow(smooth01(phaseLin), VIDEO_EASE);
-
-    const thetaRaw = phaseEased * TAU * ROT_TURNS;
-    const thetaDisplay = dwellWithOffset(
-      thetaRaw,
-      layout.slotStep,
-      CARD_DWELL_FRAC,
-      -(-Math.PI / 2) // centerOffset と同値
-    );
-
-    const thetaStart = thirdPhaseAtStartEased * TAU * ROT_TURNS;
-    const thetaStartDisplay = dwellWithOffset(
-      thetaStart,
-      layout.slotStep,
-      CARD_DWELL_FRAC,
-      -(-Math.PI / 2)
-    );
-
-    const thetaRel = Math.max(0, thetaDisplay - thetaStartDisplay);
-
-    const { slotStep } = layout;
-    const appearStart = 0;
-    const appearEnd = TAU;
-    const holdEnd = TAU * (1 + GAP_TURNS);
-    const fadeEnd = requiredTurns * TAU;
-
-    return layout.items.map(({ index, angle, x, z, rank }) => {
-      const appearAt = rank * slotStep;
-      const fadeInEnd = appearAt + slotStep * FADE_FRAC;
-      const fadeStartAt = TAU * (1 + GAP_TURNS) + rank * slotStep;
-      const fadeOutEnd = fadeStartAt + slotStep * FADE_FRAC;
-
-      let opacity = 0;
-      if (thetaRel >= appearStart && thetaRel < appearEnd) {
-        if (thetaRel < appearAt) opacity = 0;
-        else if (thetaRel < fadeInEnd) {
-          const k = (thetaRel - appearAt) / (slotStep * FADE_FRAC);
-          opacity = smooth01(THREE.MathUtils.clamp(k, 0, 1));
-        } else {
-          opacity = 1;
-        }
-      } else if (thetaRel >= appearEnd && thetaRel < holdEnd) {
-        opacity = 1;
-      } else if (thetaRel >= holdEnd && thetaRel < fadeEnd) {
-        if (thetaRel < fadeStartAt) opacity = 1;
-        else if (thetaRel < fadeOutEnd) {
-          const k = (thetaRel - fadeStartAt) / (slotStep * FADE_FRAC);
-          opacity = 1 - smooth01(THREE.MathUtils.clamp(k, 0, 1));
-        } else opacity = 0;
-      } else {
-        opacity = 0;
-      }
-
-      const slide = videoSlides[index];
-      return (
-        <VideoCard3D
-          key={slide.id}
-          videoSrc={slide.mp4}
-          imageSrc={slide.imageSrc}
-          mediaType={slide.mediaType || "video"}
-          title={slide.title}
-          position={[x, 0, z]}
-          // rotation={[0, angle + Math.PI, 0]}
-          rotation={[0, angle + Math.PI, 0]}
-          isActive={opacity > 0.05}
-          progress={phaseEased}
-          scale={0.7}
-          opacity={opacity}
-        />
-      );
-    });
-  };
 
   return (
     <>
@@ -685,7 +499,15 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
 
         {/* カード群 */}
         <group ref={videoCardsRef} renderOrder={2} position={[0, 0, 0]}>
-          <Suspense fallback={null}>{renderCards()}</Suspense>
+          <Suspense fallback={null}>
+            <VideoCardsRenderer
+              scrollProgress={scrollProgress}
+              videoSlides={videoSlides}
+              layout={layout}
+              requiredTurns={requiredTurns}
+              ROT_TURNS={ROT_TURNS}
+            />
+          </Suspense>
         </group>
 
         {/* 黒円（暗転） */}
@@ -699,6 +521,12 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
           <circleGeometry args={[1, 128]} />
           <primitive attach="material" object={featherMat} />
         </mesh>
+        
+        {/* 次のセクション */}
+        <NextSection 
+          scrollProgress={scrollProgress}
+          isVisible={isNextSectionVisible}
+        />
       </group>
 
       {/* ===== 画面の液体屈折（ヒーロー内のみ作用） ===== */}
@@ -723,13 +551,15 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
 // ===== HeroCanvas =====
 interface HeroCanvasProps {
   children: ReactNode;
-  videoSlides?: any[];
+  videoSlides?: VideoSlide[];
 }
 
 const HeroCanvas = ({
   children,
-  videoSlides = defaultVideoSlides,
+  videoSlides,
 }: HeroCanvasProps) => {
+  // フォールバック機能付きで安全にvideoSlidesを取得
+  const safeVideoSlides = getSafeVideoSlides(videoSlides);
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
@@ -760,7 +590,7 @@ const HeroCanvas = ({
         }}
         gl={{ antialias: true, alpha: false }}
       >
-        <HeroScene scrollProgress={scrollProgress} videoSlides={videoSlides} />
+        <HeroScene scrollProgress={scrollProgress} videoSlides={safeVideoSlides} />
       </Canvas>
 
       <div style={{ position: "relative", zIndex: 1, minHeight: "1000vh" }}>
