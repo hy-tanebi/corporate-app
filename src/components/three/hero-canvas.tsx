@@ -182,6 +182,7 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
     return 1 + GAP_TURNS + fadeTurnsLast;
   }, [layout]);
 
+  // ===== 完走する回転数 =====
   const ROT_TURNS = useMemo(() => {
     return (requiredTurns / Math.max(0.0001, availablePhaseEased)) * 1.05;
   }, [requiredTurns, availablePhaseEased]);
