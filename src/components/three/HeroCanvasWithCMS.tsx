@@ -1,5 +1,5 @@
 // src/components/three/HeroCanvasWithCMS.tsx
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { getBlogPosts, type BlogPost } from "../../lib/microcms";
 import HeroCanvas from "./hero-canvas";
 
@@ -30,7 +30,7 @@ interface HeroCanvasWithCMSProps {
 export default async function HeroCanvasWithCMS({
   children,
 }: HeroCanvasWithCMSProps) {
-  let videoSlides: any[] = [];
+  let videoSlides: ReturnType<typeof blogPostToVideoSlide>[] = [];
 
   try {
     // microCMSからshowcase記事を取得

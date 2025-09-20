@@ -19,6 +19,7 @@ interface VideoCard3DProps {
   opacity?: number;
   cornerRadiusPx?: number;
   displayHeightPx?: number;
+  onClick?: () => void;
 }
 
 export default function VideoCard3D({
@@ -34,6 +35,7 @@ export default function VideoCard3D({
   opacity = 1,
   cornerRadiusPx = 5,
   displayHeightPx = 400,
+  onClick,
 }: VideoCard3DProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const exitGroupRef = useRef<THREE.Group>(null);
@@ -256,7 +258,21 @@ export default function VideoCard3D({
       <group ref={floatingGroupRef}>
         <group ref={exitGroupRef}>
           {textureLoaded && (shouldRender || opacity > 0.01) && (
-            <mesh ref={meshRef} position={[0, 0, 0]} rotation={[Math.PI, Math.PI, 0]} renderOrder={100}>
+            <mesh 
+              ref={meshRef} 
+              position={[0, 0, 0]} 
+              rotation={[Math.PI, Math.PI, 0]} 
+              renderOrder={100}
+              onClick={onClick}
+              onPointerOver={(e) => {
+                e.stopPropagation();
+                document.body.style.cursor = 'pointer';
+              }}
+              onPointerOut={(e) => {
+                e.stopPropagation();
+                document.body.style.cursor = 'default';
+              }}
+            >
               <primitive object={curvedPlaneGeometry} attach="geometry" />
               <meshBasicMaterial
                 map={

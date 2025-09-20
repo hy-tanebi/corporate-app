@@ -3,7 +3,7 @@
 import { Suspense, useRef, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
-import * as THREE from "three";
+import type * as THREE from "three";
 
 // 次のセクション用の定数
 const NEXT_SECTION_START = 0.9995; // 黒い円が完全に拡大した時点
@@ -17,11 +17,6 @@ export default function NextSection({ scrollProgress, isVisible }: NextSectionPr
   const groupRef = useRef<THREE.Group>(null);
   const particlesRef = useRef<THREE.Points>(null);
   const { viewport } = useThree();
-
-  // 黒い円が完全に拡大した後のみ表示
-  if (!isVisible) {
-    return null;
-  }
 
   // 次のセクションでのスクロール進行度を計算
   const sectionProgress = Math.max(0, (scrollProgress - NEXT_SECTION_START) / (1 - NEXT_SECTION_START));
@@ -37,7 +32,7 @@ export default function NextSection({ scrollProgress, isVisible }: NextSectionPr
     return positions;
   }, []);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     // パーティクルの回転アニメーション
     if (particlesRef.current) {
       particlesRef.current.rotation.y += delta * 0.1;
@@ -52,12 +47,17 @@ export default function NextSection({ scrollProgress, isVisible }: NextSectionPr
         if ((child as THREE.Mesh).material) {
           const material = (child as THREE.Mesh).material as THREE.Material;
           if ('opacity' in material) {
-            (material as any).opacity = targetOpacity;
+            (material as THREE.Material & { opacity: number }).opacity = targetOpacity;
           }
         }
       });
     }
   });
+
+  // 黒い円が完全に拡大した後のみ表示
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <group ref={groupRef} position={[0, 0, 0]} renderOrder={2000}>

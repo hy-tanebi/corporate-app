@@ -58,6 +58,7 @@ interface VideoCardsRendererProps {
   };
   requiredTurns: number;
   ROT_TURNS: number;
+  onCardClick?: (slide: VideoSlide, index: number) => void;
 }
 
 export default function VideoCardsRenderer({
@@ -66,18 +67,19 @@ export default function VideoCardsRenderer({
   layout,
   requiredTurns,
   ROT_TURNS,
+  onCardClick,
 }: VideoCardsRendererProps) {
   const phaseLin = THREE.MathUtils.clamp(
     (scrollProgress - THIRD_PHASE_START) / (THIRD_PHASE_END - THIRD_PHASE_START),
     0,
     1
   );
-  const phaseEased = Math.pow(smooth01(phaseLin), VIDEO_EASE);
+  const phaseEased = smooth01(phaseLin) ** VIDEO_EASE;
 
   const thirdPhaseAtStart =
     (VIDEO_START_PROGRESS - THIRD_PHASE_START) /
     (THIRD_PHASE_END - THIRD_PHASE_START);
-  const thirdPhaseAtStartEased = Math.pow(smooth01(thirdPhaseAtStart), VIDEO_EASE);
+  const thirdPhaseAtStartEased = smooth01(thirdPhaseAtStart) ** VIDEO_EASE;
 
   const thetaRaw = phaseEased * TAU * ROT_TURNS;
   const thetaDisplay = dwellWithOffset(
@@ -146,6 +148,7 @@ export default function VideoCardsRenderer({
             progress={phaseEased}
             scale={0.7}
             opacity={opacity}
+            onClick={() => onCardClick?.(slide, index)}
           />
         );
       })}

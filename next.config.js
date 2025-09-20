@@ -12,7 +12,7 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     // .glsl ファイルを raw-loader で処理するルールを追加
     config.module.rules.push({
       test: /\.glsl$/,

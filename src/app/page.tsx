@@ -1,5 +1,4 @@
 // src/app/page.tsx
-import Link from "next/link";
 import HeroCanvasWithCMS from "@/components/three/HeroCanvasWithCMS";
 import HomeClient from "./components/HomeClient";
 

@@ -39,6 +39,7 @@ declare global {
       starShaderMaterial: Object3DNode<StarShaderMaterial, typeof StarShaderMaterial>;
       // ★ 追加
       hoverFluidMaterial: Object3DNode<HoverFluidMaterial, typeof HoverFluidMaterial>;
+      screenDistortMaterial: Object3DNode<ScreenDistortMaterial, typeof ScreenDistortMaterial>;
     }
   }
 }
@@ -49,12 +50,10 @@ declare module "@react-three/fiber" {
     starShaderMaterial: Object3DNode<StarShaderMaterial, typeof StarShaderMaterial>;
     // ★ 追加
     hoverFluidMaterial: Object3DNode<HoverFluidMaterial, typeof HoverFluidMaterial>;
+    screenDistortMaterial: Object3DNode<ScreenDistortMaterial, typeof ScreenDistortMaterial>;
   }
 }
 // --- add: ScreenDistortMaterial 型定義 ---
-import type { Object3DNode } from "@react-three/fiber";
-import * as THREE from "three";
-
 declare class ScreenDistortMaterial extends THREE.ShaderMaterial {
   uScene: THREE.Texture | null;
   uResolution: THREE.Vector2;
@@ -62,45 +61,4 @@ declare class ScreenDistortMaterial extends THREE.ShaderMaterial {
   uTime: number;
   uIntensity: number;
   uNoise: number;
-}
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      screenDistortMaterial: Object3DNode<ScreenDistortMaterial, typeof ScreenDistortMaterial>;
-    }
-  }
-}
-
-declare module "@react-three/fiber" {
-  interface ThreeElements {
-    screenDistortMaterial: Object3DNode<ScreenDistortMaterial, typeof ScreenDistortMaterial>;
-  }
-}
-
-// --- add: ScreenDistortMaterial 型定義 ---
-import type { Object3DNode } from "@react-three/fiber";
-import * as THREE from "three";
-
-declare class ScreenDistortMaterial extends THREE.ShaderMaterial {
-  uScene: THREE.Texture | null;
-  uResolution: THREE.Vector2;
-  uMouse: THREE.Vector2;
-  uTime: number;
-  uIntensity: number;
-  uNoise: number;
-}
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      screenDistortMaterial: Object3DNode<ScreenDistortMaterial, typeof ScreenDistortMaterial>;
-    }
-  }
-}
-
-declare module "@react-three/fiber" {
-  interface ThreeElements {
-    screenDistortMaterial: Object3DNode<ScreenDistortMaterial, typeof ScreenDistortMaterial>;
-  }
 }

@@ -18,6 +18,7 @@ import NextSection from "./NextSection";
 import { FeatherCircleMaterial } from "./materials";
 import { getSafeVideoSlides } from "../../data/fallback-content";
 import { VideoSlide } from "../../types/content";
+import { CardDetailModal } from "../ui/card-detail-modal";
 
 // ===== 全体スケール =====
 const SCENE_SCALE = 1.2;
@@ -96,9 +97,10 @@ const CARD_H = 0.7;
 interface HeroSceneProps {
   scrollProgress: number;
   videoSlides: VideoSlide[];
+  onCardClick?: (slide: VideoSlide, index: number) => void;
 }
 
-function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
+function HeroScene({ scrollProgress, videoSlides, onCardClick }: HeroSceneProps) {
   const heroMatRef = useRef<any>(null);
   const starGroupRef = useRef<THREE.Group>(null);
   const triangleGroupRef = useRef<THREE.Group>(null);
@@ -507,6 +509,7 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
               layout={layout}
               requiredTurns={requiredTurns}
               ROT_TURNS={ROT_TURNS}
+              onCardClick={onCardClick}
             />
           </Suspense>
         </group>
@@ -562,6 +565,15 @@ const HeroCanvas = ({
   // フォールバック機能付きで安全にvideoSlidesを取得
   const safeVideoSlides = getSafeVideoSlides(videoSlides);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [selectedCard, setSelectedCard] = useState<{ slide: VideoSlide; index: number } | null>(null);
+
+  const handleCardClick = (slide: VideoSlide, index: number) => {
+    setSelectedCard({ slide, index });
+  };
+
+  const handleCloseModal = () => {
+    setSelectedCard(null);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -591,12 +603,22 @@ const HeroCanvas = ({
         }}
         gl={{ antialias: true, alpha: false }}
       >
-        <HeroScene scrollProgress={scrollProgress} videoSlides={safeVideoSlides} />
+        <HeroScene scrollProgress={scrollProgress} videoSlides={safeVideoSlides} onCardClick={handleCardClick} />
       </Canvas>
 
       <div style={{ position: "relative", zIndex: 1, minHeight: "1000vh" }}>
         {children}
       </div>
+
+      {/* カード詳細モーダル */}
+      {selectedCard && (
+        <CardDetailModal
+          isOpen={!!selectedCard}
+          onClose={handleCloseModal}
+          slide={selectedCard.slide}
+          index={selectedCard.index}
+        />
+      )}
     </>
   );
 };
