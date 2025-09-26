@@ -5,7 +5,6 @@ import HeroCanvas from "./hero-canvas";
 
 // BlogPostをVideoCard用データに変換
 function blogPostToVideoSlide(post: BlogPost) {
-  console.log('🔄 変換処理中のpost:', JSON.stringify(post, null, 2));
   
   // mediaTypeが配列の場合は最初の要素を取得
   let mediaType = post.mediaType || "image";
@@ -13,7 +12,7 @@ function blogPostToVideoSlide(post: BlogPost) {
     mediaType = mediaType[0] || "image";
   }
 
-  const result = {
+  return {
     id: post.id,
     title: post.title,
     mediaType: mediaType as "image" | "video",
@@ -21,13 +20,11 @@ function blogPostToVideoSlide(post: BlogPost) {
     imageSrc: mediaType === "image" ? post.eyecatch?.url : undefined,
     description: post.content ? post.content.replace(/<[^>]*>/g, '').substring(0, 100) : "",
     publishedAt: post.publishedAt,
-    category: Array.isArray(post.category) ? post.category[0]?.name : post.category?.name,
-    // 記事詳細ページのURL
+    category: Array.isArray(post.category) 
+      ? (post.category[0] as any)?.name || post.category[0] 
+      : (post.category as any)?.name || post.category,
     liveUrl: `/blog/${post.id}`,
   };
-
-  console.log('🔄 変換結果:', JSON.stringify(result, null, 2));
-  return result;
 }
 
 interface HeroCanvasWithCMSProps {
@@ -46,11 +43,6 @@ export default async function HeroCanvasWithCMS({
 
     if (showcasePosts.length > 0) {
       videoSlides = showcasePosts.map(blogPostToVideoSlide);
-      console.log(`${showcasePosts.length}件のshowcase記事を変換しました`);
-      console.log('🔍 変換前の生データ:', showcasePosts);
-      console.log('🔍 変換後のvideoSlides:', videoSlides);
-    } else {
-      console.log('⚠️ showcase記事が見つかりませんでした');
     }
   } catch (error) {
     console.warn(
@@ -59,9 +51,6 @@ export default async function HeroCanvasWithCMS({
     );
   }
 
-  // テスト用: フォールバックデータを強制使用
-  console.log('🔍 最終的なvideoSlides:', videoSlides);
-  console.log('🔍 videoSlides.length:', videoSlides.length);
   
   return (
     <HeroCanvas videoSlides={videoSlides.length > 0 ? videoSlides : undefined}>

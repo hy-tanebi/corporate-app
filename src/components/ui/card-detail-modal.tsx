@@ -13,7 +13,6 @@ interface CardDetailModalProps {
 }
 
 export function CardDetailModal({ isOpen, onClose, slide, index }: CardDetailModalProps) {
-  console.log('CardDetailModal rendered:', { isOpen, slide: slide?.title, index });
   
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
@@ -68,23 +67,11 @@ export function CardDetailModal({ isOpen, onClose, slide, index }: CardDetailMod
               <div 
                 className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all duration-300 animate-in fade-in-0 slide-in-from-left-4 duration-400 delay-300"
                 onClick={(e) => {
-                  console.log('🎯 記事カード clicked!', e);
-                  console.log('🔗 記事カードクリック:', slide.title);
-                  console.log('📄 slide data:', slide);
-                  console.log('📄 slide JSON:', JSON.stringify(slide, null, 2));
-                  console.log('🔍 liveUrl:', slide.liveUrl);
-                  console.log('🔍 githubUrl:', slide.githubUrl);
-                  console.log('🔍 slide keys:', Object.keys(slide));
-                  
-                  // イベントの伝播を停止
                   e.stopPropagation();
                   e.preventDefault();
                   
                   if (slide.liveUrl) {
-                    console.log('✅ 記事ページに遷移:', slide.liveUrl);
                     window.location.href = slide.liveUrl;
-                  } else {
-                    console.log('❌ 記事URLがありません');
                   }
                 }}
               >
@@ -115,7 +102,6 @@ export function CardDetailModal({ isOpen, onClose, slide, index }: CardDetailMod
                   <button 
                     className="text-xs bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-3 py-2 rounded-full hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors"
                     onClick={(e) => {
-                      console.log('🔗 記事を読む ボタンクリック');
                       e.stopPropagation();
                       
                       if (slide.liveUrl) {

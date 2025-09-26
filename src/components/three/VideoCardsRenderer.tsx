@@ -99,14 +99,6 @@ export default function VideoCardsRenderer({
 
   const thetaRel = Math.max(0, thetaDisplay - thetaStartDisplay);
 
-  // Debug logging
-  console.log('VideoCardsRenderer:', {
-    scrollProgress,
-    phaseLin,
-    phaseEased,
-    thetaRel,
-    cardsCount: videoSlides.length
-  });
 
   const { slotStep } = layout;
   const appearStart = 0;
@@ -145,10 +137,6 @@ export default function VideoCardsRenderer({
 
         const slide = videoSlides[index];
         
-        // Debug individual card opacity
-        if (opacity > 0.01) {
-          console.log(`Card ${index} (${slide.title}): opacity=${opacity.toFixed(3)}, isActive=${opacity > 0.05}`);
-        }
         
         return (
           <VideoCard3D
@@ -163,10 +151,7 @@ export default function VideoCardsRenderer({
             progress={phaseEased}
             scale={0.7}
             opacity={opacity}
-            onClick={() => {
-              console.log('VideoCard3D onClick triggered for:', slide.title, index);
-              onCardClick?.(slide, index);
-            }}
+            onClick={() => onCardClick?.(slide, index)}
           />
         );
       })}
