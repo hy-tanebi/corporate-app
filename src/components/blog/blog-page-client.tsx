@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BlogSearch } from "./blog-search";
 import { BlogCard } from "./blog-card";

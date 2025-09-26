@@ -18,6 +18,7 @@ import NextSection from "./NextSection";
 import { FeatherCircleMaterial } from "./materials";
 import { getSafeVideoSlides } from "../../data/fallback-content";
 import { VideoSlide } from "../../types/content";
+import { CardDetailModal } from "../ui/card-detail-modal";
 
 // ===== 全体スケール =====
 const SCENE_SCALE = 1.2;
@@ -96,9 +97,10 @@ const CARD_H = 0.7;
 interface HeroSceneProps {
   scrollProgress: number;
   videoSlides: VideoSlide[];
+  onCardClick?: (slide: VideoSlide, index: number) => void;
 }
 
-function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
+function HeroScene({ scrollProgress, videoSlides, onCardClick }: HeroSceneProps) {
   const heroMatRef = useRef<any>(null);
   const starGroupRef = useRef<THREE.Group>(null);
   const triangleGroupRef = useRef<THREE.Group>(null);
@@ -507,6 +509,7 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
               layout={layout}
               requiredTurns={requiredTurns}
               ROT_TURNS={ROT_TURNS}
+              onCardClick={onCardClick}
             />
           </Suspense>
         </group>
@@ -531,7 +534,7 @@ function HeroScene({ scrollProgress, videoSlides }: HeroSceneProps) {
       </group>
 
       {/* ===== 画面の液体屈折（ヒーロー内のみ作用） ===== */}
-      <mesh ref={fluidRef} renderOrder={10000} frustumCulled={false}>
+      <mesh ref={fluidRef} renderOrder={10000} frustumCulled={false} raycast={() => null}>
         <planeGeometry args={[2, 2, 1, 1]} />
         <hoverFluidMaterial
           ref={(m: any) => {
@@ -561,7 +564,17 @@ const HeroCanvas = ({
 }: HeroCanvasProps) => {
   // フォールバック機能付きで安全にvideoSlidesを取得
   const safeVideoSlides = getSafeVideoSlides(videoSlides);
+  
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [selectedCard, setSelectedCard] = useState<{ slide: VideoSlide; index: number } | null>(null);
+
+  const handleCardClick = (slide: VideoSlide, index: number) => {
+    setSelectedCard({ slide, index });
+  };
+
+  const handleCloseModal = () => {
+    setSelectedCard(null);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -587,16 +600,29 @@ const HeroCanvas = ({
           left: 0,
           width: "100vw",
           height: "100vh",
-          zIndex: -1,
+          zIndex: 0,
+          pointerEvents: "auto",
         }}
         gl={{ antialias: true, alpha: false }}
       >
-        <HeroScene scrollProgress={scrollProgress} videoSlides={safeVideoSlides} />
+        <HeroScene scrollProgress={scrollProgress} videoSlides={safeVideoSlides} onCardClick={handleCardClick} />
       </Canvas>
 
-      <div style={{ position: "relative", zIndex: 1, minHeight: "1000vh" }}>
-        {children}
+      <div style={{ position: "relative", zIndex: 10, minHeight: "1000vh", pointerEvents: "none" }}>
+        <div style={{ pointerEvents: "auto" }}>
+          {children}
+        </div>
       </div>
+
+      {/* カード詳細モーダル */}
+      {selectedCard && (
+        <CardDetailModal
+          isOpen={!!selectedCard}
+          onClose={handleCloseModal}
+          slide={selectedCard.slide}
+          index={selectedCard.index}
+        />
+      )}
     </>
   );
 };

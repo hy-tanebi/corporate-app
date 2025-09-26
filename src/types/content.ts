@@ -7,6 +7,11 @@ export interface VideoSlide {
   mp4?: string;
   imageSrc?: string;
   description: string;
+  publishedAt?: string;
+  category?: string;
+  techStack?: string[];
+  githubUrl?: string;
+  liveUrl?: string;
 }
 
 export interface PortfolioContent {
