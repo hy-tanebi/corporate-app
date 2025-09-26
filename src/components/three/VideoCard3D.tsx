@@ -262,13 +262,39 @@ export default function VideoCard3D({
               ref={meshRef} 
               position={[0, 0, 0]} 
               rotation={[Math.PI, Math.PI, 0]} 
-              renderOrder={100}
-              onClick={onClick}
+              renderOrder={1001}
+              onClick={(e) => {
+                console.log('🎯 Mesh clicked:', title);
+                console.log('Event details:', e);
+                console.log('onClick prop:', onClick);
+                console.log('Intersections:', e.intersections);
+                e.stopPropagation();
+                if (onClick) {
+                  console.log('✅ Calling onClick function');
+                  onClick();
+                } else {
+                  console.log('❌ onClick is undefined');
+                }
+              }}
+              onPointerDown={(e) => {
+                console.log('🖱️ Pointer DOWN detected:', title);
+                e.stopPropagation();
+              }}
+              onPointerUp={(e) => {
+                console.log('🖱️ Pointer UP detected:', title);
+                e.stopPropagation();
+                if (onClick) {
+                  console.log('✅ Calling onClick from pointer up');
+                  onClick();
+                }
+              }}
               onPointerOver={(e) => {
+                console.log('👆 Pointer OVER detected:', title);
                 e.stopPropagation();
                 document.body.style.cursor = 'pointer';
               }}
               onPointerOut={(e) => {
+                console.log('👈 Pointer OUT detected:', title);
                 e.stopPropagation();
                 document.body.style.cursor = 'default';
               }}
@@ -284,7 +310,7 @@ export default function VideoCard3D({
                 transparent
                 alphaTest={0.001}
                 depthTest={true} // 深度テストを有効に戻す
-                depthWrite={false}
+                depthWrite={true}
                 side={THREE.DoubleSide} // ← 表裏の不整合を根絶
               />
             </mesh>

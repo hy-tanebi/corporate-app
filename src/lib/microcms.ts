@@ -64,6 +64,9 @@ export interface BlogPost {
 	mediaType?: 'image' | 'video' | string | string[]; // メディア種別（実際のレスポンスに合わせて柔軟に）
 	videoUrl?: string; // 動画URL（動画選択時のみ使用）
 	isShowcase?: boolean; // 3Dカードに表示するか
+	liveUrl?: string; // ライブデモURL
+	githubUrl?: string; // GitHubリポジトリURL
+	techStack?: string[]; // 技術スタック
 	createdAt: string;
 	updatedAt: string;
 	publishedAt: string;
@@ -93,7 +96,7 @@ export const getBlogPosts = async (
 			limit,
 			offset,
 			fields:
-				"id,title,content,eyecatch,category,mediaType,videoUrl,isShowcase,createdAt,updatedAt,publishedAt,revisedAt",
+				"id,title,content,eyecatch,category,mediaType,videoUrl,isShowcase,liveUrl,githubUrl,techStack,createdAt,updatedAt,publishedAt,revisedAt",
 			depth: 1, // 関連コンテンツを展開
 		},
 	});
@@ -111,7 +114,7 @@ export const getBlogPost = async (id: string): Promise<BlogPost> => {
 		contentId: id,
 		queries: {
 			fields:
-				"id,title,content,eyecatch,category,mediaType,videoUrl,isShowcase,createdAt,updatedAt,publishedAt,revisedAt",
+				"id,title,content,eyecatch,category,mediaType,videoUrl,isShowcase,liveUrl,githubUrl,techStack,createdAt,updatedAt,publishedAt,revisedAt",
 			depth: 1, // 関連コンテンツを展開
 		},
 	});

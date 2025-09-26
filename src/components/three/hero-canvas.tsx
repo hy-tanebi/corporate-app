@@ -534,7 +534,7 @@ function HeroScene({ scrollProgress, videoSlides, onCardClick }: HeroSceneProps)
       </group>
 
       {/* ===== 画面の液体屈折（ヒーロー内のみ作用） ===== */}
-      <mesh ref={fluidRef} renderOrder={10000} frustumCulled={false}>
+      <mesh ref={fluidRef} renderOrder={10000} frustumCulled={false} raycast={() => null}>
         <planeGeometry args={[2, 2, 1, 1]} />
         <hoverFluidMaterial
           ref={(m: any) => {
@@ -564,11 +564,18 @@ const HeroCanvas = ({
 }: HeroCanvasProps) => {
   // フォールバック機能付きで安全にvideoSlidesを取得
   const safeVideoSlides = getSafeVideoSlides(videoSlides);
+  
+  // デバッグ: データの詳細を確認
+  console.log('🔍 hero-canvas videoSlides:', videoSlides);
+  console.log('🔍 hero-canvas safeVideoSlides:', safeVideoSlides);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [selectedCard, setSelectedCard] = useState<{ slide: VideoSlide; index: number } | null>(null);
 
   const handleCardClick = (slide: VideoSlide, index: number) => {
+    console.log('handleCardClick called:', slide.title, index);
+    console.log('Current selectedCard state:', selectedCard);
     setSelectedCard({ slide, index });
+    console.log('setSelectedCard called with:', { slide: slide.title, index });
   };
 
   const handleCloseModal = () => {
@@ -599,15 +606,21 @@ const HeroCanvas = ({
           left: 0,
           width: "100vw",
           height: "100vh",
-          zIndex: -1,
+          zIndex: 0,
+          pointerEvents: "auto",
         }}
         gl={{ antialias: true, alpha: false }}
+        onPointerDown={(e) => console.log('🎯 Canvas pointer down:', e)}
+        onPointerUp={(e) => console.log('🎯 Canvas pointer up:', e)}
+        onClick={(e) => console.log('🎯 Canvas click:', e)}
       >
         <HeroScene scrollProgress={scrollProgress} videoSlides={safeVideoSlides} onCardClick={handleCardClick} />
       </Canvas>
 
-      <div style={{ position: "relative", zIndex: 1, minHeight: "1000vh" }}>
-        {children}
+      <div style={{ position: "relative", zIndex: 10, minHeight: "1000vh", pointerEvents: "none" }}>
+        <div style={{ pointerEvents: "auto" }}>
+          {children}
+        </div>
       </div>
 
       {/* カード詳細モーダル */}
