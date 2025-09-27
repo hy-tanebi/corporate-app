@@ -1,26 +1,30 @@
 // src/components/three/HeroCanvasWithCMS.tsx
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { getBlogPosts, type BlogPost } from "../../lib/microcms";
 import HeroCanvas from "./hero-canvas";
 
 // BlogPostをVideoCard用データに変換
 function blogPostToVideoSlide(post: BlogPost) {
+  
   // mediaTypeが配列の場合は最初の要素を取得
   let mediaType = post.mediaType || "image";
   if (Array.isArray(mediaType)) {
     mediaType = mediaType[0] || "image";
   }
 
-  const result = {
+  return {
     id: post.id,
     title: post.title,
     mediaType: mediaType as "image" | "video",
     mp4: mediaType === "video" ? post.videoUrl : undefined,
     imageSrc: mediaType === "image" ? post.eyecatch?.url : undefined,
-    description: "",
+    description: post.content ? post.content.replace(/<[^>]*>/g, '').substring(0, 100) : "",
+    publishedAt: post.publishedAt,
+    category: Array.isArray(post.category) 
+      ? (post.category[0] as any)?.name || post.category[0] 
+      : (post.category as any)?.name || post.category,
+    liveUrl: `/blog/${post.id}`,
   };
-
-  return result;
 }
 
 interface HeroCanvasWithCMSProps {
@@ -30,7 +34,7 @@ interface HeroCanvasWithCMSProps {
 export default async function HeroCanvasWithCMS({
   children,
 }: HeroCanvasWithCMSProps) {
-  let videoSlides: any[] = [];
+  let videoSlides: ReturnType<typeof blogPostToVideoSlide>[] = [];
 
   try {
     // microCMSからshowcase記事を取得
@@ -39,7 +43,6 @@ export default async function HeroCanvasWithCMS({
 
     if (showcasePosts.length > 0) {
       videoSlides = showcasePosts.map(blogPostToVideoSlide);
-      console.log(`${showcasePosts.length}件のshowcase記事を変換しました`);
     }
   } catch (error) {
     console.warn(
@@ -48,6 +51,7 @@ export default async function HeroCanvasWithCMS({
     );
   }
 
+  
   return (
     <HeroCanvas videoSlides={videoSlides.length > 0 ? videoSlides : undefined}>
       {children}

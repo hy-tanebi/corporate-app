@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { TableOfContentsClient } from "@/components/table-of-contents-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
-import { getAuthorProfile, getBlogPost, getBlogPosts } from "@/lib/microcms";
+import { getAuthorProfile, getBlogPost, getBlogPosts, type BlogPost, type AuthorProfile } from "@/lib/microcms";
 import { generateBlogMetadata } from "@/lib/seo";
 
 interface BlogDetailPageProps {
@@ -33,8 +33,8 @@ export async function generateMetadata({
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 	const { slug } = await params;
 
-	let post;
-	let profile;
+	let post: BlogPost | null = null;
+	let profile: AuthorProfile | null = null;
 
 	try {
 		[post, profile] = await Promise.all([

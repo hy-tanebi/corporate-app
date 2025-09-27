@@ -43,35 +43,42 @@ export const fallbackConfig: FallbackConfig = {
 export const developmentFallbackSlides: VideoSlide[] = [
   {
     id: "dev-fallback-1",
-    title: "開発用サンプル 1",
+    title: "テスト3",
     mediaType: "video",
     mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
     imageSrc: "/images/placeholder-project-1.jpg",
-    description: "開発用のサンプル動画です",
+    description: "これはテスト用の記事です。Next.jsとThree.jsを使用してモダンなWebアプリケーションを構築しています。",
+    publishedAt: "2024-01-15",
+    category: "Web開発",
+    techStack: ["Next.js", "Three.js", "TypeScript", "Tailwind CSS"],
+    liveUrl: "https://example.com/project1",
+    githubUrl: "https://github.com/example/project1",
   },
   {
     id: "dev-fallback-2",
-    title: "開発用サンプル 2", 
+    title: "テスト投稿2", 
     mediaType: "video",
     mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
     imageSrc: "/images/placeholder-project-2.jpg",
-    description: "開発用のサンプル動画です",
+    description: "React Three Fiberを使用した3Dアニメーション開発についての記事です。",
+    publishedAt: "2024-01-10",
+    category: "3D開発",
+    techStack: ["React", "React Three Fiber", "WebGL"],
+    liveUrl: "https://example.com/project2",
+    githubUrl: "https://github.com/example/project2",
   },
   {
     id: "dev-fallback-3",
-    title: "開発用サンプル 3",
+    title: "テスト投稿1",
     mediaType: "video", 
     mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     imageSrc: "/images/placeholder-project-3.jpg",
-    description: "開発用のサンプル動画です",
-  },
-  {
-    id: "dev-fallback-4",
-    title: "開発用サンプル 4",
-    mediaType: "video",
-    mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    imageSrc: "/images/placeholder-project-4.jpg", 
-    description: "開発用のサンプル動画です",
+    description: "モバイルファーストなレスポンシブデザインの実装方法について説明しています。",
+    publishedAt: "2024-01-05",
+    category: "UI/UX",
+    techStack: ["HTML", "CSS", "JavaScript", "Responsive Design"],
+    liveUrl: "https://example.com/project3",
+    githubUrl: "https://github.com/example/project3",
   },
 ];
 
@@ -98,15 +105,27 @@ export function validateVideoSlide(slide: any): slide is VideoSlide {
 
 // 安全なフォールバックデータの取得
 export function getSafeVideoSlides(slides?: VideoSlide[]): VideoSlide[] {
+  console.log('🔍 getSafeVideoSlides input:', slides);
+  
   if (!slides || slides.length === 0) {
-    return getFallbackVideoSlides();
+    console.log('📦 フォールバックデータを使用します');
+    const fallback = getFallbackVideoSlides();
+    console.log('📦 フォールバックデータ:', fallback);
+    return fallback;
   }
   
   // データの検証
   const validSlides = slides.filter(validateVideoSlide);
+  console.log('✅ 検証後のデータ:', validSlides);
+  console.log('🔍 最初のスライドの詳細:', JSON.stringify(validSlides[0], null, 2));
+  
   if (validSlides.length === 0) {
-    return getFallbackVideoSlides(); 
+    console.log('📦 検証失敗、フォールバックデータを使用します');
+    const fallback = getFallbackVideoSlides();
+    console.log('📦 フォールバックデータ:', fallback);
+    return fallback; 
   }
   
+  console.log('✅ 入力データを使用します');
   return validSlides;
 }

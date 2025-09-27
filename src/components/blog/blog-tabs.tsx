@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
 import { BlogPageClient } from "./blog-page-client";
 import { RecruitmentContent } from "./recruitment-content";
 import type { BlogPost, GroupInfo } from "@/lib/microcms";
