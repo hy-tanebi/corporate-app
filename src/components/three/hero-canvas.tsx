@@ -13,6 +13,7 @@ import {
 } from "react";
 import * as THREE from "three";
 import { StarParticles } from "./StarParticles";
+import { ShootingStars } from "./ShootingStars";
 import VideoCardsRenderer from "./VideoCardsRenderer";
 import NextSection from "./NextSection";
 import { FeatherCircleMaterial } from "./materials";
@@ -484,6 +485,7 @@ function HeroScene({ scrollProgress, videoSlides, onCardClick }: HeroSceneProps)
         <group ref={starGroupRef}>
           <Suspense fallback={null}>
             <StarParticles selfRotate={false} position={[0, 0, -10]} />
+            <ShootingStars interval={3500} duration={4000} />
           </Suspense>
         </group>
 

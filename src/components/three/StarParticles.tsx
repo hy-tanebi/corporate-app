@@ -63,7 +63,8 @@ export function StarParticles({
       positions[i * 3] = (Math.random() - 0.5) * 50;
       positions[i * 3 + 1] = (Math.random() - 0.5) * 50;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 50;
-      color.setRGB(1, 1, 1);
+      // 青白い色に設定（少し青みがかった白）
+      color.setRGB(0.8, 0.9, 1.0);
       colors[i * 3] = color.r;
       colors[i * 3 + 1] = color.g;
       colors[i * 3 + 2] = color.b;
