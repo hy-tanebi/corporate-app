@@ -84,8 +84,7 @@ const SelectContent = React.forwardRef<
 			<SelectPrimitive.Viewport
 				className={cn(
 					"p-1 flex flex-wrap gap-1 max-w-xs",
-					position === "popper" &&
-						"min-w-[var(--radix-select-trigger-width)]",
+					position === "popper" && "min-w-[var(--radix-select-trigger-width)]",
 				)}
 			>
 				{children}

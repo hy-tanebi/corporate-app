@@ -5,7 +5,13 @@ import type { Metadata } from "next";
 import { TableOfContentsClient } from "@/components/table-of-contents-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
-import { getAuthorProfile, getBlogPost, getBlogPosts, type BlogPost, type AuthorProfile } from "@/lib/microcms";
+import {
+	getAuthorProfile,
+	getBlogPost,
+	getBlogPosts,
+	type BlogPost,
+	type AuthorProfile,
+} from "@/lib/microcms";
 import { generateBlogMetadata } from "@/lib/seo";
 
 interface BlogDetailPageProps {
