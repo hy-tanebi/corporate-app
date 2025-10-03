@@ -1,8 +1,9 @@
 // src/app/components/HomeClient.tsx
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
+import { HeroActions } from "@/components/ui/hero-actions";
+import { HeroActionButton } from "@/components/ui/hero-action-button";
 
 export default function HomeClient() {
 	const [scrollProgress, setScrollProgress] = useState(0);
@@ -20,19 +21,21 @@ export default function HomeClient() {
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
 
-	// 第1テキストの表示タイミング（0-35%でフェードイン、35-50%で表示、50-65%でフェードアウト）
-	const text1FadeIn = Math.max(0, Math.min(1, scrollProgress * 2.857)); // 0-35%
-	const text1FadeOut = Math.max(
-		0,
-		Math.min(1, (0.65 - scrollProgress) * 6.667),
-	); // 50-65%
+	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
+	const CIRCLE_START = 0.86;
+
+	// 第1テキストの表示タイミング（0-30%でフェードイン、30-45%で表示、45-55%でフェードアウト）
+	const text1FadeIn = Math.max(0, Math.min(1, scrollProgress * 3.333)); // 0-30%
+	const text1FadeOut = Math.max(0, Math.min(1, (0.55 - scrollProgress) * 10)); // 45-55%
 	const text1Opacity = Math.min(text1FadeIn, text1FadeOut);
 
-	// 第2テキストの表示タイミング（50-65%でフェードイン、65-80%で表示）
-	const text2Opacity = Math.max(0, Math.min(1, (scrollProgress - 0.5) * 6.667));
-
-	// ブログボタンの表示タイミング（第2段階: 25-50%、少し遅らせる）
-	const buttonOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.3) * 4));
+	// 第2テキストの表示タイミング（60-70%でフェードイン、70-85%で表示、黒い円開始で消える）
+	const text2FadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.6) * 10)); // 60-70%
+	const text2FadeOut = Math.max(
+		0,
+		Math.min(1, (CIRCLE_START - scrollProgress) * 20),
+	); // 黒い円開始で急速にフェードアウト
+	const text2Opacity = Math.min(text2FadeIn, text2FadeOut);
 
 	return (
 		<>
@@ -99,23 +102,12 @@ export default function HomeClient() {
 				</p>
 			</div>
 
-			{/* ブログボタンを右の真ん中に固定配置 */}
-			<div
-				className="fixed right-8 top-1/2 transform -translate-y-1/2 z-10 transition-all duration-1000 ease-out"
-				style={{
-					opacity: buttonOpacity,
-					transform: `translateY(-50%) translateX(${
-						(1 - buttonOpacity) * 20
-					}px)`,
-				}}
-			>
-				<Link
-					className="rounded-full border border-solid border-white/20 transition-colors flex items-center justify-center bg-white/10 backdrop-blur text-white gap-2 hover:bg-white/20 font-medium text-base h-12 px-6 shadow-lg"
-					href="/blog"
-				>
-					ブログを見る
-				</Link>
-			</div>
+			{/* アクションボタン群 */}
+			<HeroActions scrollProgress={scrollProgress} position="right">
+				<HeroActionButton href="/blog" label="ブログを見る" variant="primary" />
+				{/* 必要に応じて追加ボタンを配置 */}
+				{/* <HeroActionButton href="/contact" label="お問い合わせ" variant="secondary" /> */}
+			</HeroActions>
 
 			{/* スクロール可能なコンテンツエリア（透明） */}
 			<div className="w-full" style={{ height: "300vh" }}>
