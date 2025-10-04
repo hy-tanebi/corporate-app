@@ -102,8 +102,26 @@ export default function VideoCard3D({
 			v.loop = false;
 			v.muted = true;
 			v.playsInline = true;
-			v.preload = "metadata";
+			v.preload = "auto"; // metadataからautoに変更して確実に読み込む
 			videoRef.current = v;
+
+			// 動画が十分に読み込まれたらtextureLoadedをtrueに
+			v.oncanplay = () => {
+				console.log(`✅ [${title}] 動画再生可能:`, videoSrc);
+				setTextureLoaded(true);
+			};
+
+			v.onloadedmetadata = () => {
+				console.log(`📊 [${title}] メタデータ読み込み完了`);
+			};
+
+			v.onerror = (e) => {
+				console.error(`❌ [${title}] 動画読み込みエラー:`, videoSrc);
+				console.error('Error details:', e);
+				console.error('Video element:', v);
+				console.error('NetworkState:', v.networkState);
+				console.error('ReadyState:', v.readyState);
+			};
 
 			const tex = new VideoTexture(v);
 			tex.minFilter = THREE.LinearFilter;
@@ -112,7 +130,6 @@ export default function VideoCard3D({
 			tex.flipY = false; // DoubleSide使用時は反転させない
 			(tex as any).colorSpace = THREE.SRGBColorSpace;
 			videoTexture.current = tex;
-			setTextureLoaded(true);
 		} else if (mediaType === "image" && imageSrc) {
 			new TextureLoader().load(
 				imageSrc,
