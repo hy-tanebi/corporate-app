@@ -4,9 +4,11 @@
 import { useState, useEffect } from "react";
 import { HeroActions } from "@/components/ui/hero-actions";
 import { HeroActionButton } from "@/components/ui/hero-action-button";
+import MissionSection from "./MissionSection";
 
 export default function HomeClient() {
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isCircleFullyExpanded, setIsCircleFullyExpanded] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,7 +16,7 @@ export default function HomeClient() {
       const docHeight =
         document.documentElement.scrollHeight - window.innerHeight;
       const scrolled = scrollTop / docHeight;
-      setScrollProgress(Math.min(scrolled, 1));
+      setScrollProgress(scrolled); // 1以上も許可（MISSIONセクションで100%超のスクロールを使用）
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -23,6 +25,27 @@ export default function HomeClient() {
 
   // 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
   const CIRCLE_START = 0.86;
+  const CIRCLE_SCROLL_END = 0.95; // hero-canvas.tsxのCIRCLE_SCROLL_END
+  const CIRCLE_ACTUAL_END = 0.98; // 慣性を考慮した実際の完全拡大タイミング（CIRCLE_SMOOTH_EXPAND = 0.25を考慮）
+
+  // 黒い円が完全に拡大したらフラグを立てる（戻る時はfalseに戻す）
+  useEffect(() => {
+    if (scrollProgress >= CIRCLE_ACTUAL_END) {
+      if (!isCircleFullyExpanded) {
+        setIsCircleFullyExpanded(true);
+        console.log('Circle fully expanded at scrollProgress:', scrollProgress);
+      }
+    } else {
+      // スクロールを戻して黒い円が縮小したらフラグをfalseに戻す
+      if (isCircleFullyExpanded) {
+        setIsCircleFullyExpanded(false);
+        console.log('Circle shrinking at scrollProgress:', scrollProgress);
+      }
+    }
+  }, [scrollProgress, CIRCLE_ACTUAL_END, isCircleFullyExpanded]);
+
+  // 黒い円が拡大中はすべてのUI要素を非表示
+  const isCircleExpanded = scrollProgress >= CIRCLE_SCROLL_END;
 
   // 第1テキストの表示タイミング（0-30%でフェードイン、30-45%で表示、45-55%でフェードアウト）
   const text1FadeIn = Math.max(0, Math.min(1, scrollProgress * 3.333)); // 0-30%
@@ -52,15 +75,16 @@ export default function HomeClient() {
       </div>
 
       {/* 第1テキスト: 最初のキャッチコピー */}
-      <div
-        className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl"
-        style={{
-          opacity: text1Opacity,
-          transform: `translateY(-50%) translateX(${
-            (1 - text1Opacity) * -20
-          }px)`,
-        }}
-      >
+      {!isCircleExpanded && (
+        <div
+          className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl"
+          style={{
+            opacity: text1Opacity,
+            transform: `translateY(-50%) translateX(${
+              (1 - text1Opacity) * -20
+            }px)`,
+          }}
+        >
         <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-8">
           デジタルの
           <br />
@@ -75,18 +99,20 @@ export default function HomeClient() {
           <br />
           <span className="text-white/90">次の時代の表現を、ともに創る</span>
         </p>
-      </div>
+        </div>
+      )}
 
       {/* 第2テキスト: 詳細メッセージ */}
-      <div
-        className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl"
-        style={{
-          opacity: text2Opacity,
-          transform: `translateY(-50%) translateX(${
-            (1 - text2Opacity) * -20
-          }px)`,
-        }}
-      >
+      {!isCircleExpanded && (
+        <div
+          className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl"
+          style={{
+            opacity: text2Opacity,
+            transform: `translateY(-50%) translateX(${
+              (1 - text2Opacity) * -20
+            }px)`,
+          }}
+        >
         <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-8">
           現場が抱える
           <br />
@@ -108,18 +134,20 @@ export default function HomeClient() {
             そのすべてを、伴走しながら実現します。
           </span>
         </p>
-      </div>
+        </div>
+      )}
 
       {/* 第3テキスト: CTAメッセージ */}
-      <div
-        className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-3xl"
-        style={{
-          opacity: text3Opacity,
-          transform: `translateY(-50%) translateX(${
-            (1 - text3Opacity) * -20
-          }px)`,
-        }}
-      >
+      {!isCircleExpanded && (
+        <div
+          className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-3xl"
+          style={{
+            opacity: text3Opacity,
+            transform: `translateY(-50%) translateX(${
+              (1 - text3Opacity) * -20
+            }px)`,
+          }}
+        >
         <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
           あなたの
           <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -132,21 +160,27 @@ export default function HomeClient() {
         <p className="text-xl md:text-2xl text-white/90 font-medium">
           まずはご相談ください。
         </p>
-      </div>
+        </div>
+      )}
 
       {/* アクションボタン群 */}
-      <HeroActions scrollProgress={scrollProgress} position="right">
-        <HeroActionButton href="/blog" label="ブログを見る" variant="primary" />
-        <HeroActionButton href="/about" label="About" variant="secondary" />
-        <HeroActionButton
-          href="/contact"
-          label="お問い合わせ"
-          variant="secondary"
-        />
-      </HeroActions>
+      {!isCircleExpanded && (
+        <HeroActions scrollProgress={scrollProgress} position="right">
+          <HeroActionButton href="/blog" label="ブログを見る" variant="primary" />
+          <HeroActionButton href="/about" label="About" variant="secondary" />
+          <HeroActionButton
+            href="/contact"
+            label="お問い合わせ"
+            variant="secondary"
+          />
+        </HeroActions>
+      )}
+
+      {/* MISSIONセクション */}
+      <MissionSection scrollProgress={scrollProgress} isCircleFullyExpanded={isCircleFullyExpanded} />
 
       {/* スクロール可能なコンテンツエリア（透明） */}
-      <div className="w-full" style={{ height: "300vh" }}>
+      <div className="w-full" style={{ height: "1000vh" }}>
         {/* 空のコンテンツでスクロールを可能にする */}
       </div>
     </>

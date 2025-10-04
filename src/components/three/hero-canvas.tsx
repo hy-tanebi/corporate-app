@@ -15,7 +15,6 @@ import * as THREE from "three";
 import { StarParticles } from "./StarParticles";
 import { ShootingStars } from "./ShootingStars";
 import VideoCardsRenderer from "./VideoCardsRenderer";
-import NextSection from "./NextSection";
 import { FeatherCircleMaterial } from "./materials";
 import { getSafeVideoSlides } from "../../data/fallback-content";
 import type { VideoSlide } from "../../types/content";
@@ -46,9 +45,9 @@ const VIDEO_ROT_INERTIA = 2.0;
 const RETURN_SCROLL_START = 0.82;
 const RETURN_SCROLL_END = 0.86;
 const CIRCLE_SCROLL_START = RETURN_SCROLL_END + 0.005;
-const CIRCLE_SCROLL_END = 0.9995;
+const CIRCLE_SCROLL_END = 0.95; // 黒い円の拡大終了
 const CIRCLE_SMOOTH_EXPAND = 0.25;
-const CIRCLE_SMOOTH_SHRINK = 18.0;
+const CIRCLE_SMOOTH_SHRINK = 3.5; // 縮小は拡大よりかなり速く
 const CIRCLE_EASE = 1.0;
 
 // 円の見え方
@@ -218,9 +217,6 @@ function HeroScene({
 	// 慣性
 	const smoothedTheta = useRef(0);
 	const circleTRef = useRef(0);
-
-	// 次のセクションの表示状態
-	const [isNextSectionVisible, setIsNextSectionVisible] = useState(false);
 
 	// ヒーロー領域算出ワーク
 	const box = useMemo(() => new THREE.Box3(), []);
@@ -449,12 +445,6 @@ function HeroScene({
 
 				if (starGroupRef.current)
 					starGroupRef.current.visible = growT < HIDE_BG_AT_T;
-
-				// 黒い円が完全に拡大したら次のセクションを表示
-				const isFullyExpanded = growT >= 0.98;
-				if (isFullyExpanded && !isNextSectionVisible) {
-					setIsNextSectionVisible(true);
-				}
 			} else {
 				circleRef.current.visible = false;
 				circleRef.current.scale.set(0.001, 0.001, 1);
@@ -463,11 +453,6 @@ function HeroScene({
 					triangleVisibleMeshRef.current.visible = true;
 				if (lineSegmentsRef.current) lineSegmentsRef.current.visible = true;
 				if (starGroupRef.current) starGroupRef.current.visible = true;
-
-				// 黒い円が縮小したら次のセクションを非表示
-				if (isNextSectionVisible) {
-					setIsNextSectionVisible(false);
-				}
 			}
 		}
 
@@ -529,11 +514,6 @@ function HeroScene({
 					<primitive attach="material" object={featherMat} />
 				</mesh>
 
-				{/* 次のセクション */}
-				<NextSection
-					scrollProgress={scrollProgress}
-					isVisible={isNextSectionVisible}
-				/>
 			</group>
 
 			{/* ===== 画面の液体屈折（ヒーロー内のみ作用） ===== */}
