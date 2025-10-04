@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import VideoCard3D from "./VideoCard3D";
-import { VideoSlide } from "../../types/content";
+import type { VideoSlide } from "../../types/content";
 
 // Constants
 const TAU = Math.PI * 2;

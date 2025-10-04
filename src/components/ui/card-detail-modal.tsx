@@ -3,7 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Calendar, Tag } from "lucide-react";
 import Image from "next/image";
-import { VideoSlide } from "../../types/content";
+import type { VideoSlide } from "../../types/content";
 
 interface CardDetailModalProps {
 	isOpen: boolean;

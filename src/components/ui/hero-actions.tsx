@@ -1,7 +1,7 @@
 // src/components/ui/hero-actions.tsx
 "use client";
 
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface HeroActionsProps {
 	children: ReactNode;
@@ -28,8 +28,8 @@ export function HeroActions({
 
 	// 位置クラスの決定
 	const positionClasses = {
-		right: "right-8",
-		left: "left-8",
+		right: "right-16 md:right-24",
+		left: "left-16 md:left-24",
 		center: "left-1/2 -translate-x-1/2",
 	}[position];
 
@@ -41,7 +41,7 @@ export function HeroActions({
 				transform: `translateY(-50%) translateX(${(1 - opacity) * 20}px)`,
 			}}
 		>
-			<div className="flex flex-col gap-4">{children}</div>
+			<div className="flex flex-col gap-6">{children}</div>
 		</div>
 	);
 }

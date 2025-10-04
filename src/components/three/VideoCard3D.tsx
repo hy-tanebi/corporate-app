@@ -228,7 +228,7 @@ export default function VideoCard3D({
 				1,
 				(performance.now() - exitStartRef.current) / EXIT_MS,
 			);
-			const e = 1 - Math.pow(1 - t, 3);
+			const e = 1 - (1 - t) ** 3;
 			if (exitGroupRef.current) {
 				const curY = exitGroupRef.current.rotation.y;
 				exitGroupRef.current.rotation.y = curY + (EXIT_ROT - curY) * 0.25;

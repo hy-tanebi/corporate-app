@@ -51,25 +51,24 @@ export default function HomeClient() {
 				className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl"
 				style={{
 					opacity: text1Opacity,
-					transform: `translateY(-50%) translateX(${(1 - text1Opacity) * 20}px)`,
+					transform: `translateY(-50%) translateX(${
+						(1 - text1Opacity) * -20
+					}px)`,
 				}}
 			>
 				<h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-8">
 					デジタルの
 					<br />
 					<span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-						困りごと
+						困りごとに
 					</span>
-					、
 					<br />
-					まるごと解決
+					寄り添いサポート
 				</h2>
 				<p className="text-lg md:text-2xl text-white/70 leading-relaxed">
 					Web / App / AI
 					<br />
-					<span className="text-white/90">
-						中小企業のデジタル活用をトータルサポート
-					</span>
+					<span className="text-white/90">次の時代の表現を、ともに創る</span>
 				</p>
 			</div>
 
@@ -78,7 +77,9 @@ export default function HomeClient() {
 				className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl"
 				style={{
 					opacity: text2Opacity,
-					transform: `translateY(-50%) translateX(${(1 - text2Opacity) * 20}px)`,
+					transform: `translateY(-50%) translateX(${
+						(1 - text2Opacity) * -20
+					}px)`,
 				}}
 			>
 				<h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-8">
@@ -93,11 +94,13 @@ export default function HomeClient() {
 					に。
 				</h2>
 				<p className="text-base md:text-xl text-white/80 leading-relaxed space-y-2">
-					<span className="block">わかりやすく、成果につながるWeb。</span>
-					<span className="block">使いやすく、業務を軽くするアプリ。</span>
+					<span className="block">わかりやすく、運用まで一緒に支えるWeb。</span>
+					<span className="block">
+						使いやすく、日々の業務を軽くするアプリ。
+					</span>
 					<span className="block">身近に活かせるAI。</span>
 					<span className="block mt-4 text-white/90 font-medium">
-						そのすべてを、一緒に実現します。
+						そのすべてを、伴走しながら実現します。
 					</span>
 				</p>
 			</div>
@@ -105,8 +108,12 @@ export default function HomeClient() {
 			{/* アクションボタン群 */}
 			<HeroActions scrollProgress={scrollProgress} position="right">
 				<HeroActionButton href="/blog" label="ブログを見る" variant="primary" />
-				{/* 必要に応じて追加ボタンを配置 */}
-				{/* <HeroActionButton href="/contact" label="お問い合わせ" variant="secondary" /> */}
+				<HeroActionButton href="/about" label="About" variant="secondary" />
+				<HeroActionButton
+					href="/contact"
+					label="お問い合わせ"
+					variant="secondary"
+				/>
 			</HeroActions>
 
 			{/* スクロール可能なコンテンツエリア（透明） */}

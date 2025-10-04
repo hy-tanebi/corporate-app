@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 // 次のセクションの具体的なコンテンツを定義
 // 必要に応じてここに複雑なレイアウトやコンポーネントを追加

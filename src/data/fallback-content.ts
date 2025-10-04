@@ -1,4 +1,4 @@
-import { VideoSlide, FallbackConfig } from "../types/content";
+import type { VideoSlide, FallbackConfig } from "../types/content";
 
 // フォールバック用のコンテンツデータ
 export const fallbackVideoSlides: VideoSlide[] = [

@@ -7,7 +7,7 @@ import {
 	useRef,
 	useMemo,
 	Suspense,
-	ReactNode,
+	type ReactNode,
 	useState,
 	useEffect,
 } from "react";
@@ -18,7 +18,7 @@ import VideoCardsRenderer from "./VideoCardsRenderer";
 import NextSection from "./NextSection";
 import { FeatherCircleMaterial } from "./materials";
 import { getSafeVideoSlides } from "../../data/fallback-content";
-import { VideoSlide } from "../../types/content";
+import type { VideoSlide } from "../../types/content";
 import { CardDetailModal } from "../ui/card-detail-modal";
 
 // ===== 全体スケール =====
@@ -131,7 +131,6 @@ function HeroScene({
 
 	// FBO を Linear に（色ズレ防止）
 	useEffect(() => {
-		// @ts-ignore
 		fbo.texture.colorSpace = THREE.LinearSRGBColorSpace;
 	}, [fbo]);
 
@@ -175,10 +174,10 @@ function HeroScene({
 	const thirdPhaseAtStart =
 		(VIDEO_START_PROGRESS - THIRD_PHASE_START) /
 		(THIRD_PHASE_END - THIRD_PHASE_START);
-	const thirdPhaseAtStartEased = Math.pow(
-		smooth01(thirdPhaseAtStart),
-		VIDEO_EASE,
-	);
+	const thirdPhaseAtStartEased = 
+		smooth01(thirdPhaseAtStart) ** 
+		VIDEO_EASE
+	;
 	const availablePhaseEased = Math.max(0, 1 - thirdPhaseAtStartEased);
 
 	// 退場まで必要な回転数
@@ -376,7 +375,7 @@ function HeroScene({
 				0,
 				1,
 			);
-			const phaseEased = Math.pow(smooth01(phaseLin), VIDEO_EASE);
+			const phaseEased = smooth01(phaseLin) ** VIDEO_EASE;
 
 			if (scrollProgress >= VIDEO_START_PROGRESS) {
 				const thetaRaw = phaseEased * TAU * ROT_TURNS;
@@ -424,7 +423,7 @@ function HeroScene({
 					: CIRCLE_SMOOTH_SHRINK;
 			const k = 1 - Math.exp(-delta * speed);
 			circleTRef.current += (tTarget - circleTRef.current) * k;
-			const growT = Math.pow(smooth01(circleTRef.current), CIRCLE_EASE);
+			const growT = smooth01(circleTRef.current) ** CIRCLE_EASE;
 
 			if (growT > 0) {
 				if (triangleGroupRef.current) {
