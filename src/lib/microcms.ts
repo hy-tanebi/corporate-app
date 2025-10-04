@@ -61,7 +61,7 @@ export interface BlogPost {
 		width: number;
 		height: number;
 	};
-	mediaType?: 'image' | 'video' | string | string[]; // メディア種別（実際のレスポンスに合わせて柔軟に）
+	mediaType?: "image" | "video" | string | string[]; // メディア種別（実際のレスポンスに合わせて柔軟に）
 	videoUrl?: string; // 動画URL（動画選択時のみ使用）
 	isShowcase?: boolean; // 3Dカードに表示するか
 	liveUrl?: string; // ライブデモURL
