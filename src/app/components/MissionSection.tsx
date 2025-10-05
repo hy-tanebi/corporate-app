@@ -88,6 +88,7 @@ export default function MissionSection({
   const showSection = isCircleFullyExpanded;
   const showMission = sectionProgress >= 0.15;
   const showCreative = sectionProgress >= 0.3;
+  const showDescription = sectionProgress >= 0.97; // アニメーション完了後に詳細テキストを表示
 
   // 段階マッピング（ここもゆっくり化）
   const zAxisProgress = easeOutCubic(remap01(sectionProgress, 0.3, 0.7)); // 手前→0
@@ -102,56 +103,70 @@ export default function MissionSection({
 
   return (
     <div
-      className="fixed inset-0 z-20 flex flex-col items-center justify-center gap-8"
+      className={`fixed inset-0 z-20 ${
+        showDescription ? "overflow-y-auto" : "overflow-hidden"
+      }`}
       style={{
         opacity: showSection ? 1 : 0,
         pointerEvents: showSection ? "auto" : "none",
         transition: "opacity 0.5s ease-out",
       }}
     >
-      {/* タイトル */}
-      <h2
-        className="text-6xl md:text-8xl font-bold text-white"
-        style={{
-          opacity: showMission ? 1 : 0,
-          transform: `translateY(${showMission ? 0 : -20}px)`,
-          transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
-        }}
-      >
-        MISSION
-      </h2>
-
-      {/* 2語 */}
-      <div
-        className="relative flex items-center justify-center"
-        style={{ perspective: "1000px", minHeight: 150, width: "100%" }}
-      >
-        {/* transform は rAF で毎フレ更新 → transition は opacity のみ */}
-        <p
-          className="text-2xl md:text-4xl text-white/90 font-bold absolute will-change-transform"
+      {/* MISSION + CREATIVE THINKING エリア（100vh） */}
+      <div className="h-screen flex flex-col items-center justify-center gap-8 px-8">
+        {/* タイトル */}
+        <h2
+          className="text-6xl md:text-8xl font-bold text-white"
           style={{
-            opacity: showCreative ? 1 : 0,
-            transform: showCreative
-              ? `matrix(${scale}, 0, 0, ${scale}, ${leftTx}, ${upTy})`
-              : `matrix(5, 0, 0, 5, 0, -200)`,
-            transition: "opacity 0.5s ease-out",
+            opacity: showMission ? 1 : 0,
+            transform: `translateY(${showMission ? 0 : -20}px)`,
+            transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
           }}
         >
-          CREATIVE
-        </p>
+          MISSION
+        </h2>
 
-        <p
-          className="text-2xl md:text-4xl text-white/90 font-bold absolute will-change-transform"
-          style={{
-            opacity: showCreative ? 1 : 0,
-            transform: showCreative
-              ? `matrix(${scale}, 0, 0, ${scale}, ${rightTx}, ${dnTy})`
-              : `matrix(5, 0, 0, 5, 0, 200)`,
-            transition: "opacity 0.5s ease-out 0.12s",
-          }}
+        {/* 2語 */}
+        <div
+          className="relative flex items-center justify-center"
+          style={{ perspective: "1000px", minHeight: 150, width: "100%" }}
         >
-          THINKING
-        </p>
+          {/* transform は rAF で毎フレ更新 → transition は opacity のみ */}
+          <p
+            className="text-2xl md:text-4xl text-white/90 font-bold absolute will-change-transform"
+            style={{
+              opacity: showCreative ? 1 : 0,
+              transform: showCreative
+                ? `matrix(${scale}, 0, 0, ${scale}, ${leftTx}, ${upTy})`
+                : `matrix(5, 0, 0, 5, 0, -200)`,
+              transition: "opacity 0.5s ease-out",
+            }}
+          >
+            CREATIVE
+          </p>
+
+          <p
+            className="text-2xl md:text-4xl text-white/90 font-bold absolute will-change-transform"
+            style={{
+              opacity: showCreative ? 1 : 0,
+              transform: showCreative
+                ? `matrix(${scale}, 0, 0, ${scale}, ${rightTx}, ${dnTy})`
+                : `matrix(5, 0, 0, 5, 0, 200)`,
+              transition: "opacity 0.5s ease-out 0.12s",
+            }}
+          >
+            THINKING
+          </p>
+        </div>
+      </div>
+
+      {/* 詳細テキストエリア */}
+      <div className="w-full min-h-screen flex flex-col items-center justify-center px-8 py-20">
+        <div className="max-w-3xl text-center">
+          <p className="text-base md:text-lg text-white/80 leading-relaxed">
+            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
+          </p>
+        </div>
       </div>
     </div>
   );
