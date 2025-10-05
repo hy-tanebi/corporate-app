@@ -304,3 +304,13 @@ html.dark [data-card="blog-card"] span {
 ::-webkit-scrollbar-thumb:hover {
 	background: rgba(59, 130, 246, 0.8);
 }
+
+/* MISSIONセクションのスクロールバーを非表示 */
+.mission-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+.mission-scrollbar {
+	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* IE/Edge */
+}

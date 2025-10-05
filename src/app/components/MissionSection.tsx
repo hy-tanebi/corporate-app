@@ -103,7 +103,7 @@ export default function MissionSection({
 
   return (
     <div
-      className={`fixed inset-0 z-20 ${
+      className={`fixed inset-0 z-20 mission-scrollbar ${
         showDescription ? "overflow-y-auto" : "overflow-hidden"
       }`}
       style={{
@@ -161,7 +161,14 @@ export default function MissionSection({
       </div>
 
       {/* 詳細テキストエリア */}
-      <div className="w-full min-h-screen flex flex-col items-center justify-center px-8 py-20">
+      <div
+        className="w-full min-h-screen flex flex-col items-center justify-center px-8 py-20"
+        style={{
+          opacity: showDescription ? 1 : 0,
+          transform: `translateY(${showDescription ? 0 : 30}px)`,
+          transition: "opacity 1s ease-out, transform 1s ease-out",
+        }}
+      >
         <div className="max-w-3xl text-center">
           <p className="text-base md:text-lg text-white/80 leading-relaxed">
             ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
