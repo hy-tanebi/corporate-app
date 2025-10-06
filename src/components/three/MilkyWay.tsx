@@ -16,7 +16,7 @@ const MilkyWayShaderMaterial = shaderMaterial(
 		uTime: 0,
 		uColor1: new THREE.Color(0.4, 0.5, 0.9), // 明るい青紫
 		uColor2: new THREE.Color(0.2, 0.15, 0.4), // 暗い紫
-		uOpacity: 0.4, // 0.6から0.4に薄く
+		uOpacity: 0.2, // さらに薄く
 	},
 	milkyWayVertexShader,
 	milkyWayFragmentShader,
@@ -38,12 +38,14 @@ interface MilkyWayProps {
 	position?: [number, number, number];
 	renderOrder?: number;
 	scale?: number;
+	rotation?: [number, number, number];
 }
 
 export function MilkyWay({
 	position = [0, 0, -20],
 	renderOrder = 5,
 	scale = 50,
+	rotation = [0, 0, 0],
 }: MilkyWayProps) {
 	const materialRef = useRef<any>(null);
 
@@ -54,7 +56,7 @@ export function MilkyWay({
 	});
 
 	return (
-		<mesh position={position} renderOrder={renderOrder}>
+		<mesh position={position} rotation={rotation} renderOrder={renderOrder}>
 			<planeGeometry args={[scale, scale, 32, 32]} />
 			{/* @ts-ignore */}
 			<milkyWayShaderMaterial
