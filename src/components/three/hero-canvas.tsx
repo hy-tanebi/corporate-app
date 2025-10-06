@@ -14,6 +14,7 @@ import {
 import * as THREE from "three";
 import { StarParticles } from "./StarParticles";
 import { ShootingStars } from "./ShootingStars";
+import { MilkyWay } from "./MilkyWay";
 import VideoCardsRenderer from "./VideoCardsRenderer";
 import { FeatherCircleMaterial } from "./materials";
 import { getSafeVideoSlides } from "../../data/fallback-content";
@@ -472,6 +473,7 @@ function HeroScene({
 					<Suspense fallback={null}>
 						<StarParticles selfRotate={false} position={[0, 0, -10]} />
 						<ShootingStars interval={3500} duration={4000} />
+						<MilkyWay position={[0, 0, -25]} renderOrder={5} scale={60} />
 					</Suspense>
 				</group>
 
