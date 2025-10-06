@@ -117,10 +117,10 @@ export default function VideoCard3D({
 
 			v.onerror = (e) => {
 				console.error(`❌ [${title}] 動画読み込みエラー:`, videoSrc);
-				console.error('Error details:', e);
-				console.error('Video element:', v);
-				console.error('NetworkState:', v.networkState);
-				console.error('ReadyState:', v.readyState);
+				console.error("Error details:", e);
+				console.error("Video element:", v);
+				console.error("NetworkState:", v.networkState);
+				console.error("ReadyState:", v.readyState);
 			};
 
 			const tex = new VideoTexture(v);

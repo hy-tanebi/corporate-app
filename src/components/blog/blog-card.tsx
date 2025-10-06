@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import type { BlogPost } from "@/lib/microcms";
 import { Clock, Eye, Calendar } from "lucide-react";
+import { CardHoverPointer } from "@/components/three/card-hover-pointer";
 
 interface BlogCardProps {
 	post: BlogPost;
@@ -31,6 +32,8 @@ function getReadingTime(content: string): number {
 export function BlogCard({ post }: BlogCardProps) {
 	const [isFlipped, setIsFlipped] = useState(false);
 	const [isImageExpanded, setIsImageExpanded] = useState(false);
+	const [isHovering, setIsHovering] = useState(false);
+	const cardRef = useRef<HTMLDivElement>(null);
 	const summary = getPostSummary(post.content);
 	const readingTime = getReadingTime(post.content);
 
@@ -54,10 +57,18 @@ export function BlogCard({ post }: BlogCardProps) {
 		<>
 			{/* デスクトップ版（lg以上）- フリップアニメーション */}
 			<div
-				className="perspective-1000 h-full hidden lg:block"
-				onMouseEnter={() => setIsFlipped(true)}
-				onMouseLeave={() => setIsFlipped(false)}
+				ref={cardRef}
+				className="perspective-1000 h-full hidden lg:block relative"
+				onMouseEnter={() => {
+					setIsFlipped(true);
+					setIsHovering(true);
+				}}
+				onMouseLeave={() => {
+					setIsFlipped(false);
+					setIsHovering(false);
+				}}
 			>
+				<CardHoverPointer isHovering={isHovering} cardRef={cardRef} />
 				<div
 					className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
 						isFlipped ? "rotate-y-180" : ""
