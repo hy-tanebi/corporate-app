@@ -26,7 +26,7 @@ export function HeroActionButton({
 	const hoverBgColor = variant === "primary" ? "bg-white/30" : "bg-white/20";
 
 	return (
-		<Link className={`${baseClasses} ${variantClasses}`} href={href}>
+		<Link className={`${baseClasses} ${variantClasses} pointer-events-auto`} href={href}>
 			{/* スライドイン背景 */}
 			<div
 				className={`absolute inset-0 ${hoverBgColor} -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out`}

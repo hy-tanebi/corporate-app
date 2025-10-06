@@ -35,7 +35,7 @@ export function HeroActions({
 
 	return (
 		<div
-			className={`fixed ${positionClasses} top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out`}
+			className={`fixed ${positionClasses} top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out pointer-events-none`}
 			style={{
 				opacity,
 				transform: `translateY(-50%) translateX(${(1 - opacity) * 20}px)`,
