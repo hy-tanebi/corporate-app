@@ -68,7 +68,7 @@ export default function HomeClient() {
   return (
     <>
       {/* 屋号を左上に固定配置 */}
-      <div className="fixed top-8 left-8 z-10">
+      <div className="fixed top-8 left-8 z-10 pointer-events-none">
         <h1 className="text-2xl md:text-3xl font-bold text-white">
           TANEBI CREATIVE
         </h1>
@@ -77,7 +77,7 @@ export default function HomeClient() {
       {/* 第1テキスト: 最初のキャッチコピー */}
       {!isCircleExpanded && (
         <div
-          className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl"
+          className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl pointer-events-none"
           style={{
             opacity: text1Opacity,
             transform: `translateY(-50%) translateX(${
@@ -105,7 +105,7 @@ export default function HomeClient() {
       {/* 第2テキスト: 詳細メッセージ */}
       {!isCircleExpanded && (
         <div
-          className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl"
+          className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl pointer-events-none"
           style={{
             opacity: text2Opacity,
             transform: `translateY(-50%) translateX(${
@@ -140,7 +140,7 @@ export default function HomeClient() {
       {/* 第3テキスト: CTAメッセージ */}
       {!isCircleExpanded && (
         <div
-          className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-3xl"
+          className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-3xl pointer-events-none"
           style={{
             opacity: text3Opacity,
             transform: `translateY(-50%) translateX(${
@@ -180,7 +180,7 @@ export default function HomeClient() {
       <MissionSection scrollProgress={scrollProgress} isCircleFullyExpanded={isCircleFullyExpanded} />
 
       {/* スクロール可能なコンテンツエリア（透明） */}
-      <div className="w-full" style={{ height: "1000vh" }}>
+      <div className="w-full pointer-events-none" style={{ height: "1000vh" }}>
         {/* 空のコンテンツでスクロールを可能にする */}
       </div>
     </>

@@ -608,7 +608,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 					pointerEvents: "none",
 				}}
 			>
-				<div style={{ pointerEvents: "auto" }}>{children}</div>
+				{children}
 			</div>
 
 			{/* カード詳細モーダル */}
