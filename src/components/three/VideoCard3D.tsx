@@ -20,6 +20,7 @@ interface VideoCard3DProps {
 	cornerRadiusPx?: number;
 	displayHeightPx?: number;
 	onClick?: () => void;
+	onHoverChange?: (isHovering: boolean) => void;
 }
 
 export default function VideoCard3D({
@@ -36,6 +37,7 @@ export default function VideoCard3D({
 	cornerRadiusPx = 5,
 	displayHeightPx = 400,
 	onClick,
+	onHoverChange,
 }: VideoCard3DProps) {
 	const meshRef = useRef<THREE.Mesh>(null);
 	const exitGroupRef = useRef<THREE.Group>(null);
@@ -289,10 +291,16 @@ export default function VideoCard3D({
 							onPointerOver={(e) => {
 								e.stopPropagation();
 								document.body.style.cursor = "pointer";
+								if (onHoverChange) {
+									onHoverChange(true);
+								}
 							}}
 							onPointerOut={(e) => {
 								e.stopPropagation();
 								document.body.style.cursor = "default";
+								if (onHoverChange) {
+									onHoverChange(false);
+								}
 							}}
 						>
 							<primitive object={curvedPlaneGeometry} attach="geometry" />

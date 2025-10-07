@@ -20,6 +20,7 @@ import { FeatherCircleMaterial } from "./materials";
 import { getSafeVideoSlides } from "../../data/fallback-content";
 import type { VideoSlide } from "../../types/content";
 import { CardDetailModal } from "../ui/card-detail-modal";
+import { HeroHoverPointer } from "./HeroHoverPointer";
 
 // ===== 全体スケール =====
 const SCENE_SCALE = 1.2;
@@ -114,6 +115,10 @@ function HeroScene({
 	const videoCardsRef = useRef<THREE.Group>(null);
 	const rootRef = useRef<THREE.Group>(null);
 
+	// hover ポインタ用の状態
+	const [isCardHovering, setIsCardHovering] = useState(false);
+	const mousePosition = useRef(new THREE.Vector2(0, 0));
+
 	// 黒円マテリアル
 	const featherMat = useMemo(() => {
 		const m = new (FeatherCircleMaterial as any)();
@@ -146,6 +151,11 @@ function HeroScene({
 			mouseRaw.current.set(
 				e.clientX / window.innerWidth,
 				1 - e.clientY / window.innerHeight,
+			);
+			// ポインタ用のマウス位置（-1 ~ 1の範囲）
+			mousePosition.current.set(
+				(e.clientX / window.innerWidth) * 2 - 1,
+				-(e.clientY / window.innerHeight) * 2 + 1,
 			);
 			hoverStrength.current = 1;
 		};
@@ -499,6 +509,7 @@ function HeroScene({
 							requiredTurns={requiredTurns}
 							ROT_TURNS={ROT_TURNS}
 							onCardClick={onCardClick}
+							onCardHover={setIsCardHovering}
 						/>
 					</Suspense>
 				</group>
@@ -515,6 +526,12 @@ function HeroScene({
 					<primitive attach="material" object={featherMat} />
 				</mesh>
 			</group>
+
+			{/* ===== Hover Pointer（流体エフェクトの手前） ===== */}
+			<HeroHoverPointer
+				isHovering={isCardHovering}
+				mousePosition={mousePosition.current}
+			/>
 
 			{/* ===== 画面の液体屈折（ヒーロー内のみ作用） ===== */}
 			<mesh

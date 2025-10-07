@@ -85,7 +85,7 @@ export function CardHoverPointer({
 	}
 
 	return (
-		<div className="absolute inset-0 z-10" style={{ pointerEvents: "none" }}>
+		<div className="absolute inset-0 z-50" style={{ pointerEvents: "none" }}>
 			<Canvas
 				className="w-full h-full"
 				camera={{ position: [0, 0, 5], fov: 75 }}
