@@ -197,9 +197,9 @@ function HeroScene({
 		return (requiredTurns / Math.max(0.0001, availablePhaseEased)) * 1.05;
 	}, [requiredTurns, availablePhaseEased]);
 
-	// 装飾ライン
+	// 装飾ライン（外側にずらして独立した動きを追加）
 	const lineGeometry = useMemo(() => {
-		const geometry = new THREE.TetrahedronGeometry(tetraRadius, 0);
+		const geometry = new THREE.TetrahedronGeometry(tetraRadius * 1.08, 0); // 8%外側に拡大
 		const position = geometry.attributes.position as THREE.BufferAttribute;
 		const colors: number[] = [];
 		const color = new THREE.Color();
@@ -373,6 +373,14 @@ function HeroScene({
 			} else {
 				triangleGroupRef.current.scale.set(1, 1, 1);
 			}
+		}
+
+		// 枠線の独立した回転アニメーション
+		if (lineSegmentsRef.current) {
+			// 三角形本体とは逆方向にゆっくり回転
+			lineSegmentsRef.current.rotation.x += delta * 0.15;
+			lineSegmentsRef.current.rotation.y -= delta * 0.1;
+			lineSegmentsRef.current.rotation.z += delta * 0.05;
 		}
 
 		// ====== 参照コード準拠：カードの"中央停止 + 慣性"だけ ======
