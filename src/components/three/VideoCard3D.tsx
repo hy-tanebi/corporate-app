@@ -47,6 +47,7 @@ export default function VideoCard3D({
 	const videoTexture = useRef<VideoTexture | null>(null);
 	const imageTexture = useRef<THREE.Texture | null>(null);
 	const [textureLoaded, setTextureLoaded] = useState(false);
+	const isHoveringRef = useRef(false);
 
 	// === 角丸アルファ ===
 	const alphaTexture = useMemo(() => {
@@ -269,6 +270,15 @@ export default function VideoCard3D({
 		if (meshRef.current)
 			(meshRef.current.material as THREE.MeshBasicMaterial).opacity =
 				drawOpacity;
+
+		// hover状態の自動リセット: opacityが低い時にhoverしていたら強制的にfalseにする
+		if (isHoveringRef.current && drawOpacity <= 0.5) {
+			isHoveringRef.current = false;
+			document.body.style.cursor = "default";
+			if (onHoverChange) {
+				onHoverChange(false);
+			}
+		}
 	});
 
 	// === 描画（単一メッシュ / DoubleSide） ===
@@ -291,7 +301,8 @@ export default function VideoCard3D({
 							onPointerOver={(e) => {
 								e.stopPropagation();
 								// カードが十分に表示されている時だけhoverイベントを発火
-								if (opacity > 0.5) {
+								if (drawOpacity > 0.5) {
+									isHoveringRef.current = true;
 									document.body.style.cursor = "pointer";
 									if (onHoverChange) {
 										onHoverChange(true);
@@ -300,11 +311,11 @@ export default function VideoCard3D({
 							}}
 							onPointerOut={(e) => {
 								e.stopPropagation();
-								if (opacity > 0.5) {
-									document.body.style.cursor = "default";
-									if (onHoverChange) {
-										onHoverChange(false);
-									}
+								// onPointerOutは常に実行してhover状態をリセット
+								isHoveringRef.current = false;
+								document.body.style.cursor = "default";
+								if (onHoverChange) {
+									onHoverChange(false);
 								}
 							}}
 						>
