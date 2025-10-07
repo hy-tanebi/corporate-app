@@ -2,7 +2,7 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useFBO } from "@react-three/drei";
+import { useFBO, OrbitControls } from "@react-three/drei";
 import {
 	useRef,
 	useMemo,
@@ -116,6 +116,11 @@ function HeroScene({
 	const circleRef = useRef<THREE.Mesh>(null);
 	const videoCardsRef = useRef<THREE.Group>(null);
 	const rootRef = useRef<THREE.Group>(null);
+
+	// 三角形のドラッグ操作用
+	const isDragging = useRef(false);
+	const previousMousePosition = useRef({ x: 0, y: 0 });
+	const triangleRotation = useRef({ x: 0, y: 0 });
 
 	// 黒円マテリアル
 	const featherMat = useMemo(() => {
@@ -339,8 +344,14 @@ function HeroScene({
 
 		// テトラ回転＆スケール
 		if (triangleGroupRef.current) {
-			triangleGroupRef.current.rotation.x += delta * 0.1;
-			triangleGroupRef.current.rotation.y += delta * 0.2;
+			// 手動回転がない場合のみ自動回転
+			if (!isDragging.current) {
+				triangleRotation.current.x += delta * 0.1;
+				triangleRotation.current.y += delta * 0.2;
+			}
+			// 手動回転を適用
+			triangleGroupRef.current.rotation.x = triangleRotation.current.x;
+			triangleGroupRef.current.rotation.y = triangleRotation.current.y;
 
 			if (scrollProgress < THIRD_PHASE_START) {
 				triangleGroupRef.current.scale.set(1, 1, 1);
@@ -481,7 +492,35 @@ function HeroScene({
 
 				{/* テトラ */}
 				<group ref={triangleGroupRef} position={[0, 0, 0]}>
-					<mesh ref={triangleVisibleMeshRef} renderOrder={3}>
+					<mesh
+						ref={triangleVisibleMeshRef}
+						renderOrder={3}
+						onPointerDown={(e) => {
+							e.stopPropagation();
+							isDragging.current = true;
+							previousMousePosition.current = { x: e.clientX, y: e.clientY };
+						}}
+						onPointerMove={(e) => {
+							if (!isDragging.current) return;
+							e.stopPropagation();
+
+							const deltaX = e.clientX - previousMousePosition.current.x;
+							const deltaY = e.clientY - previousMousePosition.current.y;
+
+							triangleRotation.current.y += deltaX * 0.01;
+							triangleRotation.current.x += deltaY * 0.01;
+
+							previousMousePosition.current = { x: e.clientX, y: e.clientY };
+						}}
+						onPointerUp={(e) => {
+							e.stopPropagation();
+							isDragging.current = false;
+						}}
+						onPointerLeave={(e) => {
+							e.stopPropagation();
+							isDragging.current = false;
+						}}
+					>
 						<tetrahedronGeometry args={[tetraRadius, 0]} />
 						<heroShaderMaterial ref={heroMatRef} transparent={false} />
 					</mesh>
