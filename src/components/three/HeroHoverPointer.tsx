@@ -1,7 +1,7 @@
 // src/components/three/HeroHoverPointer.tsx
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -52,16 +52,17 @@ export function HeroHoverPointer({
 		<mesh
 			ref={meshRef}
 			position={[0, 0, 4]}
-			renderOrder={9999} // 流体エフェクト(10000)の手前
+			renderOrder={10001} // 流体エフェクト(10000)より前面
 			frustumCulled={false}
 		>
-			<circleGeometry args={[1, 32]} />
+			<circleGeometry args={[2, 32]} />
 			<meshBasicMaterial
-				color="#ffd700"
+				color="#ff0000"
 				transparent
-				opacity={0.5}
+				opacity={0.8}
 				depthTest={false}
 				depthWrite={false}
+				side={THREE.DoubleSide}
 			/>
 		</mesh>
 	);

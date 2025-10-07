@@ -20,7 +20,7 @@ import { FeatherCircleMaterial } from "./materials";
 import { getSafeVideoSlides } from "../../data/fallback-content";
 import type { VideoSlide } from "../../types/content";
 import { CardDetailModal } from "../ui/card-detail-modal";
-import { HeroHoverPointer } from "./HeroHoverPointer";
+import { HtmlHoverPointer } from "./HtmlHoverPointer";
 
 // ===== 全体スケール =====
 const SCENE_SCALE = 1.2;
@@ -99,12 +99,14 @@ interface HeroSceneProps {
 	scrollProgress: number;
 	videoSlides: VideoSlide[];
 	onCardClick?: (slide: VideoSlide, index: number) => void;
+	onCardHover?: (isHovering: boolean) => void;
 }
 
 function HeroScene({
 	scrollProgress,
 	videoSlides,
 	onCardClick,
+	onCardHover,
 }: HeroSceneProps) {
 	const heroMatRef = useRef<any>(null);
 	const starGroupRef = useRef<THREE.Group>(null);
@@ -114,10 +116,6 @@ function HeroScene({
 	const circleRef = useRef<THREE.Mesh>(null);
 	const videoCardsRef = useRef<THREE.Group>(null);
 	const rootRef = useRef<THREE.Group>(null);
-
-	// hover ポインタ用の状態
-	const [isCardHovering, setIsCardHovering] = useState(false);
-	const mousePosition = useRef(new THREE.Vector2(0, 0));
 
 	// 黒円マテリアル
 	const featherMat = useMemo(() => {
@@ -151,11 +149,6 @@ function HeroScene({
 			mouseRaw.current.set(
 				e.clientX / window.innerWidth,
 				1 - e.clientY / window.innerHeight,
-			);
-			// ポインタ用のマウス位置（-1 ~ 1の範囲）
-			mousePosition.current.set(
-				(e.clientX / window.innerWidth) * 2 - 1,
-				-(e.clientY / window.innerHeight) * 2 + 1,
 			);
 			hoverStrength.current = 1;
 		};
@@ -509,7 +502,7 @@ function HeroScene({
 							requiredTurns={requiredTurns}
 							ROT_TURNS={ROT_TURNS}
 							onCardClick={onCardClick}
-							onCardHover={setIsCardHovering}
+							onCardHover={onCardHover}
 						/>
 					</Suspense>
 				</group>
@@ -526,12 +519,6 @@ function HeroScene({
 					<primitive attach="material" object={featherMat} />
 				</mesh>
 			</group>
-
-			{/* ===== Hover Pointer（流体エフェクトの手前） ===== */}
-			<HeroHoverPointer
-				isHovering={isCardHovering}
-				mousePosition={mousePosition.current}
-			/>
 
 			{/* ===== 画面の液体屈折（ヒーロー内のみ作用） ===== */}
 			<mesh
@@ -572,6 +559,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 		slide: VideoSlide;
 		index: number;
 	} | null>(null);
+	const [isCardHovering, setIsCardHovering] = useState(false);
 
 	const handleCardClick = (slide: VideoSlide, index: number) => {
 		setSelectedCard({ slide, index });
@@ -614,6 +602,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 					scrollProgress={scrollProgress}
 					videoSlides={safeVideoSlides}
 					onCardClick={handleCardClick}
+					onCardHover={setIsCardHovering}
 				/>
 			</Canvas>
 
@@ -637,6 +626,9 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 					index={selectedCard.index}
 				/>
 			)}
+
+			{/* HTMLホバーポインタ */}
+			<HtmlHoverPointer isHovering={isCardHovering} />
 		</>
 	);
 };

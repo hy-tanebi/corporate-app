@@ -290,16 +290,21 @@ export default function VideoCard3D({
 							}}
 							onPointerOver={(e) => {
 								e.stopPropagation();
-								document.body.style.cursor = "pointer";
-								if (onHoverChange) {
-									onHoverChange(true);
+								// カードが十分に表示されている時だけhoverイベントを発火
+								if (opacity > 0.5) {
+									document.body.style.cursor = "pointer";
+									if (onHoverChange) {
+										onHoverChange(true);
+									}
 								}
 							}}
 							onPointerOut={(e) => {
 								e.stopPropagation();
-								document.body.style.cursor = "default";
-								if (onHoverChange) {
-									onHoverChange(false);
+								if (opacity > 0.5) {
+									document.body.style.cursor = "default";
+									if (onHoverChange) {
+										onHoverChange(false);
+									}
 								}
 							}}
 						>
