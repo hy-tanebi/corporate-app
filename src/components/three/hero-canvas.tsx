@@ -2,7 +2,7 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useFBO } from "@react-three/drei";
+import { useFBO, OrbitControls } from "@react-three/drei";
 import {
 	useRef,
 	useMemo,
@@ -117,6 +117,11 @@ function HeroScene({
 	const videoCardsRef = useRef<THREE.Group>(null);
 	const rootRef = useRef<THREE.Group>(null);
 
+	// 三角形のドラッグ操作用
+	const isDragging = useRef(false);
+	const previousMousePosition = useRef({ x: 0, y: 0 });
+	const triangleRotation = useRef({ x: 0, y: 0 });
+
 	// 黒円マテリアル
 	const featherMat = useMemo(() => {
 		const m = new (FeatherCircleMaterial as any)();
@@ -192,9 +197,9 @@ function HeroScene({
 		return (requiredTurns / Math.max(0.0001, availablePhaseEased)) * 1.05;
 	}, [requiredTurns, availablePhaseEased]);
 
-	// 装飾ライン
+	// 装飾ライン（外側にずらして独立した動きを追加）
 	const lineGeometry = useMemo(() => {
-		const geometry = new THREE.TetrahedronGeometry(tetraRadius, 0);
+		const geometry = new THREE.TetrahedronGeometry(tetraRadius * 1.08, 0); // 8%外側に拡大
 		const position = geometry.attributes.position as THREE.BufferAttribute;
 		const colors: number[] = [];
 		const color = new THREE.Color();
@@ -339,8 +344,14 @@ function HeroScene({
 
 		// テトラ回転＆スケール
 		if (triangleGroupRef.current) {
-			triangleGroupRef.current.rotation.x += delta * 0.1;
-			triangleGroupRef.current.rotation.y += delta * 0.2;
+			// 手動回転がない場合のみ自動回転
+			if (!isDragging.current) {
+				triangleRotation.current.x += delta * 0.1;
+				triangleRotation.current.y += delta * 0.2;
+			}
+			// 手動回転を適用
+			triangleGroupRef.current.rotation.x = triangleRotation.current.x;
+			triangleGroupRef.current.rotation.y = triangleRotation.current.y;
 
 			if (scrollProgress < THIRD_PHASE_START) {
 				triangleGroupRef.current.scale.set(1, 1, 1);
@@ -362,6 +373,14 @@ function HeroScene({
 			} else {
 				triangleGroupRef.current.scale.set(1, 1, 1);
 			}
+		}
+
+		// 枠線の独立した回転アニメーション
+		if (lineSegmentsRef.current) {
+			// 三角形本体とは逆方向にゆっくり回転
+			lineSegmentsRef.current.rotation.x += delta * 0.15;
+			lineSegmentsRef.current.rotation.y -= delta * 0.1;
+			lineSegmentsRef.current.rotation.z += delta * 0.05;
 		}
 
 		// ====== 参照コード準拠：カードの"中央停止 + 慣性"だけ ======
@@ -481,7 +500,35 @@ function HeroScene({
 
 				{/* テトラ */}
 				<group ref={triangleGroupRef} position={[0, 0, 0]}>
-					<mesh ref={triangleVisibleMeshRef} renderOrder={3}>
+					<mesh
+						ref={triangleVisibleMeshRef}
+						renderOrder={3}
+						onPointerDown={(e) => {
+							e.stopPropagation();
+							isDragging.current = true;
+							previousMousePosition.current = { x: e.clientX, y: e.clientY };
+						}}
+						onPointerMove={(e) => {
+							if (!isDragging.current) return;
+							e.stopPropagation();
+
+							const deltaX = e.clientX - previousMousePosition.current.x;
+							const deltaY = e.clientY - previousMousePosition.current.y;
+
+							triangleRotation.current.y += deltaX * 0.01;
+							triangleRotation.current.x += deltaY * 0.01;
+
+							previousMousePosition.current = { x: e.clientX, y: e.clientY };
+						}}
+						onPointerUp={(e) => {
+							e.stopPropagation();
+							isDragging.current = false;
+						}}
+						onPointerLeave={(e) => {
+							e.stopPropagation();
+							isDragging.current = false;
+						}}
+					>
 						<tetrahedronGeometry args={[tetraRadius, 0]} />
 						<heroShaderMaterial ref={heroMatRef} transparent={false} />
 					</mesh>
