@@ -42,9 +42,22 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 		if (!audioRef.current) return;
 
 		if (isPlaying && !isMuted) {
-			audioRef.current.play().catch((error) => {
-				console.error("Audio playback failed:", error);
-			});
+			// 音量を設定してから再生
+			audioRef.current.volume = 0.3;
+			audioRef.current
+				.play()
+				.then(() => {
+					console.log("Audio playback started successfully");
+				})
+				.catch((error) => {
+					console.error("Audio playback failed:", error);
+					// ユーザーインタラクションが必要な場合のエラーハンドリング
+					if (error.name === "NotAllowedError") {
+						console.warn(
+							"Audio playback requires user interaction. Please try again.",
+						);
+					}
+				});
 		} else {
 			audioRef.current.pause();
 		}

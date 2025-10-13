@@ -10,7 +10,15 @@ export default function SoundToggle({ onStart }: { onStart: () => void }) {
 
 	const handleSelection = (choice: "on" | "off") => {
 		setSelected(choice);
-		setIsPlaying(choice === "on");
+
+		// ユーザーインタラクション直後に再生を開始
+		if (choice === "on") {
+			console.log("User selected ON - starting audio");
+			setIsPlaying(true);
+		} else {
+			setIsPlaying(false);
+		}
+
 		// 選択後、少し待ってから画面遷移
 		setTimeout(() => {
 			onStart();
