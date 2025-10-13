@@ -14,6 +14,17 @@ export default function LoadingScreen({
 	const [showSoundToggle, setShowSoundToggle] = useState(false);
 	const [hasStarted, setHasStarted] = useState(false);
 
+	// スクロール無効化
+	useEffect(() => {
+		// ローディング中はスクロールを無効化
+		document.body.style.overflow = "hidden";
+
+		return () => {
+			// コンポーネントがアンマウントされたらスクロールを復元
+			document.body.style.overflow = "unset";
+		};
+	}, []);
+
 	useEffect(() => {
 		// プログレスバーのアニメーション
 		const interval = setInterval(() => {
