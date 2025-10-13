@@ -25,8 +25,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 	const audioRef = useRef<HTMLAudioElement | null>(null);
 
 	useEffect(() => {
-		// BGM音源のパスを指定（後で音源ファイルを配置）
-		audioRef.current = new Audio("/audio/bgm.mp3");
+		// BGM音源のパスを指定（m4a形式に対応）
+		audioRef.current = new Audio("/audio/bgm.m4a");
 		audioRef.current.loop = true;
 		audioRef.current.volume = 0.3; // 音量を30%に設定
 
