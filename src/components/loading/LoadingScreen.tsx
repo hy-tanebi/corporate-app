@@ -63,12 +63,12 @@ export default function LoadingScreen({
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         <div className="text-center space-y-8">
           {/* 屋号 */}
-          <h2 className="text-2xl md:text-3xl font-bold text-white tracking-widest mb-4">
+          <h2 className="text-4xl md:text-4xl font-bold text-white tracking-widest mb-4">
             TANEBI CREATIVE
           </h2>
 
           {/* タイトル */}
-          <h1 className="text-4xl md:text-6xl font-bold text-white tracking-wider animate-pulse">
+          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-wider animate-pulse">
             LOADING
           </h1>
 
@@ -87,7 +87,7 @@ export default function LoadingScreen({
 
           {/* サウンドトグルボタン */}
           {showSoundToggle && (
-            <div className="pointer-events-auto animate-fade-in pt-40">
+            <div className="pointer-events-auto animate-fade-in">
               <SoundToggle onStart={handleStart} />
             </div>
           )}
