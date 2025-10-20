@@ -71,18 +71,13 @@ function Astronaut({ position }: { position: [number, number, number] }) {
   );
 }
 
-// フォールバック用のシンプルな表示
+// フォールバック用のシンプルな表示（非表示）
 function AstronautFallback({
   position,
 }: {
   position: [number, number, number];
 }) {
-  return (
-    <mesh position={position}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="#ffffff" />
-    </mesh>
-  );
+  return null; // 何も表示しない
 }
 
 // 宇宙飛行士のラッパーコンポーネント
