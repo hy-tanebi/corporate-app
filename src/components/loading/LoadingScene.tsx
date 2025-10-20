@@ -8,7 +8,9 @@ import * as THREE from "three";
 // 宇宙飛行士3Dモデルコンポーネント
 function Astronaut({ position }: { position: [number, number, number] }) {
   const groupRef = useRef<THREE.Group>(null);
-  const { scene, animations } = useGLTF("/models/artro_perfect.glb");
+  const { scene, animations } = useGLTF(
+    "https://mb9hgkfxcmjgkuip.public.blob.vercel-storage.com/artro_perfect.glb"
+  );
   const { actions, names } = useAnimations(animations, groupRef);
 
   // アニメーションを再生
@@ -23,7 +25,10 @@ function Astronaut({ position }: { position: [number, number, number] }) {
       names.forEach((name) => {
         const action = actions[name];
         if (action) {
-          action.reset().play();
+          action.setLoop(THREE.LoopRepeat, Infinity); // 無限ループ設定
+          action.clampWhenFinished = false; // ループ時にクランプしない
+          action.enabled = true;
+          action.reset().fadeIn(0.5).play(); // フェードインでスムーズに開始
           console.log(`✅ 再生中: ${name}`);
         }
       });
@@ -47,15 +52,15 @@ function Astronaut({ position }: { position: [number, number, number] }) {
     if (groupRef.current) {
       const time = state.clock.elapsedTime;
 
-      // ランダムにゆっくり回転（上下左右）
-      groupRef.current.rotation.x = Math.sin(time * 0.15) * 0.3 + Math.cos(time * 0.23) * 0.2;
-      groupRef.current.rotation.y = Math.sin(time * 0.18) * 0.4 + Math.cos(time * 0.27) * 0.3;
-      groupRef.current.rotation.z = Math.sin(time * 0.12) * 0.25 + Math.cos(time * 0.19) * 0.15;
+      // 360度連続回転（各軸をゆっくり回転）
+      groupRef.current.rotation.x = time * 0.15; // X軸回転
+      groupRef.current.rotation.y = time * 0.2; // Y軸回転
+      groupRef.current.rotation.z = time * 0.1; // Z軸回転
 
       // 画面全体をふわふわ浮遊するアニメーション
-      groupRef.current.position.x = Math.sin(time * 0.4) * 2.5;
-      groupRef.current.position.y = Math.cos(time * 0.3) * 1.8;
-      groupRef.current.position.z = Math.sin(time * 0.5) * 1.5;
+      groupRef.current.position.x = Math.sin(time * 0.4) * 12; // 左右に広く
+      groupRef.current.position.y = Math.cos(time * 0.3) * 6; // 上下に広く
+      groupRef.current.position.z = -5 - Math.abs(Math.sin(time * 0.5) * 2); // 奥側（-5〜-7）で漂う
     }
   });
 
@@ -88,7 +93,6 @@ function AstronautModel({ position }: { position: [number, number, number] }) {
     </Suspense>
   );
 }
-
 
 // ローディングシーン全体
 export default function LoadingScene() {

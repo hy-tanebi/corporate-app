@@ -87,7 +87,7 @@ export default function LoadingScreen({
 
           {/* サウンドトグルボタン */}
           {showSoundToggle && (
-            <div className="pointer-events-auto animate-fade-in pt-40">
+            <div className="pointer-events-auto animate-fade-in">
               <SoundToggle onStart={handleStart} />
             </div>
           )}
