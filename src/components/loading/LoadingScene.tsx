@@ -1,111 +1,106 @@
 "use client";
 
-import { useRef, Suspense } from "react";
+import { useRef, Suspense, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Sphere, Stars, useTexture } from "@react-three/drei";
+import { Stars, useGLTF, useAnimations } from "@react-three/drei";
 import * as THREE from "three";
 
-// 回転する惑星コンポーネント（テクスチャ付き）
-function PlanetWithTexture({
+// 宇宙飛行士3Dモデルコンポーネント
+function Astronaut({ position }: { position: [number, number, number] }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const { scene, animations } = useGLTF("/models/artro_perfect.glb");
+  const { actions, names } = useAnimations(animations, groupRef);
+
+  // アニメーションを再生
+  useEffect(() => {
+    console.log("=== アニメーション再生 ===");
+    console.log("アニメーション数:", animations.length);
+    console.log("アニメーション名:", names);
+    console.log("Actions:", actions);
+
+    // すべてのアニメーションを再生
+    if (names.length > 0) {
+      names.forEach((name) => {
+        const action = actions[name];
+        if (action) {
+          action.reset().play();
+          console.log(`✅ 再生中: ${name}`);
+        }
+      });
+    }
+
+    // マテリアル設定
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh;
+        if (mesh.material) {
+          const material = mesh.material as THREE.MeshStandardMaterial;
+          material.metalness = 0.9;
+          material.roughness = 0.2;
+          material.envMapIntensity = 1.5;
+        }
+      }
+    });
+  }, [actions, names, animations, scene]);
+
+  useFrame((state) => {
+    if (groupRef.current) {
+      const time = state.clock.elapsedTime;
+
+      // ランダムにゆっくり回転（上下左右）
+      groupRef.current.rotation.x = Math.sin(time * 0.15) * 0.3 + Math.cos(time * 0.23) * 0.2;
+      groupRef.current.rotation.y = Math.sin(time * 0.18) * 0.4 + Math.cos(time * 0.27) * 0.3;
+      groupRef.current.rotation.z = Math.sin(time * 0.12) * 0.25 + Math.cos(time * 0.19) * 0.15;
+
+      // 画面全体をふわふわ浮遊するアニメーション
+      groupRef.current.position.x = Math.sin(time * 0.4) * 2.5;
+      groupRef.current.position.y = Math.cos(time * 0.3) * 1.8;
+      groupRef.current.position.z = Math.sin(time * 0.5) * 1.5;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={position}>
+      <primitive object={scene} scale={2} />
+    </group>
+  );
+}
+
+// フォールバック用のシンプルな表示
+function AstronautFallback({
   position,
 }: {
   position: [number, number, number];
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  // 画像テクスチャの読み込み
-  const texture = useTexture("/images/astro02.jpg");
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += 0.01;
-      meshRef.current.rotation.x += 0.005;
-      // 惑星を上下に動かす
-      meshRef.current.position.y =
-        position[1] + Math.sin(state.clock.elapsedTime * 0.5) * 0.2;
-    }
-  });
-
   return (
-    <Sphere ref={meshRef} args={[0.8, 32, 32]} position={position}>
-      <meshStandardMaterial map={texture} metalness={0.3} roughness={0.5} />
-    </Sphere>
+    <mesh position={position}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="#ffffff" />
+    </mesh>
   );
 }
 
-// フォールバック用の惑星（画像がない場合）
-function PlanetFallback({ position }: { position: [number, number, number] }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += 0.01;
-      meshRef.current.rotation.x += 0.005;
-      // 惑星を上下に動かす
-      meshRef.current.position.y =
-        position[1] + Math.sin(state.clock.elapsedTime * 0.5) * 0.2;
-    }
-  });
-
+// 宇宙飛行士のラッパーコンポーネント
+function AstronautModel({ position }: { position: [number, number, number] }) {
   return (
-    <Sphere ref={meshRef} args={[0.8, 32, 32]} position={position}>
-      <meshStandardMaterial
-        color="#4a90e2"
-        metalness={0.3}
-        roughness={0.4}
-        emissive="#1a4d7a"
-        emissiveIntensity={0.2}
-      />
-    </Sphere>
-  );
-}
-
-// 惑星のラッパーコンポーネント
-function Planet({ position }: { position: [number, number, number] }) {
-  return (
-    <Suspense fallback={<PlanetFallback position={position} />}>
-      <PlanetWithTexture position={position} />
+    <Suspense fallback={<AstronautFallback position={position} />}>
+      <Astronaut position={position} />
     </Suspense>
   );
 }
 
-// 小さい衛星コンポーネント
-function Satellite() {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      // 惑星の周りを公転
-      const time = state.clock.elapsedTime;
-      meshRef.current.position.x = Math.cos(time * 1.5) * 2;
-      meshRef.current.position.z = Math.sin(time * 1.5) * 2;
-      meshRef.current.position.y = Math.sin(time * 0.8) * 0.3;
-    }
-  });
-
-  return (
-    <Sphere ref={meshRef} args={[0.3, 16, 16]}>
-      <meshStandardMaterial
-        color="#e2b94a"
-        metalness={0.5}
-        roughness={0.3}
-        emissive="#7a5c1a"
-        emissiveIntensity={0.3}
-      />
-    </Sphere>
-  );
-}
 
 // ローディングシーン全体
 export default function LoadingScene() {
   return (
     <>
-      {/* 環境光 */}
-      <ambientLight intensity={4} />
-      {/* 指向性ライト */}
-      <directionalLight position={[10, 10, 5]} intensity={1} />
-      {/* ポイントライト */}
-      <pointLight position={[-10, -10, -5]} intensity={0.5} color="#4a90e2" />
+      {/* 環境光 - 明るさを上げてクリアに */}
+      <ambientLight intensity={2} />
+      {/* 指向性ライト - 正面から強く */}
+      <directionalLight position={[0, 5, 10]} intensity={3} />
+      {/* 補助ライト */}
+      <directionalLight position={[-5, 0, -5]} intensity={1.5} />
+      <directionalLight position={[5, 0, -5]} intensity={1.5} />
 
       {/* 星空背景 */}
       <Stars
@@ -118,11 +113,8 @@ export default function LoadingScene() {
         speed={1}
       />
 
-      {/* 中央の惑星 */}
-      <Planet position={[0, 0, 0]} />
-
-      {/* 周回する衛星 */}
-      <Satellite />
+      {/* 宇宙飛行士 */}
+      <AstronautModel position={[0, 0, 0]} />
     </>
   );
 }
