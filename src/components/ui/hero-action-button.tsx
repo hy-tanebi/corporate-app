@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { useAudio } from "@/contexts/audio-context";
 
 interface HeroActionButtonProps {
 	href: string;
@@ -15,6 +16,8 @@ export function HeroActionButton({
 	label,
 	variant = "primary",
 }: HeroActionButtonProps) {
+	const { playHoverSound } = useAudio();
+
 	const baseClasses =
 		"rounded-full border border-solid flex items-center backdrop-blur font-medium text-base h-12 pl-6 pr-4 shadow-lg relative overflow-hidden group transition-all duration-300";
 
@@ -29,6 +32,7 @@ export function HeroActionButton({
 		<Link
 			className={`${baseClasses} ${variantClasses} pointer-events-auto`}
 			href={href}
+			onMouseEnter={playHoverSound}
 		>
 			{/* スライドイン背景 */}
 			<div

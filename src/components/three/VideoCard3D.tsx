@@ -294,7 +294,8 @@ export default function VideoCard3D({
 							renderOrder={1001}
 							onClick={(e) => {
 								e.stopPropagation();
-								if (onClick) {
+								// カードが十分に表示されている時だけクリックイベントを発火
+								if (onClick && drawOpacity > 0.5) {
 									onClick();
 								}
 							}}

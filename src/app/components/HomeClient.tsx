@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { HeroActions } from "@/components/ui/hero-actions";
 import { HeroActionButton } from "@/components/ui/hero-action-button";
+import { AudioControlButton } from "@/components/ui/audio-control-button";
 import MissionSection from "./MissionSection";
 
 export default function HomeClient() {
@@ -67,11 +68,14 @@ export default function HomeClient() {
 
 	return (
 		<>
-			{/* 屋号を左上に固定配置 */}
-			<div className="fixed top-8 left-8 z-10 pointer-events-none">
-				<h1 className="text-2xl md:text-3xl font-bold text-white">
+			{/* 屋号とサウンドコントロールを左上に固定配置 */}
+			<div className="fixed top-8 left-8 z-10 flex items-center gap-4">
+				<h1 className="text-2xl md:text-3xl font-bold text-white pointer-events-none">
 					TANEBI CREATIVE
 				</h1>
+				<div className="pointer-events-auto">
+					<AudioControlButton />
+				</div>
 			</div>
 
 			{/* 第1テキスト: 最初のキャッチコピー */}
