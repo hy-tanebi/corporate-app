@@ -53,18 +53,10 @@ export default function HomeClient() {
 	const text1FadeOut = Math.max(0, Math.min(1, (0.55 - scrollProgress) * 10)); // 45-55%
 	const text1Opacity = Math.min(text1FadeIn, text1FadeOut);
 
-	// 第2テキストの表示タイミング（60-65%でフェードイン、65-75%で表示、75-80%でフェードアウト）
+	// 第2テキストの表示タイミング（60-65%でフェードイン、65-82%で表示、82-86%でフェードアウト）
 	const text2FadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.6) * 20)); // 60-65%
-	const text2FadeOut = Math.max(0, Math.min(1, (0.8 - scrollProgress) * 20)); // 75-80%
+	const text2FadeOut = Math.max(0, Math.min(1, (0.86 - scrollProgress) * 25)); // 82-86%
 	const text2Opacity = Math.min(text2FadeIn, text2FadeOut);
-
-	// 第3テキストの表示タイミング（80-82%でフェードイン、82-85%で表示、黒い円開始で消える）
-	const text3FadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.8) * 50)); // 80-82%
-	const text3FadeOut = Math.max(
-		0,
-		Math.min(1, (CIRCLE_START - scrollProgress) * 20),
-	); // 黒い円開始で急速にフェードアウト
-	const text3Opacity = Math.min(text3FadeIn, text3FadeOut);
 
 	return (
 		<>
@@ -89,19 +81,38 @@ export default function HomeClient() {
 						}px)`,
 					}}
 				>
-					<h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-8">
-						デジタルの
+					<h2
+						className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-8"
+						style={{
+							textShadow:
+								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+						}}
+					>
+						WEBの
 						<br />
-						<span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+						<span
+							className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent font-extrabold"
+							style={{
+								textShadow: "none",
+								filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.9))",
+							}}
+						>
 							困りごとに
 						</span>
 						<br />
 						寄り添いサポート
 					</h2>
-					<p className="text-lg md:text-2xl text-white/70 leading-relaxed">
-						Web / App / AI
-						<br />
-						<span className="text-white/90">次の時代の表現を、ともに創る</span>
+					<p
+						className="text-base md:text-xl text-white/80 leading-relaxed space-y-2"
+						style={{
+							textShadow:
+								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+						}}
+					>
+						<span className="block">ホームページ制作 / ECサイト制作</span>
+						<span className="block">アプリ制作 / AI業務効率化 /</span>
+						<span className="block">時代はSEOからLLMOへ</span>
+						<span className="block">課題解決に向けてAI時代の最適な制作を</span>
 					</p>
 				</div>
 			)}
@@ -117,18 +128,36 @@ export default function HomeClient() {
 						}px)`,
 					}}
 				>
-					<h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-8">
+					<h2
+						className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-8"
+						style={{
+							textShadow:
+								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+						}}
+					>
 						現場が抱える
 						<br />
 						デジタルの悩みを、
 						<br />
 						もっと
-						<span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+						<span
+							className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent font-extrabold"
+							style={{
+								textShadow: "none",
+								filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.9))",
+							}}
+						>
 							シンプル
 						</span>
 						に。
 					</h2>
-					<p className="text-base md:text-xl text-white/80 leading-relaxed space-y-2">
+					<p
+						className="text-base md:text-xl text-white/80 leading-relaxed space-y-2"
+						style={{
+							textShadow:
+								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+						}}
+					>
 						<span className="block">
 							わかりやすく、運用まで一緒に支えるWeb。
 						</span>
@@ -139,32 +168,6 @@ export default function HomeClient() {
 						<span className="block mt-4 text-white/90 font-medium">
 							そのすべてを、伴走しながら実現します。
 						</span>
-					</p>
-				</div>
-			)}
-
-			{/* 第3テキスト: CTAメッセージ */}
-			{!isCircleExpanded && (
-				<div
-					className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-3xl pointer-events-none"
-					style={{
-						opacity: text3Opacity,
-						transform: `translateY(-50%) translateX(${
-							(1 - text3Opacity) * -20
-						}px)`,
-					}}
-				>
-					<h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-						あなたの
-						<span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-							"困った"
-						</span>
-						を、
-						<br />
-						今すぐ一緒にほどきませんか？
-					</h2>
-					<p className="text-xl md:text-2xl text-white/90 font-medium">
-						まずはご相談ください。
 					</p>
 				</div>
 			)}
