@@ -1,11 +1,12 @@
 // src/app/components/MissionSection.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 
 interface MissionSectionProps {
   scrollProgress: number; // 0〜1 の全体スクロール進捗（親から供給）
   isCircleFullyExpanded: boolean; // 円が拡大完了したトリガ
+  onProgressChange?: (progress: number) => void; // セクション内進捗を親に通知
 }
 
 // ユーティリティ
@@ -16,13 +17,15 @@ const easeOutCubic = (t: number) => 1 - Math.pow(1 - clamp(t), 3);
 export default function MissionSection({
   scrollProgress,
   isCircleFullyExpanded,
+  onProgressChange,
 }: MissionSectionProps) {
   // ======= 調整パラメータ（ここをいじるだけで遅くできます） =======
   const SECTION_START = 0.94; // この位置から演出を開始
   const SECTION_END = 0.999; // この位置で演出を完了（区間を広げるほどゆっくり）
   const PROGRESS_SPEED_FORWARD = 0.25; // 1秒あたり最大で 0.25 しか進まない（もっと遅く→0.15 など）
-  const PROGRESS_SPEED_BACKWARD = 0.5; // 戻る時の速度（進む時より速く）
+  const PROGRESS_SPEED_BACKWARD = 2.0; // 戻る時の速度（通常速度）
   const SMOOTH_ALPHA = 0.08; // 慣性（追従割合）。小さいほど粘る
+  const SMOOTH_ALPHA_BACKWARD = 0.3; // 戻る時の慣性（より素早く反応）
   const GAMMA = 1.8; // >1 で序盤をさらに遅く（2.2 とかでもOK）
 
   // 生のターゲット進捗（0→1）
@@ -31,8 +34,21 @@ export default function MissionSection({
     return remap01(scrollProgress, SECTION_START, SECTION_END);
   }, [scrollProgress, isCircleFullyExpanded]);
 
-  // ガンマで序盤減速（ターゲット進捗に適用）
-  const shapedTarget = Math.pow(rawTarget, GAMMA);
+  // 前回のrawTargetを保存して、進む/戻るを判定
+  const prevRawTargetRef = useRef(0);
+  const isGoingForwardRef = useRef(true);
+
+  useEffect(() => {
+    if (rawTarget > prevRawTargetRef.current) {
+      isGoingForwardRef.current = true;
+    } else if (rawTarget < prevRawTargetRef.current) {
+      isGoingForwardRef.current = false;
+    }
+    prevRawTargetRef.current = rawTarget;
+  }, [rawTarget]);
+
+  // ガンマで序盤減速（進む時のみ適用、戻る時は線形）
+  const shapedTarget = isGoingForwardRef.current ? Math.pow(rawTarget, GAMMA) : rawTarget;
 
   // 速度上限＋慣性つきの追従進捗（実際に描画に使う）
   const targetRef = useRef(0);
@@ -64,8 +80,9 @@ export default function MissionSection({
         : PROGRESS_SPEED_BACKWARD;
       const maxStep = speedLimit * dt;
 
-      // 慣性追従によるステップ
-      const inertialStep = diff * SMOOTH_ALPHA;
+      // 慣性追従によるステップ（進む時と戻る時で慣性を切り替え）
+      const smoothAlpha = isGoingForward ? SMOOTH_ALPHA : SMOOTH_ALPHA_BACKWARD;
+      const inertialStep = diff * smoothAlpha;
 
       // 実際に適用するステップは「慣性」と「速度上限」の小さい方
       const step =
@@ -78,18 +95,64 @@ export default function MissionSection({
       currentRef.current = cur;
       setSectionProgress(cur);
 
+      // 親コンポーネントに進捗を通知
+      if (onProgressChange) {
+        onProgressChange(cur);
+      }
+
       raf = requestAnimationFrame(loop);
     };
 
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [onProgressChange]);
 
   // 表示フラグ
   const showSection = isCircleFullyExpanded;
   const showMission = sectionProgress >= 0.15;
   const showCreative = sectionProgress >= 0.3;
   const showDescription = sectionProgress >= 0.97; // アニメーション完了後に詳細テキストを表示
+
+  // グラデーション遷移セクションのスクロール進捗を追跡
+  const [gradientProgress, setGradientProgress] = useState(0);
+  const gradientRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // グラデーション背景色を計算（黒から白へ）
+  const calculateBackgroundColor = useCallback((progress: number) => {
+    const clampedProgress = Math.max(0, Math.min(1, progress));
+    const colorValue = Math.round(clampedProgress * 255);
+    return `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
+  }, []);
+
+  // スクロールイベントでグラデーション進捗を更新
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!showDescription || !container || !gradientRef.current) return;
+
+    const handleScroll = () => {
+      const gradientSection = gradientRef.current;
+      if (!gradientSection) return;
+
+      const rect = gradientSection.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+
+      // グラデーションセクションが画面に入ってきたら進捗を計算
+      if (rect.top <= windowHeight && rect.bottom >= 0) {
+        const sectionHeight = rect.height;
+        const scrolled = windowHeight - rect.top;
+        const progress = Math.max(0, Math.min(1, scrolled / (sectionHeight + windowHeight)));
+        setGradientProgress(progress);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    handleScroll(); // 初期状態をチェック
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [showDescription]);
 
   // 段階マッピング（ここもゆっくり化）
   const zAxisProgress = easeOutCubic(remap01(sectionProgress, 0.3, 0.7)); // 手前→0
@@ -104,6 +167,7 @@ export default function MissionSection({
 
   return (
     <div
+      ref={containerRef}
       className={`fixed inset-0 z-20 mission-scrollbar ${
         showDescription ? "overflow-y-auto" : "overflow-hidden"
       }`}
@@ -209,6 +273,28 @@ export default function MissionSection({
           </p>
         </div>
       </div>
+
+      {/* 背景遷移トリガーエリア（スクロールで背景を白に変える） */}
+      <div
+        ref={gradientRef}
+        className="w-full h-[100vh]"
+      />
+
+      {/* Contactセクション（完全な白背景） */}
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <h2 className="text-6xl md:text-8xl font-bold text-black">
+          CONTACT
+        </h2>
+      </div>
+
+      {/* 固定背景レイヤー（黒→白にふわっと変化） */}
+      <div
+        className="fixed inset-0 -z-10 pointer-events-none"
+        style={{
+          backgroundColor: calculateBackgroundColor(gradientProgress),
+          transition: 'background-color 0.6s ease-out'
+        }}
+      />
     </div>
   );
 }
