@@ -117,6 +117,7 @@ export default function MissionSection({
   const [gradientProgress, setGradientProgress] = useState(0);
   const gradientRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef(0); // スクロール位置を保存
 
   // グラデーション背景色を計算（黒から白へ）
   const calculateBackgroundColor = useCallback((progress: number) => {
@@ -133,6 +134,11 @@ export default function MissionSection({
     const handleScroll = () => {
       const gradientSection = gradientRef.current;
       if (!gradientSection) return;
+
+      // スクロール位置を保存
+      if (container) {
+        scrollPositionRef.current = container.scrollTop;
+      }
 
       const rect = gradientSection.getBoundingClientRect();
       const windowHeight = window.innerHeight;
@@ -153,6 +159,24 @@ export default function MissionSection({
       container.removeEventListener('scroll', handleScroll);
     };
   }, [showDescription]);
+
+  // スクロール位置を復元
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // セクションが表示されたときにスクロール位置を復元
+    if (showSection && scrollPositionRef.current > 0) {
+      container.scrollTop = scrollPositionRef.current;
+    }
+
+    // セクションが非表示になったときにスクロール位置をリセット
+    if (!showSection) {
+      container.scrollTop = 0;
+      scrollPositionRef.current = 0;
+      setGradientProgress(0);
+    }
+  }, [showSection]);
 
   // 段階マッピング（ここもゆっくり化）
   const zAxisProgress = easeOutCubic(remap01(sectionProgress, 0.3, 0.7)); // 手前→0
