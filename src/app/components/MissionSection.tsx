@@ -2,6 +2,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { ContactForm } from "@/components/contact/contact-form";
+
+// フォームセクションコンポーネント
+function ContactFormSection() {
+  return <ContactForm />;
+}
 
 interface MissionSectionProps {
   scrollProgress: number; // 0〜1 の全体スクロール進捗（親から供給）
@@ -304,11 +310,18 @@ export default function MissionSection({
         className="w-full h-[100vh]"
       />
 
-      {/* Contactセクション（完全な白背景） */}
-      <div className="w-full min-h-screen flex items-center justify-center">
+      {/* Contactタイトルセクション（1画面） */}
+      <div className="w-full h-screen flex items-center justify-center">
         <h2 className="text-6xl md:text-8xl font-bold text-black">
           CONTACT
         </h2>
+      </div>
+
+      {/* Contactフォームセクション */}
+      <div className="w-full min-h-screen flex items-center justify-center py-20 px-4">
+        <div className="max-w-2xl w-full">
+          <ContactFormSection />
+        </div>
       </div>
 
       {/* 固定背景レイヤー（黒→白にふわっと変化） */}
