@@ -42,3 +42,7 @@ next-env.d.ts
 
 # Claude settings
 .claude/settings.local.json
+
+# 大きな3Dモデルファイル（Vercel Blobで管理）
+public/models/*.glb
+public/models/*.fbx

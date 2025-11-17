@@ -4,7 +4,8 @@ import type { BlogPost } from "./microcms";
 // サイトの基本情報
 const SITE_CONFIG = {
 	name: "ポートフォリオサイト",
-	description: "Next.js, TypeScript, Three.jsを使ったモダンなポートフォリオサイト",
+	description:
+		"Next.js, TypeScript, Three.jsを使ったモダンなポートフォリオサイト",
 	url: process.env.NEXT_PUBLIC_SITE_URL || "https://your-domain.com",
 	author: "開発者名",
 	twitterHandle: "@your_twitter", // Twitter handle（オプション）
@@ -26,7 +27,9 @@ function extractDescription(content: string, maxLength = 160): string {
 // カテゴリ配列をキーワード文字列に変換
 function generateKeywords(categories?: string[]): string {
 	const baseKeywords = ["ブログ", "技術記事", "プログラミング"];
-	const allKeywords = categories ? [...baseKeywords, ...categories] : baseKeywords;
+	const allKeywords = categories
+		? [...baseKeywords, ...categories]
+		: baseKeywords;
 	return allKeywords.join(", ");
 }
 
@@ -70,7 +73,7 @@ export function generateBlogMetadata(post: BlogPost): Metadata {
 		description: description,
 		keywords: keywords,
 		authors: [{ name: SITE_CONFIG.author }],
-		
+
 		// 基本的なメタデータ
 		openGraph: {
 			type: "article",
