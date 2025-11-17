@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { ContactForm } from "@/components/contact/contact-form";
+import AboutSection from "./AboutSection";
 
 // フォームセクションコンポーネント
 function ContactFormSection() {
@@ -309,6 +310,9 @@ export default function MissionSection({
         ref={gradientRef}
         className="w-full h-[100vh]"
       />
+
+      {/* ABOUTセクション（横スクロールアニメーション） */}
+      <AboutSection />
 
       {/* Contactタイトルセクション（1画面） */}
       <div className="w-full h-screen flex items-center justify-center">
