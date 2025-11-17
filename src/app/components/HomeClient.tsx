@@ -6,10 +6,12 @@ import { HeroActions } from "@/components/ui/hero-actions";
 import { HeroActionButton } from "@/components/ui/hero-action-button";
 import { AudioControlButton } from "@/components/ui/audio-control-button";
 import MissionSection from "./MissionSection";
+import ContactSection from "./ContactSection";
 
 export default function HomeClient() {
 	const [scrollProgress, setScrollProgress] = useState(0);
 	const [isCircleFullyExpanded, setIsCircleFullyExpanded] = useState(false);
+	const [missionSectionProgress, setMissionSectionProgress] = useState(0);
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -193,10 +195,17 @@ export default function HomeClient() {
 			<MissionSection
 				scrollProgress={scrollProgress}
 				isCircleFullyExpanded={isCircleFullyExpanded}
+				onProgressChange={setMissionSectionProgress}
+			/>
+
+			{/* CONTACTセクション */}
+			<ContactSection
+				scrollProgress={scrollProgress}
+				missionSectionProgress={missionSectionProgress}
 			/>
 
 			{/* スクロール可能なコンテンツエリア（透明） */}
-			<div className="w-full pointer-events-none" style={{ height: "1000vh" }}>
+			<div className="w-full pointer-events-none" style={{ height: "1200vh" }}>
 				{/* 空のコンテンツでスクロールを可能にする */}
 			</div>
 		</>
