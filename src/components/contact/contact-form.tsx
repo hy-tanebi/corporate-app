@@ -71,13 +71,13 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 	};
 
 	return (
-		<Card className="border-2 border-gray-200 bg-white">
+		<Card className="border-2 border-white/20 bg-black/80 backdrop-blur-sm">
 			<CardHeader>
-				<CardTitle className="text-2xl flex items-center gap-2">
+				<CardTitle className="text-2xl flex items-center gap-2 text-white">
 					<Mail className="w-6 h-6" />
 					お問い合わせフォーム
 				</CardTitle>
-				<p className="text-sm text-gray-600 mt-2">
+				<p className="text-sm text-gray-300 mt-2">
 					お気軽にお問い合わせください。担当者より折り返しご連絡いたします。
 				</p>
 			</CardHeader>
@@ -93,12 +93,12 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 							name="name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className="flex items-center gap-2">
+									<FormLabel className="flex items-center gap-2 text-white">
 										<User className="w-4 h-4" />
 										お名前 *
 									</FormLabel>
 									<FormControl>
-										<Input placeholder="山田太郎" {...field} />
+										<Input placeholder="山田太郎" {...field} className="bg-white/10 border-white/20 text-white placeholder:text-gray-400" />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -111,7 +111,7 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 							name="email"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className="flex items-center gap-2">
+									<FormLabel className="flex items-center gap-2 text-white">
 										<Mail className="w-4 h-4" />
 										メールアドレス *
 									</FormLabel>
@@ -120,6 +120,7 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 											type="email"
 											placeholder="example@email.com"
 											{...field}
+											className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
 										/>
 									</FormControl>
 									<FormMessage />
@@ -133,12 +134,12 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 							name="company"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className="flex items-center gap-2">
+									<FormLabel className="flex items-center gap-2 text-white">
 										<Building2 className="w-4 h-4" />
 										会社名・団体名（任意）
 									</FormLabel>
 									<FormControl>
-										<Input placeholder="株式会社〇〇" {...field} />
+										<Input placeholder="株式会社〇〇" {...field} className="bg-white/10 border-white/20 text-white placeholder:text-gray-400" />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -151,12 +152,12 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 							name="subject"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className="flex items-center gap-2">
+									<FormLabel className="flex items-center gap-2 text-white">
 										<MessageSquare className="w-4 h-4" />
 										件名 *
 									</FormLabel>
 									<FormControl>
-										<Input placeholder="お問い合わせ内容の件名" {...field} />
+										<Input placeholder="お問い合わせ内容の件名" {...field} className="bg-white/10 border-white/20 text-white placeholder:text-gray-400" />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -169,11 +170,11 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
 							name="message"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>メッセージ *</FormLabel>
+									<FormLabel className="text-white">メッセージ *</FormLabel>
 									<FormControl>
 										<Textarea
 											placeholder="お問い合わせ内容をご記入ください。"
-											className="resize-none min-h-[150px]"
+											className="resize-none min-h-[150px] bg-white/10 border-white/20 text-white placeholder:text-gray-400"
 											{...field}
 										/>
 									</FormControl>

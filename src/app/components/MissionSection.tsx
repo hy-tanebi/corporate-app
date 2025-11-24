@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { ContactForm } from "@/components/contact/contact-form";
+import AboutSection from "./AboutSection";
 
 // フォームセクションコンポーネント
 function ContactFormSection() {
@@ -121,7 +122,9 @@ export default function MissionSection({
 
   // グラデーション遷移セクションのスクロール進捗を追跡
   const [gradientProgress, setGradientProgress] = useState(0);
+  const [gradientProgress2, setGradientProgress2] = useState(0);
   const gradientRef = useRef<HTMLDivElement>(null);
+  const gradientRef2 = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef(0); // スクロール位置を保存
 
@@ -132,7 +135,25 @@ export default function MissionSection({
     return `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
   }, []);
 
-  // スクロールイベントでグラデーション進捗を更新
+  // 最終的な背景色を計算（黒→白→黒）
+  const calculateFinalBackgroundColor = useCallback((progress1: number, progress2: number) => {
+    // progress1: 黒(0)から白(255)への遷移
+    // progress2: 白(255)から黒(0)への遷移
+    const clampedProgress1 = Math.max(0, Math.min(1, progress1));
+    const clampedProgress2 = Math.max(0, Math.min(1, progress2));
+
+    // progress1で黒→白
+    let colorValue = Math.round(clampedProgress1 * 255);
+
+    // progress2で白→黒（progress2が進むほど暗くなる）
+    if (clampedProgress2 > 0) {
+      colorValue = Math.round(255 * (1 - clampedProgress2));
+    }
+
+    return `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
+  }, []);
+
+  // スクロールイベントでグラデーション進捗を更新（1つ目：黒→白）
   useEffect(() => {
     const container = containerRef.current;
     if (!showDescription || !container || !gradientRef.current) return;
@@ -155,6 +176,38 @@ export default function MissionSection({
         const scrolled = windowHeight - rect.top;
         const progress = Math.max(0, Math.min(1, scrolled / (sectionHeight + windowHeight)));
         setGradientProgress(progress);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    handleScroll(); // 初期状態をチェック
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [showDescription]);
+
+  // スクロールイベントでグラデーション進捗を更新（2つ目：白→黒）
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!showDescription || !container || !gradientRef2.current) return;
+
+    const handleScroll = () => {
+      const gradientSection2 = gradientRef2.current;
+      if (!gradientSection2) return;
+
+      const rect = gradientSection2.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+
+      // グラデーションセクション2が画面に入ってきたら進捗を計算
+      if (rect.top <= windowHeight && rect.bottom >= 0) {
+        const sectionHeight = rect.height;
+        const scrolled = windowHeight - rect.top;
+        const progress = Math.max(0, Math.min(1, scrolled / (sectionHeight + windowHeight)));
+        setGradientProgress2(progress);
+      } else if (rect.top > windowHeight) {
+        // セクション2より前にスクロールした場合は0にリセット
+        setGradientProgress2(0);
       }
     };
 
@@ -310,9 +363,18 @@ export default function MissionSection({
         className="w-full h-[100vh]"
       />
 
+      {/* ABOUTセクション（横スクロールアニメーション） */}
+      <AboutSection />
+
+      {/* 背景遷移トリガーエリア2（白から黒に戻す） */}
+      <div
+        ref={gradientRef2}
+        className="w-full h-[100vh]"
+      />
+
       {/* Contactタイトルセクション（1画面） */}
       <div className="w-full h-screen flex items-center justify-center">
-        <h2 className="text-6xl md:text-8xl font-bold text-black">
+        <h2 className="text-6xl md:text-8xl font-bold text-white">
           CONTACT
         </h2>
       </div>
@@ -324,11 +386,11 @@ export default function MissionSection({
         </div>
       </div>
 
-      {/* 固定背景レイヤー（黒→白にふわっと変化） */}
+      {/* 固定背景レイヤー（黒→白→黒にふわっと変化） */}
       <div
         className="fixed inset-0 -z-10 pointer-events-none"
         style={{
-          backgroundColor: calculateBackgroundColor(gradientProgress),
+          backgroundColor: calculateFinalBackgroundColor(gradientProgress, gradientProgress2),
           transition: 'background-color 0.6s ease-out'
         }}
       />

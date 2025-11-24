@@ -40,7 +40,10 @@ export default async function HeroCanvasWithCMS({
 	try {
 		// microCMSからshowcase記事を取得
 		const response = await getBlogPosts(20, 0);
-		const showcasePosts = response.contents.filter((post) => post.isShowcase);
+		// isShowcaseフィールドが存在する場合はフィルタリング、存在しない場合は全記事を表示
+		const showcasePosts = response.contents.filter((post) =>
+			post.isShowcase !== undefined ? post.isShowcase : true
+		);
 
 		if (showcasePosts.length > 0) {
 			videoSlides = showcasePosts.map(blogPostToVideoSlide);
