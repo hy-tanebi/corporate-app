@@ -12,7 +12,7 @@ export default function AboutSection() {
 
   useEffect(() => {
     // 親のスクロールコンテナを取得
-    const scrollContainer = sectionRef.current?.closest('.mission-scrollbar');
+    const scrollContainer = sectionRef.current?.closest(".mission-scrollbar");
     if (!scrollContainer) return;
 
     const handleScroll = () => {
@@ -25,7 +25,8 @@ export default function AboutSection() {
       // セクションが画面の上部に到達したかチェック
       if (rect.top <= 0 && rect.bottom > windowHeight) {
         // セクション内でのスクロール進捗を計算
-        const sectionScrollProgress = Math.abs(rect.top) / (rect.height - windowHeight);
+        const sectionScrollProgress =
+          Math.abs(rect.top) / (rect.height - windowHeight);
         const clampedProgress = Math.max(0, Math.min(1, sectionScrollProgress));
 
         setScrollProgress(clampedProgress);
@@ -48,11 +49,11 @@ export default function AboutSection() {
       }
     };
 
-    scrollContainer.addEventListener('scroll', handleScroll);
+    scrollContainer.addEventListener("scroll", handleScroll);
     handleScroll();
 
     return () => {
-      scrollContainer.removeEventListener('scroll', handleScroll);
+      scrollContainer.removeEventListener("scroll", handleScroll);
     };
   }, [circleCenterInitialized]);
 
@@ -61,21 +62,35 @@ export default function AboutSection() {
   // progress 0.4 → 8個目が画面中央に来る位置で停止
   const maxProgress = 0.4; // 横スクロールの最大進捗
   const horizontalProgress = Math.min(scrollProgress / maxProgress, 1);
-  const titleTranslateX = 100 - (horizontalProgress * 300);
+  const titleTranslateX = 100 - horizontalProgress * 300;
 
   // 円の拡大アニメーション進捗（0.4〜0.85の範囲で0→1にマップ）
   // さらにゆっくり拡大するように範囲を広げる（45%の範囲）
   const circleStartProgress = 0.4;
   const circleEndProgress = 0.85;
-  const circleProgress = Math.max(0, Math.min(1, (scrollProgress - circleStartProgress) / (circleEndProgress - circleStartProgress)));
+  const circleProgress = Math.max(
+    0,
+    Math.min(
+      1,
+      (scrollProgress - circleStartProgress) /
+        (circleEndProgress - circleStartProgress)
+    )
+  );
 
   // 円のサイズ（画面対角線の150%まで拡大）
-  const maxDimension = Math.sqrt(window.innerWidth ** 2 + window.innerHeight ** 2) * 1.5;
+  const maxDimension =
+    Math.sqrt(window.innerWidth ** 2 + window.innerHeight ** 2) * 1.5;
   const circleRadius = circleProgress * maxDimension;
 
   // 詳細コンテンツの表示進捗（0.85〜1.0の範囲で0→1にマップ）
   const detailStartProgress = 0.85;
-  const detailProgress = Math.max(0, Math.min(1, (scrollProgress - detailStartProgress) / (1 - detailStartProgress)));
+  const detailProgress = Math.max(
+    0,
+    Math.min(
+      1,
+      (scrollProgress - detailStartProgress) / (1 - detailStartProgress)
+    )
+  );
 
   // 繰り返し表示する "ABOUT" の数
   const repeatCount = 10;
@@ -85,7 +100,7 @@ export default function AboutSection() {
       ref={sectionRef}
       className="w-full relative"
       style={{
-        height: '500vh', // 300vh → 500vh に増やしてよりゆっくりに
+        height: "500vh", // 300vh → 500vh に増やしてよりゆっくりに
       }}
     >
       {/* 固定表示エリア */}
@@ -95,7 +110,8 @@ export default function AboutSection() {
           className="flex items-center whitespace-nowrap relative z-10"
           style={{
             transform: `translateX(${titleTranslateX}vw)`,
-            opacity: circleProgress > 0.5 ? 1 - ((circleProgress - 0.5) / 0.5) : 1,
+            opacity:
+              circleProgress > 0.5 ? 1 - (circleProgress - 0.5) / 0.5 : 1,
           }}
         >
           {Array.from({ length: repeatCount }).map((_, i) => {
@@ -119,7 +135,7 @@ export default function AboutSection() {
                 key={i}
                 className="text-[8vw] md:text-[12vw] font-bold text-black mx-8"
               >
-                ABOUT
+                ABOUTS
               </span>
             );
           })}
@@ -134,10 +150,11 @@ export default function AboutSection() {
               top: `${circleCenter.y}px`,
               width: `${circleRadius * 2}px`,
               height: `${circleRadius * 2}px`,
-              transform: 'translate(-50%, -50%)',
-              background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.98) 100%)',
+              transform: "translate(-50%, -50%)",
+              background:
+                "radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.98) 100%)",
               opacity: circleProgress > 0 ? 1 : 0,
-              transition: 'opacity 0.2s ease-out',
+              transition: "opacity 0.2s ease-out",
             }}
           />
         )}
@@ -147,7 +164,7 @@ export default function AboutSection() {
           className="absolute inset-0 z-30 flex flex-col items-center justify-center px-8 bg-white"
           style={{
             opacity: detailProgress,
-            pointerEvents: detailProgress > 0.5 ? 'auto' : 'none',
+            pointerEvents: detailProgress > 0.5 ? "auto" : "none",
           }}
         >
           <h2 className="text-4xl md:text-6xl font-bold text-black mb-8">
