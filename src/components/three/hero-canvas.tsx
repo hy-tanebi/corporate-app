@@ -14,7 +14,7 @@ import {
 import * as THREE from "three";
 import { StarParticles } from "./StarParticles";
 import { ShootingStars } from "./ShootingStars";
-import { MilkyWay } from "./MilkyWay";
+import { PurpleNebula } from "./PurpleNebula";
 import VideoCardsRenderer from "./VideoCardsRenderer";
 import { FeatherCircleMaterial } from "./materials";
 import { getSafeVideoSlides } from "../../data/fallback-content";
@@ -121,6 +121,21 @@ function HeroScene({
 	const isDragging = useRef(false);
 	const previousMousePosition = useRef({ x: 0, y: 0 });
 	const triangleRotation = useRef({ x: 0, y: 0 });
+
+	// 紫色のガスのランダム配置（リロード時に1回だけ生成）
+	const nebulaPositions = useMemo(() => {
+		const positions = [];
+		for (let i = 0; i < 2; i++) {
+			const x = Math.random() * 80 - 40; // -40 ~ 40
+			const y = Math.random() * 80 - 40; // -40 ~ 40
+			const z = Math.random() * 20 - 50; // -50 ~ -30
+			const scale = Math.random() * 40 + 50; // 50 ~ 90
+			const opacity = Math.random() * 0.15 + 0.15; // 0.15 ~ 0.3
+			const rotation = Math.random() * Math.PI * 2; // 0 ~ 2π
+			positions.push({ x, y, z, scale, opacity, rotation });
+		}
+		return positions;
+	}, []);
 
 	// 黒円マテリアル
 	const featherMat = useMemo(() => {
@@ -492,9 +507,17 @@ function HeroScene({
 					<Suspense fallback={null}>
 						<StarParticles selfRotate={false} position={[0, 0, -10]} />
 						<ShootingStars interval={3500} duration={4000} />
-						{/* MilkyWayを左上と右下に配置 */}
-						<MilkyWay position={[-30, 25, -25]} renderOrder={5} scale={70} />
-						<MilkyWay position={[30, -85, -85]} renderOrder={5} scale={205} />
+						{/* 紫色のガス状の雲（ランダム配置） */}
+						{nebulaPositions.map((pos, index) => (
+							<PurpleNebula
+								key={index}
+								position={[pos.x, pos.y, pos.z]}
+								renderOrder={6}
+								scale={pos.scale}
+								opacity={pos.opacity}
+								rotation={[0, 0, pos.rotation]}
+							/>
+						))}
 					</Suspense>
 				</group>
 
