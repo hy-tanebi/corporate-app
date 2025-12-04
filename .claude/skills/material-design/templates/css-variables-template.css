@@ -1,0 +1,316 @@
+/**
+ * Material Design 3 - CSS Variables Template
+ *
+ * このファイルは、Material Design 3の色をCSS変数として定義するテンプレートです。
+ * globals.cssまたはstyles.cssにこの内容を追加してください。
+ *
+ * 注意:
+ * - 以下の色はサンプルです。Material Theme Builder (https://m3.material.io/theme-builder)
+ *   を使って、プロジェクトのブランドカラーに基づいた色を生成してください。
+ * - RGB値で定義することで、Tailwindのアルファチャンネル(<alpha-value>)が使用できます。
+ */
+
+/* =====================================
+   Light Mode (Default)
+   ===================================== */
+
+:root {
+	/* Primary Colors */
+	--md-sys-color-primary: 103 80 164; /* #6750A4 */
+	--md-sys-color-on-primary: 255 255 255; /* #FFFFFF */
+	--md-sys-color-primary-container: 234 221 255; /* #EADDFF */
+	--md-sys-color-on-primary-container: 33 0 94; /* #21005E */
+
+	/* Secondary Colors */
+	--md-sys-color-secondary: 98 91 113; /* #625B71 */
+	--md-sys-color-on-secondary: 255 255 255; /* #FFFFFF */
+	--md-sys-color-secondary-container: 232 222 248; /* #E8DEF8 */
+	--md-sys-color-on-secondary-container: 30 25 43; /* #1E192B */
+
+	/* Tertiary Colors */
+	--md-sys-color-tertiary: 125 82 96; /* #7D5260 */
+	--md-sys-color-on-tertiary: 255 255 255; /* #FFFFFF */
+	--md-sys-color-tertiary-container: 255 216 228; /* #FFD8E4 */
+	--md-sys-color-on-tertiary-container: 55 11 30; /* #370B1E */
+
+	/* Error Colors */
+	--md-sys-color-error: 179 38 30; /* #B3261E */
+	--md-sys-color-on-error: 255 255 255; /* #FFFFFF */
+	--md-sys-color-error-container: 249 222 220; /* #F9DEDC */
+	--md-sys-color-on-error-container: 65 14 11; /* #410E0B */
+
+	/* Surface Colors */
+	--md-sys-color-surface: 254 247 255; /* #FEF7FF */
+	--md-sys-color-surface-dim: 222 216 225; /* #DED8E1 */
+	--md-sys-color-surface-bright: 254 247 255; /* #FEF7FF */
+	--md-sys-color-surface-container-lowest: 255 255 255; /* #FFFFFF */
+	--md-sys-color-surface-container-low: 247 242 250; /* #F7F2FA */
+	--md-sys-color-surface-container: 243 237 247; /* #F3EDF7 */
+	--md-sys-color-surface-container-high: 236 230 240; /* #ECE6F0 */
+	--md-sys-color-surface-container-highest: 230 224 233; /* #E6E0E9 */
+
+	--md-sys-color-on-surface: 28 27 31; /* #1C1B1F */
+	--md-sys-color-surface-variant: 231 224 236; /* #E7E0EC */
+	--md-sys-color-on-surface-variant: 73 69 79; /* #49454F */
+
+	/* Outline Colors */
+	--md-sys-color-outline: 121 116 126; /* #79747E */
+	--md-sys-color-outline-variant: 202 196 208; /* #CAC4D0 */
+
+	/* Background Colors */
+	--md-sys-color-background: 254 247 255; /* #FEF7FF */
+	--md-sys-color-on-background: 28 27 31; /* #1C1B1F */
+
+	/* Inverse Colors */
+	--md-sys-color-inverse-surface: 49 48 51; /* #313033 */
+	--md-sys-color-inverse-on-surface: 244 239 244; /* #F4EFF4 */
+	--md-sys-color-inverse-primary: 208 188 255; /* #D0BCFF */
+
+	/* Scrim */
+	--md-sys-color-scrim: 0 0 0; /* #000000 */
+
+	/* Shadow */
+	--md-sys-color-shadow: 0 0 0; /* #000000 */
+}
+
+/* =====================================
+   Dark Mode
+   ===================================== */
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		/* Primary Colors */
+		--md-sys-color-primary: 208 188 255; /* #D0BCFF */
+		--md-sys-color-on-primary: 56 30 114; /* #381E72 */
+		--md-sys-color-primary-container: 79 55 139; /* #4F378B */
+		--md-sys-color-on-primary-container: 234 221 255; /* #EADDFF */
+
+		/* Secondary Colors */
+		--md-sys-color-secondary: 204 194 220; /* #CCC2DC */
+		--md-sys-color-on-secondary: 51 45 65; /* #332D41 */
+		--md-sys-color-secondary-container: 74 68 88; /* #4A4458 */
+		--md-sys-color-on-secondary-container: 232 222 248; /* #E8DEF8 */
+
+		/* Tertiary Colors */
+		--md-sys-color-tertiary: 239 184 200; /* #EFB8C8 */
+		--md-sys-color-on-tertiary: 73 37 50; /* #492532 */
+		--md-sys-color-tertiary-container: 99 59 72; /* #633B48 */
+		--md-sys-color-on-tertiary-container: 255 216 228; /* #FFD8E4 */
+
+		/* Error Colors */
+		--md-sys-color-error: 242 184 181; /* #F2B8B5 */
+		--md-sys-color-on-error: 105 0 5; /* #690005 */
+		--md-sys-color-error-container: 147 0 10; /* #93000A */
+		--md-sys-color-on-error-container: 249 222 220; /* #F9DEDC */
+
+		/* Surface Colors */
+		--md-sys-color-surface: 28 27 31; /* #1C1B1F */
+		--md-sys-color-surface-dim: 28 27 31; /* #1C1B1F */
+		--md-sys-color-surface-bright: 54 52 56; /* #363438 */
+		--md-sys-color-surface-container-lowest: 15 13 19; /* #0F0D13 */
+		--md-sys-color-surface-container-low: 28 27 31; /* #1C1B1F */
+		--md-sys-color-surface-container: 32 31 35; /* #201F23 */
+		--md-sys-color-surface-container-high: 43 41 45; /* #2B292D */
+		--md-sys-color-surface-container-highest: 54 52 56; /* #363438 */
+
+		--md-sys-color-on-surface: 230 225 229; /* #E6E1E5 */
+		--md-sys-color-surface-variant: 73 69 79; /* #49454F */
+		--md-sys-color-on-surface-variant: 202 196 208; /* #CAC4D0 */
+
+		/* Outline Colors */
+		--md-sys-color-outline: 147 143 153; /* #938F99 */
+		--md-sys-color-outline-variant: 73 69 79; /* #49454F */
+
+		/* Background Colors */
+		--md-sys-color-background: 28 27 31; /* #1C1B1F */
+		--md-sys-color-on-background: 230 225 229; /* #E6E1E5 */
+
+		/* Inverse Colors */
+		--md-sys-color-inverse-surface: 230 225 229; /* #E6E1E5 */
+		--md-sys-color-inverse-on-surface: 49 48 51; /* #313033 */
+		--md-sys-color-inverse-primary: 103 80 164; /* #6750A4 */
+
+		/* Scrim */
+		--md-sys-color-scrim: 0 0 0; /* #000000 */
+
+		/* Shadow */
+		--md-sys-color-shadow: 0 0 0; /* #000000 */
+	}
+}
+
+/* =====================================
+   Manual Dark Mode Toggle
+   ===================================== */
+
+/**
+ * prefers-color-scheme に頼らず、.dark クラスで手動切り替えしたい場合は、
+ * 以下のセレクタを使用してください。
+ */
+
+/*
+.dark {
+  --md-sys-color-primary: 208 188 255;
+  --md-sys-color-on-primary: 56 30 114;
+  (以下、ダークモードの色定義を追加)
+}
+*/
+
+/* =====================================
+   Usage Example
+   ===================================== */
+
+/**
+ * HTML/JSXでの使用例:
+ *
+ * <button className="bg-primary text-on-primary">
+ *   Primary Button
+ * </button>
+ *
+ * <div className="bg-surface text-on-surface">
+ *   Surface Container
+ * </div>
+ *
+ * <p className="text-on-surface-variant">
+ *   Secondary text
+ * </p>
+ */
+
+/* =====================================
+   Global Styles (Optional)
+   ===================================== */
+
+/**
+ * 全体に適用する基本スタイル
+ */
+
+body {
+	background-color: rgb(var(--md-sys-color-background));
+	color: rgb(var(--md-sys-color-on-background));
+	font-family: "Roboto", "Inter", "Noto Sans", system-ui, -apple-system,
+		BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* =====================================
+   State Layer Opacities
+   ===================================== */
+
+/**
+ * Material Design 3のインタラクション状態のオーバーレイ不透明度
+ * これらはホバー、フォーカス、プレス時に適用されます
+ */
+
+:root {
+	--md-sys-state-hover-opacity: 0.08;
+	--md-sys-state-focus-opacity: 0.12;
+	--md-sys-state-pressed-opacity: 0.12;
+	--md-sys-state-dragged-opacity: 0.16;
+}
+
+/* =====================================
+   Elevation Tint
+   ===================================== */
+
+/**
+ * ダークモードでのエレベーション表現用のティント
+ * ダークモードでは、影だけでなく色のティントも使用します
+ */
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		/* Surface elevations with tint */
+		--md-sys-elevation-level-1: rgba(
+			var(--md-sys-color-primary),
+			0.05
+		); /* 5% primary tint */
+		--md-sys-elevation-level-2: rgba(
+			var(--md-sys-color-primary),
+			0.08
+		); /* 8% primary tint */
+		--md-sys-elevation-level-3: rgba(
+			var(--md-sys-color-primary),
+			0.11
+		); /* 11% primary tint */
+		--md-sys-elevation-level-4: rgba(
+			var(--md-sys-color-primary),
+			0.12
+		); /* 12% primary tint */
+		--md-sys-elevation-level-5: rgba(
+			var(--md-sys-color-primary),
+			0.14
+		); /* 14% primary tint */
+	}
+}
+
+/* =====================================
+   Custom Properties for Typography
+   ===================================== */
+
+/**
+ * タイポグラフィのカスタムプロパティ
+ * Tailwindの fontSize クラスと併用可能
+ */
+
+:root {
+	/* Display */
+	--md-sys-typescale-display-large-font-size: 57px;
+	--md-sys-typescale-display-large-line-height: 64px;
+	--md-sys-typescale-display-large-letter-spacing: -0.25px;
+	--md-sys-typescale-display-large-font-weight: 400;
+
+	/* Headline */
+	--md-sys-typescale-headline-large-font-size: 32px;
+	--md-sys-typescale-headline-large-line-height: 40px;
+	--md-sys-typescale-headline-large-letter-spacing: 0px;
+	--md-sys-typescale-headline-large-font-weight: 400;
+
+	/* Title */
+	--md-sys-typescale-title-large-font-size: 22px;
+	--md-sys-typescale-title-large-line-height: 28px;
+	--md-sys-typescale-title-large-letter-spacing: 0px;
+	--md-sys-typescale-title-large-font-weight: 400;
+
+	/* Body */
+	--md-sys-typescale-body-large-font-size: 16px;
+	--md-sys-typescale-body-large-line-height: 24px;
+	--md-sys-typescale-body-large-letter-spacing: 0.5px;
+	--md-sys-typescale-body-large-font-weight: 400;
+
+	/* Label */
+	--md-sys-typescale-label-large-font-size: 14px;
+	--md-sys-typescale-label-large-line-height: 20px;
+	--md-sys-typescale-label-large-letter-spacing: 0.1px;
+	--md-sys-typescale-label-large-font-weight: 500;
+}
+
+/* =====================================
+   Accessibility
+   ===================================== */
+
+/**
+ * アクセシビリティのためのフォーカススタイル
+ */
+
+*:focus-visible {
+	outline: 2px solid rgb(var(--md-sys-color-primary));
+	outline-offset: 2px;
+}
+
+/**
+ * リンク要素のデフォルトスタイル
+ */
+
+a {
+	color: rgb(var(--md-sys-color-primary));
+	text-decoration: none;
+	transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+a:hover {
+	color: rgb(var(--md-sys-color-primary));
+	opacity: 0.87;
+}
+
+a:focus-visible {
+	outline: 2px solid rgb(var(--md-sys-color-primary));
+	outline-offset: 2px;
+}

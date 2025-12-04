@@ -1,7 +1,9 @@
 // src/app/components/AboutSection.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
+import { ParticleMorphImage } from "@/components/three/ParticleMorphImage";
 
 export default function AboutSection() {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -92,6 +94,21 @@ export default function AboutSection() {
     )
   );
 
+  // パーティクルモーフィングの進捗
+  // 0.4〜0.85の範囲で0→1にマップ
+  // 0.4以前: ABOUT USテキストが横スクロール
+  // 0.4〜0.85: 光の流体からカード状に変化
+  const particleStartProgress = 0.4;
+  const particleEndProgress = 0.85;
+  const particleProgress = Math.max(
+    0,
+    Math.min(
+      1,
+      (scrollProgress - particleStartProgress) /
+        (particleEndProgress - particleStartProgress)
+    )
+  );
+
   // 繰り返し表示する "ABOUT" の数
   const repeatCount = 10;
 
@@ -104,7 +121,26 @@ export default function AboutSection() {
       }}
     >
       {/* 固定表示エリア */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center relative">
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center">
+        {/* Three.js Canvas: パーティクルモーフィング */}
+        {scrollProgress >= particleStartProgress && scrollProgress < 1.0 && (
+          <div className="absolute inset-0 z-20">
+            <Canvas
+              camera={{ position: [0, 0, 10], fov: 50 }}
+              gl={{ alpha: true, antialias: true }}
+            >
+              <Suspense fallback={null}>
+                <ParticleMorphImage
+                  imagePath="/images/profile_hayato.JPG"
+                  progress={particleProgress}
+                  particleCount={15000}
+                  cardWidth={4}
+                  cardHeight={5}
+                />
+              </Suspense>
+            </Canvas>
+          </div>
+        )}
         {/* 横スクロールする "ABOUT" の繰り返し */}
         <div
           className="flex items-center whitespace-nowrap relative z-10"
@@ -135,7 +171,7 @@ export default function AboutSection() {
                 key={i}
                 className="text-[8vw] md:text-[12vw] font-bold text-black mx-8"
               >
-                ABOUTS
+                ABOUT US
               </span>
             );
           })}
@@ -158,23 +194,6 @@ export default function AboutSection() {
             }}
           />
         )}
-
-        {/* ABOUT詳細コンテンツ */}
-        <div
-          className="absolute inset-0 z-30 flex flex-col items-center justify-center px-8 bg-white"
-          style={{
-            opacity: detailProgress,
-            pointerEvents: detailProgress > 0.5 ? "auto" : "none",
-          }}
-        >
-          <h2 className="text-4xl md:text-6xl font-bold text-black mb-8">
-            ABOUT US
-          </h2>
-          <p className="text-base md:text-lg text-black/80 max-w-2xl text-center leading-relaxed">
-            ここにABOUTの詳細テキストが入ります。企業の紹介や理念、歴史などを記載します。
-            ここにABOUTの詳細テキストが入ります。企業の紹介や理念、歴史などを記載します。
-          </p>
-        </div>
       </div>
     </div>
   );
