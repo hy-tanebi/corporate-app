@@ -267,9 +267,10 @@ export default function VideoCard3D({
 					curY + (0 - curY) * Math.min(1, dt * 8);
 			}
 		}
-		if (meshRef.current)
-			(meshRef.current.material as THREE.MeshBasicMaterial).opacity =
-				drawOpacity;
+		// マテリアルのopacityは常に1.0に固定（透過を防ぐ）
+		if (meshRef.current) {
+			(meshRef.current.material as THREE.MeshBasicMaterial).opacity = 1.0;
+		}
 
 		// hover状態の自動リセット: opacityが低い時にhoverしていたら強制的にfalseにする
 		if (isHoveringRef.current && drawOpacity <= 0.5) {
@@ -330,9 +331,9 @@ export default function VideoCard3D({
 								alphaMap={alphaTexture as any}
 								transparent
 								alphaTest={0.001}
-								depthTest={true} // 深度テストを有効に戻す
+								depthTest={true}
 								depthWrite={true}
-								side={THREE.DoubleSide} // ← 表裏の不整合を根絶
+								side={THREE.DoubleSide}
 							/>
 						</mesh>
 					)}
