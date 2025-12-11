@@ -137,26 +137,42 @@ export default function MissionSection({
     return `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
   }, []);
 
-  // 最終的な背景色を計算（黒→白→黒）
+  // 最終的な背景色を計算（黒→薄いグレー→黒）
   const calculateFinalBackgroundColor = useCallback(
     (progress1: number, progress2: number) => {
-      // progress1: 黒(0)から白(255)への遷移
-      // progress2: 白(255)から黒(0)への遷移
+      // progress1: 黒(0)からグレー(235)への遷移
+      // progress2: グレー(235)から黒(0)への遷移
       const clampedProgress1 = Math.max(0, Math.min(1, progress1));
       const clampedProgress2 = Math.max(0, Math.min(1, progress2));
 
-      // progress1で黒→白
-      let colorValue = Math.round(clampedProgress1 * 255);
+      // ターゲット色（薄いグレー）
+      const TARGET_GRAY = 235;
 
-      // progress2で白→黒（progress2が進むほど暗くなる）
+      // progress1で黒→グレー
+      let colorValue = Math.round(clampedProgress1 * TARGET_GRAY);
+
+      // progress2でグレー→黒（progress2が進むほど暗くなる）
       if (clampedProgress2 > 0) {
-        colorValue = Math.round(255 * (1 - clampedProgress2));
+        colorValue = Math.round(TARGET_GRAY * (1 - clampedProgress2));
       }
 
       return `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
     },
     []
   );
+
+  // ... (useEffect hooks are fine as is, just ensured triggers are uncommented below)
+
+  // ...
+
+      {/* 背景遷移トリガーエリア（スクロールで背景を白に変える） */}
+      <div ref={gradientRef} className="w-full h-[100vh]" />
+
+      {/* ABOUTセクション（横スクロールアニメーション） */}
+      <AboutSection />
+
+      {/* 背景遷移トリガーエリア2（白から黒に戻す） */}
+      <div ref={gradientRef2} className="w-full h-[100vh]" />
 
   // スクロールイベントでグラデーション進捗を更新（1つ目：黒→白）
   useEffect(() => {
