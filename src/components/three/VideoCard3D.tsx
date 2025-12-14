@@ -21,6 +21,7 @@ interface VideoCard3DProps {
 	displayHeightPx?: number;
 	onClick?: () => void;
 	onHoverChange?: (isHovering: boolean) => void;
+	isInteractive?: boolean;
 }
 
 export default function VideoCard3D({
@@ -38,6 +39,7 @@ export default function VideoCard3D({
 	displayHeightPx = 400,
 	onClick,
 	onHoverChange,
+	isInteractive = true,
 }: VideoCard3DProps) {
 	const meshRef = useRef<THREE.Mesh>(null);
 	const exitGroupRef = useRef<THREE.Group>(null);
@@ -267,12 +269,36 @@ export default function VideoCard3D({
 					curY + (0 - curY) * Math.min(1, dt * 8);
 			}
 		}
-		if (meshRef.current)
-			(meshRef.current.material as THREE.MeshBasicMaterial).opacity =
-				drawOpacity;
+		// マテリアルのopacity、transparent、alphaMapを設定
+		// 完全表示時(0.98以上)は不透明でalphaMapも無効化
+		if (meshRef.current) {
+			const material = meshRef.current.material as THREE.MeshBasicMaterial;
+			// 0.8以上なら不透明として扱う（よりアグレッシブに透過を切る）
+			const THRESHOLD = 0.8;
+			const isOpaque = drawOpacity >= THRESHOLD;
+
+			const finalOpacity = isOpaque ? 1.0 : drawOpacity;
+
+			material.opacity = finalOpacity;
+			material.transparent = !isOpaque; // 閾値以上ならfalse（不透明）
+			material.alphaMap = !isOpaque ? (alphaTexture as any) : null; // 不透明時はalphaMapも切る
+			material.depthWrite = true; // 常に深度バッファに書き込む
+			material.needsUpdate = true;
+
+			// デバッグ: 完全表示のカードを必ずログ出力
+			if (isOpaque && Math.random() < 0.01) { // ログ過多防止のため間引く
+				console.log('[VideoCard3D - 完全表示] drawOpacity:', drawOpacity.toFixed(4), {
+					finalOpacity,
+					'material.opacity': material.opacity,
+					'material.transparent': material.transparent,
+					'material.alphaMap': material.alphaMap ? 'exists' : 'null'
+				});
+			}
+		}
 
 		// hover状態の自動リセット: opacityが低い時にhoverしていたら強制的にfalseにする
-		if (isHoveringRef.current && drawOpacity <= 0.5) {
+		// またはisInteractiveがfalseの場合もリセット
+		if (isHoveringRef.current && (drawOpacity <= 0.5 || !isInteractive)) {
 			isHoveringRef.current = false;
 			document.body.style.cursor = "default";
 			if (onHoverChange) {
@@ -294,15 +320,15 @@ export default function VideoCard3D({
 							renderOrder={1001}
 							onClick={(e) => {
 								e.stopPropagation();
-								// カードが十分に表示されている時だけクリックイベントを発火
-								if (onClick && drawOpacity > 0.5) {
+								// カードが十分に表示されている時、かつインタラクティブな時だけクリックイベントを発火
+								if (onClick && drawOpacity > 0.5 && isInteractive) {
 									onClick();
 								}
 							}}
 							onPointerOver={(e) => {
 								e.stopPropagation();
-								// カードが十分に表示されている時だけhoverイベントを発火
-								if (drawOpacity > 0.5) {
+								// カードが十分に表示されている時、かつインタラクティブな時だけhoverイベントを発火
+								if (drawOpacity > 0.5 && isInteractive) {
 									isHoveringRef.current = true;
 									document.body.style.cursor = "pointer";
 									if (onHoverChange) {
@@ -327,12 +353,11 @@ export default function VideoCard3D({
 										? videoTexture.current
 										: imageTexture.current) || null
 								}
-								alphaMap={alphaTexture as any}
-								transparent
+								color="white"
 								alphaTest={0.001}
-								depthTest={true} // 深度テストを有効に戻す
+								depthTest={true}
 								depthWrite={true}
-								side={THREE.DoubleSide} // ← 表裏の不整合を根絶
+								side={THREE.DoubleSide}
 							/>
 						</mesh>
 					)}

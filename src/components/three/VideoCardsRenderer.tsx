@@ -128,16 +128,27 @@ export default function VideoCardsRenderer({
 				} else if (thetaRel >= appearEnd && thetaRel < holdEnd) {
 					opacity = 1;
 				} else if (thetaRel >= holdEnd && thetaRel < fadeEnd) {
-					if (thetaRel < fadeStartAt) opacity = 1;
-					else if (thetaRel < fadeOutEnd) {
+					// 2周目（退場フェーズ）
+					// クリック不可 + 半透明
+					if (thetaRel < fadeStartAt) {
+						// 2周目の表示中（フェードアウト開始前）
+						opacity = 0.3; // 透過させる（透明度30%）
+					} else if (thetaRel < fadeOutEnd) {
 						const k = (thetaRel - fadeStartAt) / (slotStep * FADE_FRAC);
-						opacity = 1 - smooth01(THREE.MathUtils.clamp(k, 0, 1));
-					} else opacity = 0;
+						opacity = (1 - smooth01(THREE.MathUtils.clamp(k, 0, 1))) * 0.3; // 最大0.3からフェードアウト
+					} else {
+						opacity = 0;
+					}
 				} else {
 					opacity = 0;
 				}
 
 				const slide = videoSlides[index];
+				// 2周目以降（holdEnd以降）はインタラクティブにしない
+				const isInteractive = thetaRel < holdEnd;
+
+				// 不透明度が低すぎる場合は非インタラクティブにする
+				const finalIsInteractive = isInteractive && opacity > 0.05;
 
 				return (
 					<VideoCard3D
@@ -154,6 +165,7 @@ export default function VideoCardsRenderer({
 						opacity={opacity}
 						onClick={() => onCardClick?.(slide, index)}
 						onHoverChange={onCardHover}
+						isInteractive={finalIsInteractive}
 					/>
 				);
 			})}
