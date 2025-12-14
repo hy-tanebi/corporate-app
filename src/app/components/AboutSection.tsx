@@ -163,7 +163,7 @@ export default function AboutSection() {
             <div className="w-full h-full relative">
 
                 {/* 右下: テキストエリア (ポスター風タイポグラフィ) */}
-                <div className="absolute bottom-0 right-0 z-10 w-full md:w-1/2 p-8 md:p-12 pb-16 flex flex-col items-end text-black pointer-events-none">
+                <div className="absolute bottom-0 right-0 z-10 w-full md:w-1/2 p-8 md:p-12 pr-[calc(2rem+60px)] md:pr-[calc(3rem+80px)] pb-16 flex flex-col items-end text-black pointer-events-none">
                      <h2
                         className="text-2xl md:text-5xl font-bold tracking-tighter leading-[0.9] mb-8 text-right mix-blend-difference text-white"
                         style={{ fontFamily: "'Inter', sans-serif", color: "#eae0cc" }}

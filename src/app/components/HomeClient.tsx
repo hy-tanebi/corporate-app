@@ -2,8 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { HeroActions } from "@/components/ui/hero-actions";
-import { HeroActionButton } from "@/components/ui/hero-action-button";
+import { SidebarMenu } from "@/components/ui/sidebar-menu";
 import { AudioControlButton } from "@/components/ui/audio-control-button";
 import MissionSection from "./MissionSection";
 import ContactSection from "./ContactSection";
@@ -172,22 +171,8 @@ export default function HomeClient() {
 				</div>
 			)}
 
-			{/* アクションボタン群 */}
-			{!isCircleExpanded && (
-				<HeroActions scrollProgress={scrollProgress} position="right">
-					<HeroActionButton
-						href="/blog"
-						label="ブログを見る"
-						variant="primary"
-					/>
-					<HeroActionButton href="/about" label="About" variant="secondary" />
-					<HeroActionButton
-						href="/contact"
-						label="お問い合わせ"
-						variant="secondary"
-					/>
-				</HeroActions>
-			)}
+			{/* 通知テキスト等はそのまま、ボタン群を削除してサイドバーメニューを追加 */}
+			<SidebarMenu />
 
 			{/* MISSIONセクション */}
 			<MissionSection

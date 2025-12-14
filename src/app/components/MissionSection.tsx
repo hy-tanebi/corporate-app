@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { ContactForm } from "@/components/contact/contact-form";
 import AboutSection from "./AboutSection";
+import { useHeroState } from "../../contexts/HeroStateContext";
 
 // フォームセクションコンポーネント
 function ContactFormSection() {
@@ -26,6 +27,8 @@ export default function MissionSection({
   isCircleFullyExpanded,
   onProgressChange,
 }: MissionSectionProps) {
+  const { setIsContactVisible } = useHeroState();
+
   // ======= 調整パラメータ（ここをいじるだけで遅くできます） =======
   const SECTION_START = 0.94; // この位置から演出を開始
   const SECTION_END = 0.999; // この位置で演出を完了（区間を広げるほどゆっくり）
@@ -125,8 +128,11 @@ export default function MissionSection({
   // グラデーション遷移セクションのスクロール進捗を追跡
   const [gradientProgress, setGradientProgress] = useState(0);
   const [gradientProgress2, setGradientProgress2] = useState(0);
+  const [isContactInView, setIsContactInView] = useState(false);
+
   const gradientRef = useRef<HTMLDivElement>(null);
   const gradientRef2 = useRef<HTMLDivElement>(null);
+  const contactRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef(0); // スクロール位置を保存
 
@@ -139,7 +145,12 @@ export default function MissionSection({
 
   // 最終的な背景色を計算（黒→薄いグレー→黒）
   const calculateFinalBackgroundColor = useCallback(
-    (progress1: number, progress2: number) => {
+    (progress1: number, progress2: number, contactInView: boolean) => {
+      // Contactビューの場合は透明にする（宇宙空間を表示）
+      if (contactInView) {
+        return "rgba(0, 0, 0, 0)";
+      }
+
       // progress1: 黒(0)からグレー(235)への遷移
       // progress2: グレー(235)から黒(0)への遷移
       const clampedProgress1 = Math.max(0, Math.min(1, progress1));
@@ -165,41 +176,55 @@ export default function MissionSection({
 
   // ...
 
-      {/* 背景遷移トリガーエリア（スクロールで背景を白に変える） */}
-      <div ref={gradientRef} className="w-full h-[100vh]" />
-
-      {/* ABOUTセクション（横スクロールアニメーション） */}
-      <AboutSection />
-
-      {/* 背景遷移トリガーエリア2（白から黒に戻す） */}
-      <div ref={gradientRef2} className="w-full h-[100vh]" />
-
-  // スクロールイベントでグラデーション進捗を更新（1つ目：黒→白）
+  // スクロールイベントでグラデーション進捗とContact表示を更新
   useEffect(() => {
     const container = containerRef.current;
-    if (!showDescription || !container || !gradientRef.current) return;
+    if (!showDescription || !container) return;
 
     const handleScroll = () => {
-      const gradientSection = gradientRef.current;
-      if (!gradientSection) return;
-
-      // スクロール位置を保存
-      if (container) {
-        scrollPositionRef.current = container.scrollTop;
-      }
-
-      const rect = gradientSection.getBoundingClientRect();
       const windowHeight = window.innerHeight;
 
-      // グラデーションセクションが画面に入ってきたら進捗を計算
-      if (rect.top <= windowHeight && rect.bottom >= 0) {
-        const sectionHeight = rect.height;
-        const scrolled = windowHeight - rect.top;
-        const progress = Math.max(
-          0,
-          Math.min(1, scrolled / (sectionHeight + windowHeight))
-        );
-        setGradientProgress(progress);
+      // Gradient 1 (黒→白)
+      if (gradientRef.current) {
+        const rect = gradientRef.current.getBoundingClientRect();
+        if (rect.top <= windowHeight && rect.bottom >= 0) {
+          const sectionHeight = rect.height;
+          const scrolled = windowHeight - rect.top;
+          const progress = Math.max(
+            0,
+            Math.min(1, scrolled / (sectionHeight + windowHeight))
+          );
+          setGradientProgress(progress);
+        }
+      }
+
+      // Gradient 2 (白→黒)
+      if (gradientRef2.current) {
+        const rect = gradientRef2.current.getBoundingClientRect();
+        if (rect.top <= windowHeight && rect.bottom >= 0) {
+          const sectionHeight = rect.height;
+          const scrolled = windowHeight - rect.top;
+          const progress = Math.max(
+            0,
+            Math.min(1, scrolled / (sectionHeight + windowHeight))
+          );
+          setGradientProgress2(progress);
+        } else if (rect.top > windowHeight) {
+          setGradientProgress2(0);
+        }
+      }
+
+      // Contact Section Visibility Check
+      if (contactRef.current) {
+        const rect = contactRef.current.getBoundingClientRect();
+         // Contactタイトルのトップが画面の下から半分くらいまで来たら表示開始
+         // 完全にフェードインさせるために、少し早めに判定
+        const isVisible = rect.top < windowHeight * 0.8; // 80%の位置に来たら開始
+
+        if (isVisible !== isContactInView) {
+          setIsContactInView(isVisible);
+          setIsContactVisible(isVisible);
+        }
       }
     };
 
@@ -209,42 +234,7 @@ export default function MissionSection({
     return () => {
       container.removeEventListener("scroll", handleScroll);
     };
-  }, [showDescription]);
-
-  // スクロールイベントでグラデーション進捗を更新（2つ目：白→黒）
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!showDescription || !container || !gradientRef2.current) return;
-
-    const handleScroll = () => {
-      const gradientSection2 = gradientRef2.current;
-      if (!gradientSection2) return;
-
-      const rect = gradientSection2.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-
-      // グラデーションセクション2が画面に入ってきたら進捗を計算
-      if (rect.top <= windowHeight && rect.bottom >= 0) {
-        const sectionHeight = rect.height;
-        const scrolled = windowHeight - rect.top;
-        const progress = Math.max(
-          0,
-          Math.min(1, scrolled / (sectionHeight + windowHeight))
-        );
-        setGradientProgress2(progress);
-      } else if (rect.top > windowHeight) {
-        // セクション2より前にスクロールした場合は0にリセット
-        setGradientProgress2(0);
-      }
-    };
-
-    container.addEventListener("scroll", handleScroll);
-    handleScroll(); // 初期状態をチェック
-
-    return () => {
-      container.removeEventListener("scroll", handleScroll);
-    };
-  }, [showDescription]);
+  }, [showDescription, isContactInView, setIsContactVisible]);
 
   // スクロール位置を復元
   useEffect(() => {
@@ -261,8 +251,11 @@ export default function MissionSection({
       container.scrollTop = 0;
       scrollPositionRef.current = 0;
       setGradientProgress(0);
+      setGradientProgress2(0);
+      setIsContactInView(false);
+      setIsContactVisible(false);
     }
-  }, [showSection]);
+  }, [showSection, setIsContactVisible]);
 
   // 段階マッピング（ここもゆっくり化）
   const zAxisProgress = easeOutCubic(remap01(sectionProgress, 0.3, 0.7)); // 手前→0
@@ -380,8 +373,8 @@ export default function MissionSection({
       {/* 背景遷移トリガーエリア2（白から黒に戻す） */}
       <div ref={gradientRef2} className="w-full h-[100vh]" />
 
-      {/* Contactタイトルセクション（1画面） */}
-      <div className="w-full h-screen flex items-center justify-center">
+      {/* Contactタイトルセクション（1画面） - refを追加 */}
+      <div ref={contactRef} className="w-full h-screen flex items-center justify-center">
         <h2 className="text-6xl md:text-8xl font-bold text-white">CONTACT</h2>
       </div>
 
@@ -392,13 +385,14 @@ export default function MissionSection({
         </div>
       </div>
 
-      {/* 固定背景レイヤー（黒→白→黒にふわっと変化） */}
+      {/* 固定背景レイヤー（黒→白→黒→透明 にふわっと変化） */}
       <div
         className="fixed inset-0 -z-10 pointer-events-none"
         style={{
           backgroundColor: calculateFinalBackgroundColor(
             gradientProgress,
-            gradientProgress2
+            gradientProgress2,
+            isContactInView
           ),
           transition: "background-color 0.6s ease-out",
         }}
