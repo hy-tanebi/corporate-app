@@ -1,7 +1,7 @@
 // src/components/three/hero-canvas.tsx
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useFBO, OrbitControls } from "@react-three/drei";
 import {
 	useRef,
@@ -21,6 +21,7 @@ import { getSafeVideoSlides } from "../../data/fallback-content";
 import type { VideoSlide } from "../../types/content";
 import { CardDetailModal } from "../ui/card-detail-modal";
 import { HtmlHoverPointer } from "./HtmlHoverPointer";
+import { HeroStateContext } from "../../contexts/HeroStateContext";
 
 // ===== 全体スケール =====
 const SCENE_SCALE = 1.2;
@@ -100,6 +101,7 @@ interface HeroSceneProps {
 	videoSlides: VideoSlide[];
 	onCardClick?: (slide: VideoSlide, index: number) => void;
 	onCardHover?: (isHovering: boolean) => void;
+	isContactVisible: boolean;
 }
 
 function HeroScene({
@@ -107,6 +109,7 @@ function HeroScene({
 	videoSlides,
 	onCardClick,
 	onCardHover,
+	isContactVisible,
 }: HeroSceneProps) {
 	const heroMatRef = useRef<any>(null);
 	const starGroupRef = useRef<THREE.Group>(null);
@@ -470,16 +473,19 @@ function HeroScene({
 				const needRadius = Math.sqrt(halfW * halfW + halfH * halfH);
 				const s = THREE.MathUtils.lerp(0.001, needRadius * 1.2, growT);
 				circleRef.current.scale.set(s, s, 1);
-				circleRef.current.visible = true;
+
+				// Contactセクションが表示されている時は黒い円を非表示にして宇宙空間を表示
+				circleRef.current.visible = !isContactVisible;
 
 				const hideTri = s >= HIDE_TRI_AT_RADIUS;
+				// Contactセクションが表示されている時はテトラを隠す（背景のみ表示）
 				if (triangleVisibleMeshRef.current)
-					triangleVisibleMeshRef.current.visible = !hideTri;
-				if (lineSegmentsRef.current) lineSegmentsRef.current.visible = !hideTri;
-				if (videoCardsRef.current) videoCardsRef.current.visible = !hideTri;
+					triangleVisibleMeshRef.current.visible = !hideTri && !isContactVisible;
+				if (lineSegmentsRef.current) lineSegmentsRef.current.visible = !hideTri && !isContactVisible;
+				if (videoCardsRef.current) videoCardsRef.current.visible = !hideTri && !isContactVisible;
 
 				if (starGroupRef.current)
-					starGroupRef.current.visible = growT < HIDE_BG_AT_T;
+					starGroupRef.current.visible = isContactVisible || growT < HIDE_BG_AT_T;
 			} else {
 				circleRef.current.visible = false;
 				circleRef.current.scale.set(0.001, 0.001, 1);
@@ -496,6 +502,23 @@ function HeroScene({
 			starGroupRef.current.rotation.y += 0.0005;
 		}
 	});
+
+	// ===== サイドバー分の中央補正 (削除) =====
+    // user requested to revert to center
+	// const { size, viewport } = useThree();
+	// const xOffset = useMemo(() => {
+	// 	const width = size.width;
+	// 	const sidebarWidth = width > 768 ? 80 : 60;
+	// 	// 画面幅からサイドバー分を引いた中心は、(width - sidebarWidth) / 2
+	// 	// 現在の中心は width / 2
+	// 	// ズレは (width - sidebarWidth) / 2 - width / 2 = -sidebarWidth / 2
+	// 	const pixelOffset = -sidebarWidth / 2;
+
+	// 	// 3D単位に変換 (viewport.width は z=0 での幅ではないが、R3Fのデフォルトカメラ距離でのviewport)
+    //     // 正確には distance = cameraZ - 0 での scale layer が欲しいが、
+    //     // ここでは簡易的に viewport.width / size.width で比率を出す
+	// 	return pixelOffset * (viewport.width / width);
+	// }, [size.width, viewport.width]);
 
 	return (
 		<>
@@ -630,6 +653,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 		index: number;
 	} | null>(null);
 	const [isCardHovering, setIsCardHovering] = useState(false);
+	const [isContactVisible, setIsContactVisible] = useState(false);
 
 	const handleCardClick = (slide: VideoSlide, index: number) => {
 		setSelectedCard({ slide, index });
@@ -654,7 +678,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 	}, []);
 
 	return (
-		<>
+		<HeroStateContext.Provider value={{ setIsContactVisible }}>
 			<Canvas
 				camera={{ position: [0, 0, CAMERA_Z], fov: 75 }}
 				style={{
@@ -673,6 +697,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 					videoSlides={safeVideoSlides}
 					onCardClick={handleCardClick}
 					onCardHover={setIsCardHovering}
+					isContactVisible={isContactVisible}
 				/>
 			</Canvas>
 
@@ -699,7 +724,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 
 			{/* HTMLホバーポインタ */}
 			<HtmlHoverPointer isHovering={isCardHovering} />
-		</>
+		</HeroStateContext.Provider>
 	);
 };
 
