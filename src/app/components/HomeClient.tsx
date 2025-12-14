@@ -93,10 +93,9 @@ export default function HomeClient() {
 						WEBの
 						<br />
 						<span
-							className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent font-extrabold"
+							className="font-extrabold"
 							style={{
-								textShadow: "none",
-								filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.9))",
+								color: "#60d5fa",
 							}}
 						>
 							困りごとに
@@ -143,10 +142,9 @@ export default function HomeClient() {
 						<br />
 						もっと
 						<span
-							className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent font-extrabold"
+							className="font-extrabold"
 							style={{
-								textShadow: "none",
-								filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.9))",
+								color: "#fbbf24",
 							}}
 						>
 							シンプル

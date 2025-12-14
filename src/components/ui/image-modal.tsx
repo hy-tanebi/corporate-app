@@ -22,7 +22,7 @@ export function ImageModal({
 	return (
 		<Dialog.Root open={isOpen} onOpenChange={onClose}>
 			<Dialog.Portal>
-				<Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" />
+				<Dialog.Overlay className="fixed inset-0 bg-black backdrop-blur-sm z-50" />
 				<Dialog.Content className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-50 max-w-4xl max-h-[90vh] w-[90vw] overflow-hidden">
 					<div className="relative">
 						{/* Close button */}

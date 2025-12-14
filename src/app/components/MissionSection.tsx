@@ -55,7 +55,9 @@ export default function MissionSection({
   }, [rawTarget]);
 
   // ガンマで序盤減速（進む時のみ適用、戻る時は線形）
-  const shapedTarget = isGoingForwardRef.current ? Math.pow(rawTarget, GAMMA) : rawTarget;
+  const shapedTarget = isGoingForwardRef.current
+    ? Math.pow(rawTarget, GAMMA)
+    : rawTarget;
 
   // 速度上限＋慣性つきの追従進捗（実際に描画に使う）
   const targetRef = useRef(0);
@@ -135,23 +137,42 @@ export default function MissionSection({
     return `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
   }, []);
 
-  // 最終的な背景色を計算（黒→白→黒）
-  const calculateFinalBackgroundColor = useCallback((progress1: number, progress2: number) => {
-    // progress1: 黒(0)から白(255)への遷移
-    // progress2: 白(255)から黒(0)への遷移
-    const clampedProgress1 = Math.max(0, Math.min(1, progress1));
-    const clampedProgress2 = Math.max(0, Math.min(1, progress2));
+  // 最終的な背景色を計算（黒→薄いグレー→黒）
+  const calculateFinalBackgroundColor = useCallback(
+    (progress1: number, progress2: number) => {
+      // progress1: 黒(0)からグレー(235)への遷移
+      // progress2: グレー(235)から黒(0)への遷移
+      const clampedProgress1 = Math.max(0, Math.min(1, progress1));
+      const clampedProgress2 = Math.max(0, Math.min(1, progress2));
 
-    // progress1で黒→白
-    let colorValue = Math.round(clampedProgress1 * 255);
+      // ターゲット色（薄いグレー）
+      const TARGET_GRAY = 235;
 
-    // progress2で白→黒（progress2が進むほど暗くなる）
-    if (clampedProgress2 > 0) {
-      colorValue = Math.round(255 * (1 - clampedProgress2));
-    }
+      // progress1で黒→グレー
+      let colorValue = Math.round(clampedProgress1 * TARGET_GRAY);
 
-    return `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
-  }, []);
+      // progress2でグレー→黒（progress2が進むほど暗くなる）
+      if (clampedProgress2 > 0) {
+        colorValue = Math.round(TARGET_GRAY * (1 - clampedProgress2));
+      }
+
+      return `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
+    },
+    []
+  );
+
+  // ... (useEffect hooks are fine as is, just ensured triggers are uncommented below)
+
+  // ...
+
+      {/* 背景遷移トリガーエリア（スクロールで背景を白に変える） */}
+      <div ref={gradientRef} className="w-full h-[100vh]" />
+
+      {/* ABOUTセクション（横スクロールアニメーション） */}
+      <AboutSection />
+
+      {/* 背景遷移トリガーエリア2（白から黒に戻す） */}
+      <div ref={gradientRef2} className="w-full h-[100vh]" />
 
   // スクロールイベントでグラデーション進捗を更新（1つ目：黒→白）
   useEffect(() => {
@@ -174,16 +195,19 @@ export default function MissionSection({
       if (rect.top <= windowHeight && rect.bottom >= 0) {
         const sectionHeight = rect.height;
         const scrolled = windowHeight - rect.top;
-        const progress = Math.max(0, Math.min(1, scrolled / (sectionHeight + windowHeight)));
+        const progress = Math.max(
+          0,
+          Math.min(1, scrolled / (sectionHeight + windowHeight))
+        );
         setGradientProgress(progress);
       }
     };
 
-    container.addEventListener('scroll', handleScroll);
+    container.addEventListener("scroll", handleScroll);
     handleScroll(); // 初期状態をチェック
 
     return () => {
-      container.removeEventListener('scroll', handleScroll);
+      container.removeEventListener("scroll", handleScroll);
     };
   }, [showDescription]);
 
@@ -203,7 +227,10 @@ export default function MissionSection({
       if (rect.top <= windowHeight && rect.bottom >= 0) {
         const sectionHeight = rect.height;
         const scrolled = windowHeight - rect.top;
-        const progress = Math.max(0, Math.min(1, scrolled / (sectionHeight + windowHeight)));
+        const progress = Math.max(
+          0,
+          Math.min(1, scrolled / (sectionHeight + windowHeight))
+        );
         setGradientProgress2(progress);
       } else if (rect.top > windowHeight) {
         // セクション2より前にスクロールした場合は0にリセット
@@ -211,11 +238,11 @@ export default function MissionSection({
       }
     };
 
-    container.addEventListener('scroll', handleScroll);
+    container.addEventListener("scroll", handleScroll);
     handleScroll(); // 初期状態をチェック
 
     return () => {
-      container.removeEventListener('scroll', handleScroll);
+      container.removeEventListener("scroll", handleScroll);
     };
   }, [showDescription]);
 
@@ -319,64 +346,43 @@ export default function MissionSection({
       >
         <div className="max-w-3xl text-center">
           <p className="text-base md:text-lg text-white/80 leading-relaxed mb-10">
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
+            より良い未来のために、技術を正しく実装する。
+            進化するデジタル技術は、適切に扱ってこそ価値が生まれます。流行を追うのではなく、あなたの事業が目指す未来にとって、本当に必要な技術だけを選定し、導入します。
           </p>
           <p className="text-base md:text-lg text-white/80 leading-relaxed mb-10">
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
+            外部の委託先ではなく、社内の「IT担当」として。
+            単に依頼されたものを作るだけではありません。あなたの組織の一員と同じ目線に立ち、ビジネスの内部事情や課題を深く理解した上で、最適な技術戦略を立案します。
           </p>
           <p className="text-base md:text-lg text-white/80 leading-relaxed mb-10">
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
+            AIとWebの力を活用し、ビジネスの課題を解決する。
+            AIによる業務効率化も、Webによる集客も、すべては課題解決の手段です。複雑な技術を、現場で確実に成果が出る「実用的な仕組み」へと落とし込みます。
           </p>{" "}
           <p className="text-base md:text-lg text-white/80 leading-relaxed mb-10">
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
+            現状のビジネスを加速させ、さらなる「推進力」を。
+            今の事業が持つポテンシャルを阻害している要因を取り除きます。円滑なシステムと戦略的なWeb活用により、事業全体を前に進めるためのエンジンを構築します。
           </p>
           <p className="text-base md:text-lg text-white/80 leading-relaxed mb-10">
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
+            事業を活性化させる、確かな一助となるために。
+            技術的な支援を通じて、あなたのビジネスを持続的な成長軌道に乗せること。黒衣（くろこ）として事業の活性化を支え続けることが、私のMISSIONです。
           </p>
           <p className="text-base md:text-lg text-white/80 leading-relaxed mb-10">
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-          </p>
-          <p className="text-base md:text-lg text-white/80 leading-relaxed mb-10">
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-          </p>
-          <p className="text-base md:text-lg text-white/80 leading-relaxed mb-10">
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-          </p>
-          <p className="text-base md:text-lg text-white/80 leading-relaxed mb-10">
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
-            ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。ここにMISSIONの詳細テキストが入ります。
+            これから生まれる新しい出会いに乾杯。
           </p>
         </div>
       </div>
 
       {/* 背景遷移トリガーエリア（スクロールで背景を白に変える） */}
-      <div
-        ref={gradientRef}
-        className="w-full h-[100vh]"
-      />
+      <div ref={gradientRef} className="w-full h-[100vh]" />
 
       {/* ABOUTセクション（横スクロールアニメーション） */}
       <AboutSection />
 
       {/* 背景遷移トリガーエリア2（白から黒に戻す） */}
-      <div
-        ref={gradientRef2}
-        className="w-full h-[100vh]"
-      />
+      <div ref={gradientRef2} className="w-full h-[100vh]" />
 
       {/* Contactタイトルセクション（1画面） */}
       <div className="w-full h-screen flex items-center justify-center">
-        <h2 className="text-6xl md:text-8xl font-bold text-white">
-          CONTACT
-        </h2>
+        <h2 className="text-6xl md:text-8xl font-bold text-white">CONTACT</h2>
       </div>
 
       {/* Contactフォームセクション */}
@@ -390,8 +396,11 @@ export default function MissionSection({
       <div
         className="fixed inset-0 -z-10 pointer-events-none"
         style={{
-          backgroundColor: calculateFinalBackgroundColor(gradientProgress, gradientProgress2),
-          transition: 'background-color 0.6s ease-out'
+          backgroundColor: calculateFinalBackgroundColor(
+            gradientProgress,
+            gradientProgress2
+          ),
+          transition: "background-color 0.6s ease-out",
         }}
       />
     </div>

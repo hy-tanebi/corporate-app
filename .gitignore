@@ -40,7 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# claude ai settings
+# Claude settings
 .claude/settings.local.json
 
 # 大きな3Dモデルファイル（Vercel Blobで管理）
