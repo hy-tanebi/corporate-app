@@ -84,15 +84,34 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
   // "ABOUT US" テキスト用
   const repeatCount = 10;
 
+  // 4. ダークネス効果 (0.45 - 0.9)
+  // コンテンツが表示された後、スクロールに応じて画面を暗くしていく
+  const darknessStart = 0.45;
+  const darknessEnd = 0.95;
+  const rawDarkness = (scrollProgress - darknessStart) / (darknessEnd - darknessStart);
+  const darknessOpacity = Math.max(0, Math.min(1, rawDarkness)) * 0.7; // 最大0.7（少し明るさを残す）
+
   // Parallax Scale Removed: Content size stays constant.
 
-  // Mask Logic (Iris Close)
-  // Apply mask HERE to the sticky container (h-screen) so the center is Screen Center.
-  const visibleRadius = Math.max(0, (1 - transitionProgress) * 150);
+  // === Mask & Spaceship Logic (Close then Spawn) ===
+  // 1. Shrink Phase (0 -> 0.4): Close completely
+  const shrinkPhase = Math.min(transitionProgress / 0.4, 1);
+  const maskRadius = Math.max(0, (1 - shrinkPhase) * 150);
+
   const maskStyle = {
-    maskImage: `radial-gradient(circle at center, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
-    WebkitMaskImage: `radial-gradient(circle at center, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
+    maskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 0.1}%)`,
+    WebkitMaskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 0.1}%)`,
   };
+
+  // 2. Spawn & Fly Phase (Spaceship Image)
+  // Spawn: 0.4 -> 0.5 (Scale Up/Pop In)
+  // Fly: 0.5 -> 1.0 (Translate Y Up)
+  const spawnPhase = Math.max(0, Math.min(1, (transitionProgress - 0.4) / 0.1));
+  const flyPhase = Math.max(0, (transitionProgress - 0.5) / 0.5);
+
+  const spaceshipScale = spawnPhase; // 0 -> 1
+  const spaceshipOpacity = spawnPhase; // 0 -> 1
+  const spaceshipY = 50 - flyPhase * 100; // 50% -> -50% (Fly Up)
 
   return (
     <div
@@ -176,12 +195,17 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
             }}
         >
              <AboutThreeImage imageSrc="/images/about.png" />
+             {/* ダークネスオーバーレイ */}
+             <div
+                 className="absolute inset-0 z-30 pointer-events-none bg-black transition-opacity duration-100 ease-out"
+                 style={{ opacity: darknessOpacity }}
+             />
         </div>
 
         {/* プロフィールコンテンツ (Text Overlay) */}
         {/* container内でテキスト位置を制御 */}
         <div
-            className="absolute inset-0 z-30 w-full flex flex-col md:flex-row items-center justify-center pointer-events-none"
+            className="absolute inset-0 z-40 w-full flex flex-col md:flex-row items-center justify-center pointer-events-none"
             style={{
                 opacity: contentOpacity,
             }}
@@ -209,6 +233,29 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
         </div>
 
       </div>
+
+      {/* Layer 2: Spaceship (Unmasked) */}
+      <div className="sticky top-0 h-screen w-full flex items-center justify-center pointer-events-none z-50">
+        {/* Spaceship Image (Spawn & Fly) */}
+        <div
+            className="absolute w-[15vw] h-[15vw] min-w-[150px] min-h-[150px]"
+            style={{
+                top: `${spaceshipY}%`,
+                left: "50%",
+                transform: `translate(-50%, -50%) scale(${spaceshipScale})`,
+                opacity: spaceshipOpacity,
+                transition: "transform 0.1s linear, opacity 0.1s linear, top 0.1s linear",
+            }}
+        >
+             <Image
+                src="/images/spaceship.jpg"
+                alt="Spaceship"
+                fill
+                className="object-contain drop-shadow-[0_0_30px_rgba(0,255,255,0.8)]"
+             />
+        </div>
+      </div>
+
     </div>
   );
 }

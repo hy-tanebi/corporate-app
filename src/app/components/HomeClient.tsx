@@ -1,16 +1,41 @@
 // src/app/components/HomeClient.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { SidebarMenu } from "@/components/ui/sidebar-menu";
 import { AudioControlButton } from "@/components/ui/audio-control-button";
-import MissionSection from "./MissionSection";
+import MissionSection, { MissionSidebarHandle } from "./MissionSection";
 import ContactSection from "./ContactSection";
 
 export default function HomeClient() {
 	const [scrollProgress, setScrollProgress] = useState(0);
 	const [isCircleFullyExpanded, setIsCircleFullyExpanded] = useState(false);
 	const [missionSectionProgress, setMissionSectionProgress] = useState(0);
+	const missionRef = useRef<MissionSidebarHandle>(null);
+
+    const handleNavigate = (path: string) => {
+        if (path === '/about') {
+            // AboutセクションはMissionSectionの中にあるため、
+            // まずはメインのスクロールをMissionSectionが表示される位置（＝一番下）まで持っていく
+            window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: 'smooth'
+            });
+
+            // その後、MissionSection内部でAboutまでスクロール
+            // 少し遅延させて、メインスクロールが始まった後に実行（あるいは完了後が良いが、並行でも動くはず）
+            setTimeout(() => {
+                missionRef.current?.scrollToAbout();
+            }, 500);
+        } else if (path === '/contact') {
+             window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: 'smooth'
+            });
+            // 遅延なしで即時実行（MissionSection側でフラグ制御による即時表示を行う）
+            missionRef.current?.scrollToContact();
+        }
+    };
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -37,14 +62,14 @@ export default function HomeClient() {
 				setIsCircleFullyExpanded(true);
 				console.log("Circle fully expanded at scrollProgress:", scrollProgress);
 			}
-		} else {
-			// スクロールを戻して黒い円が縮小したらフラグをfalseに戻す
+		} else if (scrollProgress < CIRCLE_START) {
+			// スクロールを戻して黒い円が縮小したらフラグをfalseに戻す（ヒステリシスを持たせて即座に閉じないようにする）
 			if (isCircleFullyExpanded) {
 				setIsCircleFullyExpanded(false);
 				console.log("Circle shrinking at scrollProgress:", scrollProgress);
 			}
 		}
-	}, [scrollProgress, CIRCLE_ACTUAL_END, isCircleFullyExpanded]);
+	}, [scrollProgress, CIRCLE_ACTUAL_END, isCircleFullyExpanded, CIRCLE_START]);
 
 	// 黒い円が拡大中はすべてのUI要素を非表示
 	const isCircleExpanded = scrollProgress >= CIRCLE_SCROLL_END;
@@ -172,10 +197,11 @@ export default function HomeClient() {
 			)}
 
 			{/* 通知テキスト等はそのまま、ボタン群を削除してサイドバーメニューを追加 */}
-			<SidebarMenu />
+			<SidebarMenu onNavigate={handleNavigate} />
 
 			{/* MISSIONセクション */}
 			<MissionSection
+                ref={missionRef}
 				scrollProgress={scrollProgress}
 				isCircleFullyExpanded={isCircleFullyExpanded}
 				onProgressChange={setMissionSectionProgress}

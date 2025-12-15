@@ -6,7 +6,11 @@ import { AnimatePresence, motion } from "framer-motion"; // Keep for content fad
 import { Menu, X } from "lucide-react";
 import gsap from "gsap";
 
-export function SidebarMenu() {
+interface SidebarMenuProps {
+    onNavigate?: (path: string) => void;
+}
+
+export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 	const [isOpen, setIsOpen] = useState(false);
     const [isClosing, setIsClosing] = useState(false); // For X button animation
 	const pathRef = useRef<SVGPathElement>(null);
@@ -26,7 +30,7 @@ export function SidebarMenu() {
 	const menuItems = [
 		{ href: "/blog", label: "Blog" },
 		{ href: "/about", label: "About" },
-		{ href: "/contact", label: "お問い合わせ" },
+		{ href: "/contact", label: "Contact" },
 	];
 
 	useEffect(() => {
@@ -203,7 +207,7 @@ export function SidebarMenu() {
 
 							<nav className="flex flex-col space-y-8">
 								{menuItems.map((item, i) => (
-									<motion.div
+                                    <motion.div
                                         key={item.href}
                                         initial={{ x: 50, opacity: 0 }}
                                         animate={{
@@ -219,7 +223,15 @@ export function SidebarMenu() {
                                     >
                                         <Link
                                             href={item.href}
-                                            onClick={() => setIsOpen(false)}
+                                            onClick={(e) => {
+                                                if (onNavigate) {
+                                                    if (item.href === '/about' || item.href === '/contact') {
+                                                        e.preventDefault();
+                                                        onNavigate(item.href);
+                                                    }
+                                                }
+                                                setIsOpen(false);
+                                            }}
                                             className="group"
                                         >
                                             <span className="text-4xl md:text-5xl font-bold text-white tracking-wider group-hover:text-[#fbbf24] transition-colors font-sans">
