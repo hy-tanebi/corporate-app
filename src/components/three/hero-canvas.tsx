@@ -102,6 +102,8 @@ interface HeroSceneProps {
 	onCardClick?: (slide: VideoSlide, index: number) => void;
 	onCardHover?: (isHovering: boolean) => void;
 	isContactVisible: boolean;
+    spaceOpacity: number;
+    transitionProgress: number;
 }
 
 function HeroScene({
@@ -110,6 +112,8 @@ function HeroScene({
 	onCardClick,
 	onCardHover,
 	isContactVisible,
+    spaceOpacity,
+    transitionProgress,
 }: HeroSceneProps) {
 	const heroMatRef = useRef<any>(null);
 	const starGroupRef = useRef<THREE.Group>(null);
@@ -357,7 +361,9 @@ function HeroScene({
 		}
 		if (rootRef.current) {
 			rootRef.current.scale.set(SCENE_SCALE, SCENE_SCALE, SCENE_SCALE);
-			rootRef.current.position.z = ROOT_Z_OFFSET;
+			// Parallax Zoom Effect
+			const zoomOffset = transitionProgress * 3.0; // Zoom in as hole opens
+			rootRef.current.position.z = ROOT_Z_OFFSET + zoomOffset;
 		}
 
 		// テトラ回転＆スケール
@@ -386,8 +392,8 @@ function HeroScene({
 					RETURN_SCROLL_START,
 					RETURN_SCROLL_END,
 				);
-				const s = THREE.MathUtils.lerp(0.7, 1.0, smooth01(tUp));
-				triangleGroupRef.current.scale.set(s, s, s);
+				// const s = THREE.MathUtils.lerp(0.7, 1.0, smooth01(tUp));
+				triangleGroupRef.current.scale.set(0.7, 0.7, 0.7);
 			} else {
 				triangleGroupRef.current.scale.set(1, 1, 1);
 			}
@@ -475,7 +481,8 @@ function HeroScene({
 				circleRef.current.scale.set(s, s, 1);
 
 				// Contactセクションが表示されている時は黒い円を非表示にして宇宙空間を表示
-				circleRef.current.visible = !isContactVisible;
+                // ★修正: transitionProgress > 0 の時も黒い円を非表示にする
+				circleRef.current.visible = !isContactVisible && transitionProgress === 0;
 
 				const hideTri = s >= HIDE_TRI_AT_RADIUS;
 				// Contactセクションが表示されている時はテトラを隠す（背景のみ表示）
@@ -484,8 +491,45 @@ function HeroScene({
 				if (lineSegmentsRef.current) lineSegmentsRef.current.visible = !hideTri && !isContactVisible;
 				if (videoCardsRef.current) videoCardsRef.current.visible = !hideTri && !isContactVisible;
 
-				if (starGroupRef.current)
-					starGroupRef.current.visible = isContactVisible || growT < HIDE_BG_AT_T;
+				if (starGroupRef.current) {
+                    // ★追加: 宇宙空間の透明度制御
+                    if (isContactVisible || transitionProgress > 0) {
+                        // Contact表示中は spaceOpacity で透明度/可視性を制御
+                        if (spaceOpacity < 0.05) {
+                            starGroupRef.current.visible = false;
+                        } else {
+                            starGroupRef.current.visible = true;
+                            // マテリアルの透明度を更新（簡易的な実装）
+                            starGroupRef.current.traverse((obj) => {
+                                const m = (obj as any).material;
+                                if (m) {
+                                    m.transparent = true;
+                                    // userDataに元のopacityを保存していなければ保存
+                                    if (m.userData.originalOpacity === undefined) {
+                                        m.userData.originalOpacity = m.opacity || 1;
+                                    }
+                                    m.opacity = m.userData.originalOpacity * spaceOpacity;
+                                    // depthWriteをoffにすると後ろが透けるが、星は加算合成などが多いのでOK
+                                    // ただしPurpleNebulaなどは重なり順に注意
+                                }
+                            });
+                        }
+                    } else {
+                        // 通常時（Top/Mission）: growTによるフェードアウト
+                        const shouldShow = growT < HIDE_BG_AT_T;
+                        starGroupRef.current.visible = shouldShow;
+
+                        // 不透明度をリセット (1.0へ戻す)
+                        if (shouldShow) {
+                            starGroupRef.current.traverse((obj) => {
+                                const m = (obj as any).material;
+                                if (m && m.userData.originalOpacity !== undefined) {
+                                    m.opacity = m.userData.originalOpacity;
+                                }
+                            });
+                        }
+                    }
+                }
 			} else {
 				circleRef.current.visible = false;
 				circleRef.current.scale.set(0.001, 0.001, 1);
@@ -493,7 +537,16 @@ function HeroScene({
 				if (triangleVisibleMeshRef.current)
 					triangleVisibleMeshRef.current.visible = true;
 				if (lineSegmentsRef.current) lineSegmentsRef.current.visible = true;
-				if (starGroupRef.current) starGroupRef.current.visible = true;
+				if (starGroupRef.current) {
+                    starGroupRef.current.visible = true;
+                    // Reset opacity
+                    starGroupRef.current.traverse((obj) => {
+                        const m = (obj as any).material;
+                        if (m && m.userData.originalOpacity !== undefined) {
+                            m.opacity = m.userData.originalOpacity;
+                        }
+                    });
+                }
 			}
 		}
 
@@ -502,23 +555,6 @@ function HeroScene({
 			starGroupRef.current.rotation.y += 0.0005;
 		}
 	});
-
-	// ===== サイドバー分の中央補正 (削除) =====
-    // user requested to revert to center
-	// const { size, viewport } = useThree();
-	// const xOffset = useMemo(() => {
-	// 	const width = size.width;
-	// 	const sidebarWidth = width > 768 ? 80 : 60;
-	// 	// 画面幅からサイドバー分を引いた中心は、(width - sidebarWidth) / 2
-	// 	// 現在の中心は width / 2
-	// 	// ズレは (width - sidebarWidth) / 2 - width / 2 = -sidebarWidth / 2
-	// 	const pixelOffset = -sidebarWidth / 2;
-
-	// 	// 3D単位に変換 (viewport.width は z=0 での幅ではないが、R3Fのデフォルトカメラ距離でのviewport)
-    //     // 正確には distance = cameraZ - 0 での scale layer が欲しいが、
-    //     // ここでは簡易的に viewport.width / size.width で比率を出す
-	// 	return pixelOffset * (viewport.width / width);
-	// }, [size.width, viewport.width]);
 
 	return (
 		<>
@@ -654,6 +690,8 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 	} | null>(null);
 	const [isCardHovering, setIsCardHovering] = useState(false);
 	const [isContactVisible, setIsContactVisible] = useState(false);
+    const [spaceOpacity, setSpaceOpacity] = useState(1);
+    const [transitionProgress, setTransitionProgress] = useState(0);
 
 	const handleCardClick = (slide: VideoSlide, index: number) => {
 		setSelectedCard({ slide, index });
@@ -678,7 +716,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 	}, []);
 
 	return (
-		<HeroStateContext.Provider value={{ setIsContactVisible }}>
+		<HeroStateContext.Provider value={{ setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress }}>
 			<Canvas
 				camera={{ position: [0, 0, CAMERA_Z], fov: 75 }}
 				style={{
@@ -698,6 +736,8 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 					onCardClick={handleCardClick}
 					onCardHover={setIsCardHovering}
 					isContactVisible={isContactVisible}
+                    spaceOpacity={spaceOpacity}
+                    transitionProgress={transitionProgress}
 				/>
 			</Canvas>
 

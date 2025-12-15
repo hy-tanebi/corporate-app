@@ -1,3 +1,4 @@
+// src/app/components/AboutSection.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -5,7 +6,11 @@ import Image from "next/image";
 
 import AboutThreeImage from "./AboutThreeImage";
 
-export default function AboutSection() {
+interface AboutSectionProps {
+  transitionProgress?: number; // 0 -> 1 during Iris Close
+}
+
+export default function AboutSection({ transitionProgress = 0 }: AboutSectionProps) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -51,35 +56,50 @@ export default function AboutSection() {
     };
   }, []);
 
-  // 1. テキストスクロール (0.0 - 0.4)
-  const maxScrollProgress = 0.4;
+  // Increase "Dwell" time by compressing entry animations into the start.
+  // Height is now 800vh.
+
+  // 1. テキストスクロール (0.0 - 0.15)
+  const maxScrollProgress = 0.15;
   const horizontalProgress = Math.min(scrollProgress / maxScrollProgress, 1);
   const titleTranslateX = 100 - horizontalProgress * 250;
 
-  // 2. 円形ワイプ (0.4 - 0.7)
-  const circleStart = 0.4;
-  const circleEnd = 0.7;
+  // 2. 円形ワイプ (0.15 - 0.35)
+  const circleStart = 0.15;
+  const circleEnd = 0.35;
   const rawCircleProgress = (scrollProgress - circleStart) / (circleEnd - circleStart);
   const circleProgress = Math.max(0, Math.min(1, rawCircleProgress));
 
+  // Determine maxRadius for circular wipe
   const maxRadius = Math.sqrt(dimensions.width ** 2 + dimensions.height ** 2) * 1.2;
   const circleRadius = circleProgress * maxRadius;
 
-  // 3. プロフィールコンテンツ表示 (0.7 - 1.0)
-  const contentStart = 0.65;
-  const contentEnd = 0.9;
+  // 3. プロフィールコンテンツ表示 (0.3 - 0.45)
+  // Finish early to allow long read time
+  const contentStart = 0.3;
+  const contentEnd = 0.45;
   const rawContentProgress = (scrollProgress - contentStart) / (contentEnd - contentStart);
   const contentOpacity = Math.max(0, Math.min(1, rawContentProgress));
 
   // "ABOUT US" テキスト用
   const repeatCount = 10;
 
+  // Parallax Scale Removed: Content size stays constant.
+
+  // Mask Logic (Iris Close)
+  // Apply mask HERE to the sticky container (h-screen) so the center is Screen Center.
+  const visibleRadius = Math.max(0, (1 - transitionProgress) * 150);
+  const maskStyle = {
+    maskImage: `radial-gradient(circle at center, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
+    WebkitMaskImage: `radial-gradient(circle at center, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
+  };
+
   return (
     <div
       ref={sectionRef}
       className="w-full relative"
       style={{
-        height: "500vh",
+        height: "800vh", // Extended height for time earning
       }}
     >
         {/* SVGフィルター定義 (不可視) */}
@@ -105,8 +125,15 @@ export default function AboutSection() {
 
       {/*
         Sticky Container
+        Removed Parallax Scale (content size stays constant)
+        Apply Mask here for Viewport Centering
       */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center bg-transparent text-black">
+      <div
+        className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center bg-transparent text-black"
+        style={{
+            ...maskStyle // Apply Iris Mask
+        }}
+      >
 
         {/* 横スクロールテキスト (Black text) */}
         <div
