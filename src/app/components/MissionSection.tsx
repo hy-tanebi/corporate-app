@@ -1,7 +1,7 @@
 // src/app/components/MissionSection.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { ContactForm } from "@/components/contact/contact-form";
 import AboutSection from "./AboutSection";
 import { useHeroState } from "../../contexts/HeroStateContext";
@@ -17,16 +17,21 @@ interface MissionSectionProps {
   onProgressChange?: (progress: number) => void; // セクション内進捗を親に通知
 }
 
+export interface MissionSidebarHandle {
+  scrollToAbout: () => void;
+  scrollToContact: () => void;
+}
+
 // ユーティリティ
 const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
 const remap01 = (v: number, a: number, b: number) => clamp((v - a) / (b - a));
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - clamp(t), 3);
 
-export default function MissionSection({
+function MissionSection({
   scrollProgress,
   isCircleFullyExpanded,
   onProgressChange,
-}: MissionSectionProps) {
+}: MissionSectionProps, ref: React.Ref<MissionSidebarHandle>) {
   const { setIsContactVisible, setSpaceOpacity, setTransitionProgress } = useHeroState();
 
   // ======= 調整パラメータ（ここをいじるだけで遅くできます） =======
@@ -134,8 +139,62 @@ export default function MissionSection({
   const gradientRef = useRef<HTMLDivElement>(null);
   const aboutWrapperRef = useRef<HTMLDivElement>(null); // AboutSectionを囲うラッパー
   const contactRef = useRef<HTMLDivElement>(null);
+  const contactFormRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef(0);
+  // 自動スクロール中かどうかを判定するフラグ
+  const isAutoScrollingToContact = useRef(false);
+  const lastScrollTopRef = useRef(0);
+
+  useImperativeHandle(ref, () => ({
+    scrollToAbout: () => {
+      if (containerRef.current && aboutWrapperRef.current) {
+         // Aboutセクションの開始位置
+         const top = aboutWrapperRef.current.offsetTop;
+         // Aboutセクションの高さ（800vh）のうち、アニメーションが完了する位置までスクロール
+         // AboutSectionのスクロール進捗0.5あたりで画像が完全に表示される
+         const wrapperHeight = aboutWrapperRef.current.clientHeight;
+         const windowHeight = window.innerHeight;
+         const targetScrollAndOffset = (wrapperHeight - windowHeight) * 0.5;
+
+         // スムーズスクロール
+         containerRef.current.scrollTo({
+            top: top + targetScrollAndOffset,
+            behavior: "smooth"
+         });
+
+         // Physicsを即座に完了させて、内部スクロール(overflow-y-auto)を有効化する
+         // これがないと、アニメーション中はoverflow-hiddenのため、スクロール操作がWindowに伝播してトップに戻ってしまう
+         currentRef.current = 1.0;
+         targetRef.current = 1.0;
+         setSectionProgress(1.0);
+      }
+    },
+    scrollToContact: () => {
+        if (containerRef.current && contactFormRef.current) {
+            // 自動スクロールフラグを立てて、即座にContact表示モードにする
+            isAutoScrollingToContact.current = true;
+            setIsContactVisible(true);
+            setIsContactInView(true);
+
+            const top = contactFormRef.current.offsetTop;
+            containerRef.current.scrollTo({
+                top: top,
+                behavior: "smooth"
+            });
+
+            // Physicsを即座に完了させる（About同様のスクロールロック回避）
+            currentRef.current = 1.0;
+            targetRef.current = 1.0;
+            setSectionProgress(1.0);
+
+            // しばらくしたらフラグを戻す（スクロール完了見込み時間後）
+            setTimeout(() => {
+                isAutoScrollingToContact.current = false;
+            }, 1000);
+        }
+    }
+  }));
 
   // 最終的な背景色を計算（黒→薄いグレー→黒）
   const calculateFinalBackgroundColor = useCallback(
@@ -166,6 +225,14 @@ export default function MissionSection({
 
     const handleScroll = () => {
       const windowHeight = window.innerHeight;
+      const currentScrollTop = container.scrollTop;
+
+      // 手動スクロール検知：上方向にスクロールしたら強制フラグを解除
+      if (isAutoScrollingToContact.current && currentScrollTop < lastScrollTopRef.current - 5) {
+          // -5は微小なバウンスでの誤検知防止
+          isAutoScrollingToContact.current = false;
+      }
+      lastScrollTopRef.current = currentScrollTop;
 
       // Gradient 1 (黒→白)
       if (gradientRef.current) {
@@ -211,9 +278,12 @@ export default function MissionSection({
         const rect = contactRef.current.getBoundingClientRect();
         const isVisible = rect.top < windowHeight * 0.8;
 
-        if (isVisible !== isContactInView) {
-          setIsContactInView(isVisible);
-          setIsContactVisible(isVisible);
+        // 自動スクロール中は強制的に表示状態とみなす
+        const effectiveIsVisible = isAutoScrollingToContact.current ? true : isVisible;
+
+        if (effectiveIsVisible !== isContactInView) {
+          setIsContactInView(effectiveIsVisible);
+          setIsContactVisible(effectiveIsVisible);
         }
       }
     };
@@ -258,12 +328,17 @@ export default function MissionSection({
   const upTy = -25 * (1 - horizontalProgress);
   const dnTy = +25 * (1 - horizontalProgress);
 
-  // === Mask (Iris Close) ===
-  const visibleRadius = Math.max(0, (1 - irisTransitionProgress) * 150);
+  // === Mask (Spaceship Transition) ===
+  // 1. Shrink Phase (0 -> 0.4): 150% -> 0% (Completely closed)
+  // 2. Fly Phase: Handled in AboutSection with the image itself (0.45+)
+
+  // Math Helpers
+  const shrinkPhase = Math.min(irisTransitionProgress / 0.4, 1);
+  const visibleRadius = Math.max(0, (1 - shrinkPhase) * 150);
 
   const maskStyle = {
-    maskImage: `radial-gradient(circle at center, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
-    WebkitMaskImage: `radial-gradient(circle at center, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
+    maskImage: `radial-gradient(circle at 50% 50%, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
+    WebkitMaskImage: `radial-gradient(circle at 50% 50%, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
   };
 
   return (
@@ -331,15 +406,49 @@ export default function MissionSection({
           transition: "opacity 1s ease-out, transform 1s ease-out",
         }}
       >
-        <div className="max-w-3xl text-center">
-             <div className="text-base md:text-lg text-white/80 leading-relaxed space-y-10">
-                <p>より良い未来のために、技術を正しく実装する。...</p>
-                <p>外部の委託先ではなく、社内の「IT担当」として。...</p>
-                <p>AIとWebの力を活用し、ビジネスの課題を解決する。...</p>
-                <p>現状のビジネスを加速させ、さらなる「推進力」を。...</p>
-                <p>事業を活性化させる、確かな一助となるために。...</p>
-                <p>これから生まれる新しい出会いに乾杯。</p>
-             </div>
+        <div className="max-w-4xl mx-auto px-4 w-full">
+            <div className="flex flex-col gap-6">
+              {[
+                {
+                  title: "より良い未来のために、技術を正しく実装する。",
+                  description: "進化するデジタル技術は、適切に扱ってこそ価値が生まれます。流行を追うのではなく、あなたの事業が目指す未来にとって、本当に必要な技術だけを選定し、導入します。"
+                },
+                {
+                  title: "外部の委託先ではなく、社内の「IT担当」として。",
+                  description: "単に依頼されたものを作るだけではありません。あなたの組織の一員と同じ目線に立ち、ビジネスの内部事情や課題を深く理解した上で、最適な技術戦略を立案します。"
+                },
+                {
+                  title: "AIとWebの力を活用し、ビジネスの課題を解決する。",
+                  description: "AIによる業務効率化も、Webによる集客も、すべては課題解決の手段です。複雑な技術を、現場で確実に成果が出る「実用的な仕組み」へと落とし込みます。"
+                },
+                {
+                  title: "現状のビジネスを加速させ、さらなる「推進力」を。",
+                  description: "今の事業が持つポテンシャルを阻害している要因を取り除きます。円滑なシステムと戦略的なWeb活用により、事業全体を前に進めるためのエンジンを構築します。"
+                },
+                {
+                  title: "事業を活性化させる、確かな一助となるために。",
+                  description: "技術的な支援を通じて、あなたのビジネスを持続的な成長軌道に乗せること。黒衣（くろこ）として事業の活性化を支え続けることが、私のMISSIONです。"
+                }
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="group relative p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5"
+                >
+                   <h3 className="text-xl md:text-2xl font-bold text-white mb-4 leading-normal">
+                     {item.title}
+                   </h3>
+                   <p className="text-sm md:text-base text-gray-300 leading-relaxed">
+                     {item.description}
+                   </p>
+                </div>
+              ))}
+
+              <div className="text-center mt-12 mb-20">
+                 <p className="text-lg md:text-xl text-white font-medium italic">
+                   これから生まれる新しい出会いに乾杯。
+                 </p>
+              </div>
+            </div>
         </div>
       </div>
 
@@ -361,7 +470,7 @@ export default function MissionSection({
       </div>
 
       <div className="w-full min-h-screen flex items-center justify-center py-20 px-4">
-        <div className="max-w-2xl w-full">
+        <div ref={contactFormRef} className="max-w-2xl w-full">
           <ContactFormSection />
         </div>
       </div>
@@ -382,3 +491,6 @@ export default function MissionSection({
     </div>
   );
 }
+
+export default forwardRef(MissionSection);
+
