@@ -28,7 +28,8 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
     };
 
 	const menuItems = [
-		{ href: "/blog", label: "Blog" },
+		{ href: "/", label: "TOP" },
+		// { href: "/blog", label: "Blog" },
 		{ href: "/about", label: "About" },
 		{ href: "/contact", label: "Contact" },
 	];
@@ -155,9 +156,14 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
                 </svg>
              </div>
 
-			{/* Collapsed State: Right Sidebar Strip */}
+			{/* Collapsed State: Responsive (Floating Button on Mobile, Sidebar Strip on Desktop) */}
 			<div
-                className={`fixed top-0 right-0 h-screen w-[60px] md:w-[80px] bg-white/90 backdrop-blur-sm z-40 flex flex-col items-center justify-center border-l border-gray-200 transition-colors duration-300 pointer-events-auto cursor-pointer hover:bg-gray-100 group`}
+                className={`fixed z-40 bg-white/90 backdrop-blur-sm transition-colors duration-300 pointer-events-auto cursor-pointer hover:bg-gray-100 group flex flex-col items-center justify-center
+                    /* Mobile Styles: Floating Button top-right */
+                    top-8 right-2 w-[50px] h-[50px] rounded-full shadow-lg border border-gray-100
+                    /* Desktop Styles: Sidebar Strip */
+                    md:top-0 md:right-0 md:h-screen md:w-[80px] md:rounded-none md:shadow-none md:border-l md:border-t-0 md:border-gray-200
+                `}
                 onClick={toggleMenu}
             >
 				<button
@@ -167,7 +173,7 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 				>
 					<Menu className="w-8 h-8 text-black" strokeWidth={1.5} />
 				</button>
-				<div className="writing-vertical-rl text-xs tracking-widest text-gray-500 mt-8 font-medium select-none group-hover:text-black transition-colors">
+				<div className="hidden md:block writing-vertical-rl text-xs tracking-widest text-gray-500 mt-8 font-medium select-none group-hover:text-black transition-colors">
 					MENU
 				</div>
 			</div>
@@ -189,7 +195,10 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 						<div
 							className="fixed top-0 right-0 h-screen w-full max-w-[450px] z-50 flex flex-col p-8 md:p-12 pointer-events-auto"
 						>
-							<div className="flex justify-end mb-12">
+							{/* Close Button Area */}
+							{/* Mobile: Absolute position to match the trigger button exactly */}
+							{/* Desktop: Flow layout with margin */}
+							<div className="absolute top-8 right-2 w-[50px] h-[50px] flex items-center justify-center z-50 md:static md:w-full md:h-auto md:block md:text-right md:mb-12">
 								<button
 									onClick={handleClose}
 									className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors text-white"
@@ -205,7 +214,7 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 								</button>
 							</div>
 
-							<nav className="flex flex-col space-y-8">
+							<nav className="flex flex-col space-y-8 flex-1 justify-center items-center md:items-start md:justify-start md:flex-initial">
 								{menuItems.map((item, i) => (
                                     <motion.div
                                         key={item.href}
@@ -225,7 +234,7 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
                                             href={item.href}
                                             onClick={(e) => {
                                                 if (onNavigate) {
-                                                    if (item.href === '/about' || item.href === '/contact') {
+                                                    if (item.href === '/' || item.href === '/about' || item.href === '/contact') {
                                                         e.preventDefault();
                                                         onNavigate(item.href);
                                                     }
