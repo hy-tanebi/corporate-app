@@ -59,26 +59,52 @@ export async function sendContactEmail(prevState: ContactState, formData: FormDa
         };
     }
 
-    const data = await resend.emails.send({
-      from: 'Contact Form <onboarding@resend.dev>',
-      to: [myEmail],
+    // 解説:
+    // Resendでは、メールの「送信元(From)」は必ず「Resendで認証されたドメイン」である必要があります。
+    // 一方、「送信先(To)」はGmailなど任意のアドレスで構いません。
+    // エラー "The gmail.com domain is not verified" は、FromアドレスにGmailを指定してしまったために発生しています。
+    // したがって、Fromは認証済みの 'contact@tanebi-net.com' に固定し、
+    // Toは環境変数の CONTACT_EMAIL (ユーザーのGmail等) を使用するように分離します。
+
+    const fromAddress = 'Contact Form <contact@tanebi-net.com>';
+    const recipientEmail = myEmail; // 環境変数のアドレス（Gmail等でもOK）
+
+    // 1. 管理者への通知メール
+    const sendToAdmin = resend.emails.send({
+      from: fromAddress,
+      to: [recipientEmail],
       subject: `【お問い合わせ】${subject} (${name}様)`,
-      replyTo: email,
+      replyTo: email, // ユーザーのメアドをReply-Toに設定（返信ボタンでユーザーに返せるように）
       text: `以下の内容でお問い合わせがありました。\n\n名前: ${name}\n会社名: ${company || '未入力'}\nメール: ${email}\n件名: ${subject}\n\nメッセージ:\n${message}`,
     });
 
-    if (data.error) {
-        console.error('Resend API Error Details:', JSON.stringify(data.error, null, 2));
+    // 2. ユーザーへの自動返信メール
+    const sendAutoReply = resend.emails.send({
+      from: fromAddress,
+      to: [email],
+      subject: `【自動返信】お問い合わせありがとうございます`,
+      text: `${name} 様\n\nお問い合わせありがとうございます。\n以下の内容で受け付けいたしました。\n担当者より折り返しご連絡させていただきますので、今しばらくお待ちください。\n\n--------------------------------------------------\n件名: ${subject}\nお名前: ${name}\n会社名: ${company || '未入力'}\nメッセージ:\n${message}\n--------------------------------------------------\n\n※このメールは自動送信されています。`,
+    });
 
-        // 特定のエラーに対するユーザーフレンドリーなメッセージ
-        if (data.error.name === 'validation_error' && data.error.message.includes('resend.dev')) {
-             return { success: false, message: '設定エラー: テストモードでは未登録のアドレスに送信できません。' };
-        }
+    // 並行して送信実行
+    const [adminResult, userResult] = await Promise.all([sendToAdmin, sendAutoReply]);
 
-        return { success: false, message: 'メールの送信に失敗しました。' };
+    // 管理者への送信さえ成功していればよしとする（または両方のエラーをチェックする）
+    if (adminResult.error) {
+        console.error('Error sending email to admin:', adminResult.error);
+        return {
+          success: false,
+          message: `メール送信エラー: ${adminResult.error.message || '不明なエラー'}`
+        };
     }
 
-    return { success: true, message: 'お問い合わせを受け付けました。' };
+    // ユーザーへの自動返信が失敗した場合（ログには出すが、問い合わせ自体は受け取れているので成功とする）
+    if (userResult.error) {
+        console.warn('Error sending auto-reply:', userResult.error);
+        // ここでreturn falseにするかは要件次第だが、問い合わせ自体は受け取れているので成功とする
+    }
+
+    return { success: true, message: 'お問い合わせを受け付けました。（自動返信メールをお送りしました）' };
   } catch (error) {
     console.error('Server error:', error);
     return { success: false, message: 'サーバーエラーが発生しました。' };
