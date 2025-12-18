@@ -21,59 +21,41 @@ interface AudioContextType {
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export function AudioProvider({ children }: { children: ReactNode }) {
+	// デフォルトでOFF（ユーザー要望により一時的に完全無効化）
 	const [isPlaying, setIsPlaying] = useState(false);
 	const [isMuted, setIsMuted] = useState(false);
-	const audioRef = useRef<HTMLAudioElement | null>(null);
 	const hoverSoundRef = useRef<HTMLAudioElement | null>(null);
 
 	useEffect(() => {
-		// BGM音源のパスを指定（m4a形式に対応）
-		audioRef.current = new Audio("/audio/bgm.m4a");
-		audioRef.current.loop = true;
-		audioRef.current.volume = 0.3; // 音量を30%に設定
-
 		// ホバー音源の読み込み
 		hoverSoundRef.current = new Audio("/audio/click.mp3");
 		hoverSoundRef.current.volume = 0.2; // 音量を20%に設定
 
+		/*
+		// セッションストレージから設定を読み込む（一時的に無効化）
+		const savedState = sessionStorage.getItem("sound_enabled");
+		if (savedState) {
+			setIsPlaying(savedState === "on");
+		}
+		*/
+
 		return () => {
-			if (audioRef.current) {
-				audioRef.current.pause();
-				audioRef.current = null;
-			}
 			if (hoverSoundRef.current) {
 				hoverSoundRef.current = null;
 			}
 		};
 	}, []);
 
-	useEffect(() => {
-		if (!audioRef.current) return;
-
-		if (isPlaying && !isMuted) {
-			// 音量を設定してから再生
-			audioRef.current.volume = 0.3;
-			audioRef.current
-				.play()
-				.then(() => {
-					console.log("Audio playback started successfully");
-				})
-				.catch((error) => {
-					console.error("Audio playback failed:", error);
-					// ユーザーインタラクションが必要な場合のエラーハンドリング
-					if (error.name === "NotAllowedError") {
-						console.warn(
-							"Audio playback requires user interaction. Please try again.",
-						);
-					}
-				});
-		} else {
-			audioRef.current.pause();
-		}
-	}, [isPlaying, isMuted]);
-
 	const togglePlay = () => {
-		setIsPlaying((prev) => !prev);
+		// 一時的に機能無効化（ONにできないようにする）
+		return;
+		/*
+		setIsPlaying((prev) => {
+			const newState = !prev;
+			sessionStorage.setItem("sound_enabled", newState ? "on" : "off");
+			return newState;
+		});
+		*/
 	};
 
 	const toggleMute = () => {
@@ -96,7 +78,10 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 				isMuted,
 				togglePlay,
 				toggleMute,
-				setIsPlaying,
+				setIsPlaying: (playing: boolean) => {
+					setIsPlaying(playing);
+					sessionStorage.setItem("sound_enabled", playing ? "on" : "off");
+				},
 				playHoverSound,
 			}}
 		>

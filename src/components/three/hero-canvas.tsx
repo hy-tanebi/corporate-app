@@ -360,7 +360,11 @@ function HeroScene({
 			];
 		}
 		if (rootRef.current) {
-			rootRef.current.scale.set(SCENE_SCALE, SCENE_SCALE, SCENE_SCALE);
+            // モバイルの場合はスケールを小さくする
+            const isMobile = state.size.width < 768;
+            const currentScale = isMobile ? 0.75 : SCENE_SCALE;
+
+			rootRef.current.scale.set(currentScale, currentScale, currentScale);
 			// Parallax Zoom Effect
 			const zoomOffset = transitionProgress * 3.0; // Zoom in as hole opens
 			rootRef.current.position.z = ROOT_Z_OFFSET + zoomOffset;

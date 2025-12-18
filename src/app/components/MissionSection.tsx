@@ -34,11 +34,23 @@ function MissionSection({
 }: MissionSectionProps, ref: React.Ref<MissionSidebarHandle>) {
   const { setIsContactVisible, setSpaceOpacity, setTransitionProgress } = useHeroState();
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // Adjust breakpoint as needed
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // ======= 調整パラメータ（ここをいじるだけで遅くできます） =======
   const SECTION_START = 0.94; // この位置から演出を開始
   const SECTION_END = 0.999; // この位置で演出を完了（区間を広げるほどゆっくり）
   const PROGRESS_SPEED_FORWARD = 0.25; // 1秒あたり最大で 0.25 しか進まない（もっと遅く→0.15 など）
-  const PROGRESS_SPEED_BACKWARD = 2.0; // 戻る時の速度（通常速度）
+  // スマホの場合は戻る速度を遅くして、「一気にトップまで戻る」事故を防ぐ
+  const PROGRESS_SPEED_BACKWARD = isMobile ? 1.0 : 2.0;
   const SMOOTH_ALPHA = 0.08; // 慣性（追従割合）。小さいほど粘る
   const SMOOTH_ALPHA_BACKWARD = 0.3; // 戻る時の慣性（より素早く反応）
   const GAMMA = 1.8; // >1 で序盤をさらに遅く（2.2 とかでもOK）
@@ -308,6 +320,14 @@ function MissionSection({
     if (!showSection) {
       container.scrollTop = 0;
       scrollPositionRef.current = 0;
+
+      // 内部物理演算の状態もリセット
+      currentRef.current = 0;
+      targetRef.current = 0;
+      setSectionProgress(0);
+      prevRawTargetRef.current = 0;
+      isGoingForwardRef.current = true;
+
       setGradientProgress(0);
       setIrisTransitionProgress(0);
       setIsContactInView(false);
@@ -321,10 +341,16 @@ function MissionSection({
   const zAxisProgress = easeOutCubic(remap01(sectionProgress, 0.3, 0.7));
   const horizontalProgress = easeOutCubic(remap01(sectionProgress, 0.75, 0.95));
 
+
+
   // matrix 用パラメータ
   const scale = 1 + (1 - zAxisProgress) * 4;
-  const leftTx = -100 * horizontalProgress;
-  const rightTx = +100 * horizontalProgress;
+
+  // スマホ(768px未満)の場合は文字間隔を狭く、PCなどでは広くする
+  const baseTx = isMobile ? 60 : 100;
+
+  const leftTx = -baseTx * horizontalProgress;
+  const rightTx = +baseTx * horizontalProgress;
   const upTy = -25 * (1 - horizontalProgress);
   const dnTy = +25 * (1 - horizontalProgress);
 
@@ -380,7 +406,7 @@ function MissionSection({
               transition: "opacity 0.5s ease-out",
             }}
           >
-            CREATIVE
+            TECHNICAL
           </p>
 
           <p
@@ -393,7 +419,7 @@ function MissionSection({
               transition: "opacity 0.5s ease-out 0.12s",
             }}
           >
-            THINKING
+            PARTNER
           </p>
         </div>
       </div>
@@ -410,44 +436,37 @@ function MissionSection({
             <div className="flex flex-col gap-6">
               {[
                 {
-                  title: "より良い未来のために、技術を正しく実装する。",
-                  description: "進化するデジタル技術は、適切に扱ってこそ価値が生まれます。流行を追うのではなく、あなたの事業が目指す未来にとって、本当に必要な技術だけを選定し、導入します。"
+                  title: "AIとWebを使って、ビジネスの課題に向き合います。",
+                  description: "AIによる業務効率化や、Webサイトの制作・運用を通じて、日々の業務や運用上の課題に取り組んでいます。複雑になりがちな技術を、現場で無理なく活用できる形に整理し、実務に役立つ形で取り入れます。"
                 },
                 {
-                  title: "外部の委託先ではなく、社内の「IT担当」として。",
-                  description: "単に依頼されたものを作るだけではありません。あなたの組織の一員と同じ目線に立ち、ビジネスの内部事情や課題を深く理解した上で、最適な技術戦略を立案します。"
+                  title: "外部の制作会社ではなく、チームの一員として。",
+                  description: "言われたものを作るだけではなく、業務内容や組織の状況を理解した上で、一緒に考えながら進めたいと考えています。社内のIT担当に近い立場で、WebやAI活用の相談役として継続的にサポートします。"
                 },
                 {
-                  title: "AIとWebの力を活用し、ビジネスの課題を解決する。",
-                  description: "AIによる業務効率化も、Webによる集客も、すべては課題解決の手段です。複雑な技術を、現場で確実に成果が出る「実用的な仕組み」へと落とし込みます。"
-                },
-                {
-                  title: "現状のビジネスを加速させ、さらなる「推進力」を。",
-                  description: "今の事業が持つポテンシャルを阻害している要因を取り除きます。円滑なシステムと戦略的なWeb活用により、事業全体を前に進めるためのエンジンを構築します。"
-                },
-                {
-                  title: "事業を活性化させる、確かな一助となるために。",
-                  description: "技術的な支援を通じて、あなたのビジネスを持続的な成長軌道に乗せること。黒衣（くろこ）として事業の活性化を支え続けることが、私のMISSIONです。"
+                  title: "事業が前に進むための、実務的な支えとして。",
+                  description: "大規模なシステム開発ではなく、日々の業務や意思決定を支える技術活用を重視しています。技術を裏側から活かし、事業運営を支える役割を担っていければと思っています。"
                 }
               ].map((item, idx) => (
                 <div
                   key={idx}
-                  className="group relative p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5"
+                  className="mb-12 md:pl-0"
+                  style={{
+                    opacity: showDescription ? 1 : 0,
+                    transform: `translateY(${showDescription ? 0 : 20}px)`,
+                    transition: `opacity 0.8s ease-out ${idx * 0.1 + 0.2}s, transform 0.8s ease-out ${idx * 0.1 + 0.2}s`
+                  }}
                 >
-                   <h3 className="text-xl md:text-2xl font-bold text-white mb-4 leading-normal">
+                   <h3 className="text-lg md:text-2xl font-bold text-white mb-3 leading-relaxed">
                      {item.title}
                    </h3>
-                   <p className="text-sm md:text-base text-gray-300 leading-relaxed">
+                   <p className="text-lg md:text-2xl text-gray-300 leading-relaxed max-w-3xl">
                      {item.description}
                    </p>
                 </div>
               ))}
 
-              <div className="text-center mt-12 mb-20">
-                 <p className="text-lg md:text-xl text-white font-medium italic">
-                   これから生まれる新しい出会いに乾杯。
-                 </p>
-              </div>
+
             </div>
         </div>
       </div>
@@ -469,7 +488,7 @@ function MissionSection({
         <h2 className="text-6xl md:text-8xl font-bold text-white">CONTACT</h2>
       </div>
 
-      <div className="w-full min-h-screen flex items-center justify-center py-20 px-4">
+      <div className="w-full min-h-[calc(100dvh+1px)] flex items-center justify-center p-4">
         <div ref={contactFormRef} className="max-w-2xl w-full">
           <ContactFormSection />
         </div>

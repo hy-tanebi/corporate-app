@@ -77,7 +77,7 @@ export function CardDetailModal({
 									e.preventDefault();
 
 									if (slide.liveUrl) {
-										window.location.href = slide.liveUrl;
+										// window.location.href = slide.liveUrl; // 一時的に無効化
 									}
 								}}
 							>
@@ -114,7 +114,7 @@ export function CardDetailModal({
 											e.stopPropagation();
 
 											if (slide.liveUrl) {
-												window.location.href = slide.liveUrl;
+												// window.location.href = slide.liveUrl; // 一時的に無効化
 											}
 										}}
 									>

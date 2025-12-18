@@ -17,6 +17,17 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
   // 画面サイズ
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
+  // 画面幅のみ検知 (Resize logic for isMobile)
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const handleResize = () => {
+        setIsMobile(window.innerWidth < 768);
+    };
+    handleResize(); // Initial check
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const updateDimensions = () => {
@@ -103,15 +114,7 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
     WebkitMaskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 0.1}%)`,
   };
 
-  // 2. Spawn & Fly Phase (Spaceship Image)
-  // Spawn: 0.4 -> 0.5 (Scale Up/Pop In)
-  // Fly: 0.5 -> 1.0 (Translate Y Up)
-  const spawnPhase = Math.max(0, Math.min(1, (transitionProgress - 0.4) / 0.1));
-  const flyPhase = Math.max(0, (transitionProgress - 0.5) / 0.5);
 
-  const spaceshipScale = spawnPhase; // 0 -> 1
-  const spaceshipOpacity = spawnPhase; // 0 -> 1
-  const spaceshipY = 50 - flyPhase * 100; // 50% -> -50% (Fly Up)
 
   return (
     <div
@@ -187,6 +190,7 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
         {/* プロフィール画像 (Full Screen Background) */}
         {/* containerの外に出して全画面表示にする */}
         {/* z-20: 白い円(z-10)より上、コンテンツコンテナ(z-30)より下に配置 */}
+
         <div
             className="absolute inset-0 z-20 w-full h-full overflow-hidden"
             style={{
@@ -194,7 +198,7 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
                 pointerEvents: contentOpacity > 0.5 ? 'auto' : 'none'
             }}
         >
-             <AboutThreeImage imageSrc="/images/about.png" />
+             <AboutThreeImage imageSrc={isMobile ? "/images/about-sp.png" : "/images/about.png"} />
              {/* ダークネスオーバーレイ */}
              <div
                  className="absolute inset-0 z-30 pointer-events-none bg-black transition-opacity duration-100 ease-out"
@@ -214,18 +218,40 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
             <div className="w-full h-full relative">
 
                 {/* 右下: テキストエリア (ポスター風タイポグラフィ) */}
-                <div className="absolute bottom-0 right-0 z-10 w-full md:w-1/2 p-8 md:p-12 pr-[calc(2rem+60px)] md:pr-[calc(3rem+80px)] pb-16 flex flex-col items-end text-black pointer-events-none">
-                     <h2
-                        className="text-2xl md:text-5xl font-bold tracking-tighter leading-[0.9] mb-8 text-right mix-blend-difference text-white"
-                        style={{ fontFamily: "'Inter', sans-serif", color: "#eae0cc" }}
-                    >
-                        HAYATO SUGAWARA<br/>
-                        <span className="text-gray-400  md:text-3xl">Technical Director & Developer</span>
-                    </h2>
+                {/* 右下: テキストエリア (ポスター風タイポグラフィ) */}
+                <div className="absolute bottom-0 right-0 z-10 w-full md:w-auto md:max-w-[70%] p-8 md:p-12 pr-2 md:pr-[calc(3rem+80px)] pb-16 flex flex-col items-end text-black pointer-events-none">
 
-                    <div className="max-w-md space-y-6 text-sm md:text-base font-medium tracking-wide leading-relaxed uppercase text-right text-white/90 mix-blend-difference" style={{ fontFamily: "'Inter', sans-serif", color: "#eae0cc" }}>
-                         <p>ここにテキストが入ります。ここにテキストが入ります。ここにテキストが入ります。</p>
-                        <p className="text-gray-400 text-xs mt-8">Based in IWATE</p>
+                    {/* Organization */}
+                    <div className="mb-6 text-right" style={{ fontFamily: "'Inter', sans-serif" }}>
+                         <h2 className="text-xl md:text-3xl font-bold tracking-widest text-[#eae0cc] mix-blend-difference mb-1">
+                            TANEBI CREATIVE
+                         </h2>
+                         <p className="text-xs md:text-sm text-gray-400 font-medium tracking-wide">
+                            Web / App / AI Development & DX Support
+                         </p>
+                    </div>
+
+                    {/* Person */}
+                    <div className="mb-8 text-right" style={{ fontFamily: "'Inter', sans-serif" }}>
+                         <h3 className="text-lg md:text-2xl font-bold tracking-tight text-[#eae0cc] mix-blend-difference">
+                            Hayato Sugawara
+                         </h3>
+                         <p className="text-xs md:text-sm text-gray-400 tracking-wider mt-1">
+                            Technical Director / Developer
+                         </p>
+                    </div>
+
+                    <div className="max-w-lg space-y-6 text-sm md:text-base font-medium tracking-wide leading-relaxed text-right text-white/90 mix-blend-difference" style={{ fontFamily: "'Inter', sans-serif", color: "#eae0cc" }}>
+                        <p>
+                            Web制作からAI活用・DX推進まで。<br />
+                            技術と対話を通じて、事業の前進を支援します。
+                        </p>
+                        <div className="mt-6 flex flex-col items-end gap-1 text-xs md:text-sm text-gray-400 normal-case font-bold tracking-wider opacity-80">
+                            <p>Core: Next.js / TypeScript / Tailwind CSS</p>
+                            <p>Creative: Three.js / GSAP / Framer Motion</p>
+                            <p>System: Supabase / MicroCMS / Resend</p>
+                        </div>
+                        <p className="text-gray-400 text-xs mt-8 tracking-widest uppercase">Based in IWATE</p>
                     </div>
                 </div>
 
@@ -234,27 +260,7 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
 
       </div>
 
-      {/* Layer 2: Spaceship (Unmasked) */}
-      <div className="sticky top-0 h-screen w-full flex items-center justify-center pointer-events-none z-50">
-        {/* Spaceship Image (Spawn & Fly) */}
-        <div
-            className="absolute w-[15vw] h-[15vw] min-w-[150px] min-h-[150px]"
-            style={{
-                top: `${spaceshipY}%`,
-                left: "50%",
-                transform: `translate(-50%, -50%) scale(${spaceshipScale})`,
-                opacity: spaceshipOpacity,
-                transition: "transform 0.1s linear, opacity 0.1s linear, top 0.1s linear",
-            }}
-        >
-             <Image
-                src="/images/spaceship.jpg"
-                alt="Spaceship"
-                fill
-                className="object-contain drop-shadow-[0_0_30px_rgba(0,255,255,0.8)]"
-             />
-        </div>
-      </div>
+
 
     </div>
   );

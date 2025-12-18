@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import LoadingScene from "./LoadingScene";
 import SoundToggle from "./SoundToggle";
+import { useAudio } from "@/contexts/audio-context";
 
 export default function LoadingScreen({
 	onLoadingComplete,
@@ -26,7 +27,29 @@ export default function LoadingScreen({
 			setProgress((prev) => {
 				if (prev >= 100) {
 					clearInterval(interval);
-					setShowSoundToggle(true);
+
+					console.log("Loading complete, checking session storage...");
+					const savedState = sessionStorage.getItem("sound_enabled");
+					console.log("Saved sound state:", savedState);
+
+					/*
+					// 一時的に機能を無効化（ユーザー要望）
+					if (savedState) {
+						// 設定がある場合は自動遷移
+						// 念のため少し待機してから遷移
+						setTimeout(() => {
+							handleStart(true); // 即時実行
+						}, 500);
+					} else {
+						setShowSoundToggle(true);
+					}
+					*/
+
+					// 常に自動遷移（デフォルトON扱い）
+					setTimeout(() => {
+						handleStart(true);
+					}, 500);
+
 					return 100;
 				}
 				// ランダムに進行速度を変える（リアルなローディング感）
@@ -38,14 +61,17 @@ export default function LoadingScreen({
 		return () => clearInterval(interval);
 	}, []);
 
-	const handleStart = () => {
+	const handleStart = (immediate = false) => {
 		setHasStarted(true);
 		// スクロールを復元
 		document.body.style.overflow = "unset";
 		// フェードアウトアニメーション後にコールバック実行
-		setTimeout(() => {
-			onLoadingComplete();
-		}, 1000);
+		setTimeout(
+			() => {
+				onLoadingComplete();
+			},
+			immediate ? 0 : 1000,
+		);
 	};
 
 	return (

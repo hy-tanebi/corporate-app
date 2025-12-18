@@ -11,12 +11,14 @@ export default function SoundToggle({ onStart }: { onStart: () => void }) {
 	const handleSelection = (choice: "on" | "off") => {
 		setSelected(choice);
 
-		// ユーザーインタラクション直後に再生を開始
+		// ユーザーインタラクション直後に再生を開始（状態更新）
 		if (choice === "on") {
 			console.log("User selected ON - starting audio");
 			setIsPlaying(true);
+			sessionStorage.setItem("sound_enabled", "on");
 		} else {
 			setIsPlaying(false);
+			sessionStorage.setItem("sound_enabled", "off");
 		}
 
 		// 選択後、少し待ってから画面遷移
