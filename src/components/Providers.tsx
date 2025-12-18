@@ -3,6 +3,7 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { AudioProvider } from "@/contexts/audio-context";
 import LoadingScreen from "@/components/loading/LoadingScreen";
+import { Toaster } from "sonner";
 
 export default function Providers({ children }: { children: ReactNode }) {
 	const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +26,7 @@ export default function Providers({ children }: { children: ReactNode }) {
 		<AudioProvider>
 			{isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}
 			{children}
+            <Toaster richColors position="top-center" />
 		</AudioProvider>
 	);
 }

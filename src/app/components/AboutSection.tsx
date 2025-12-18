@@ -1,3 +1,4 @@
+// src/app/components/AboutSection.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -5,12 +6,27 @@ import Image from "next/image";
 
 import AboutThreeImage from "./AboutThreeImage";
 
-export default function AboutSection() {
+interface AboutSectionProps {
+  transitionProgress?: number; // 0 -> 1 during Iris Close
+}
+
+export default function AboutSection({ transitionProgress = 0 }: AboutSectionProps) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // 画面サイズ
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  // 画面幅のみ検知 (Resize logic for isMobile)
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const handleResize = () => {
+        setIsMobile(window.innerWidth < 768);
+    };
+    handleResize(); // Initial check
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -51,35 +67,61 @@ export default function AboutSection() {
     };
   }, []);
 
-  // 1. テキストスクロール (0.0 - 0.4)
-  const maxScrollProgress = 0.4;
+  // Increase "Dwell" time by compressing entry animations into the start.
+  // Height is now 800vh.
+
+  // 1. テキストスクロール (0.0 - 0.15)
+  const maxScrollProgress = 0.15;
   const horizontalProgress = Math.min(scrollProgress / maxScrollProgress, 1);
   const titleTranslateX = 100 - horizontalProgress * 250;
 
-  // 2. 円形ワイプ (0.4 - 0.7)
-  const circleStart = 0.4;
-  const circleEnd = 0.7;
+  // 2. 円形ワイプ (0.15 - 0.35)
+  const circleStart = 0.15;
+  const circleEnd = 0.35;
   const rawCircleProgress = (scrollProgress - circleStart) / (circleEnd - circleStart);
   const circleProgress = Math.max(0, Math.min(1, rawCircleProgress));
 
+  // Determine maxRadius for circular wipe
   const maxRadius = Math.sqrt(dimensions.width ** 2 + dimensions.height ** 2) * 1.2;
   const circleRadius = circleProgress * maxRadius;
 
-  // 3. プロフィールコンテンツ表示 (0.7 - 1.0)
-  const contentStart = 0.65;
-  const contentEnd = 0.9;
+  // 3. プロフィールコンテンツ表示 (0.3 - 0.45)
+  // Finish early to allow long read time
+  const contentStart = 0.3;
+  const contentEnd = 0.45;
   const rawContentProgress = (scrollProgress - contentStart) / (contentEnd - contentStart);
   const contentOpacity = Math.max(0, Math.min(1, rawContentProgress));
 
   // "ABOUT US" テキスト用
   const repeatCount = 10;
 
+  // 4. ダークネス効果 (0.45 - 0.9)
+  // コンテンツが表示された後、スクロールに応じて画面を暗くしていく
+  const darknessStart = 0.45;
+  const darknessEnd = 0.95;
+  const rawDarkness = (scrollProgress - darknessStart) / (darknessEnd - darknessStart);
+  const darknessOpacity = Math.max(0, Math.min(1, rawDarkness)) * 0.7; // 最大0.7（少し明るさを残す）
+
+  // Parallax Scale Removed: Content size stays constant.
+
+  // === Mask & Spaceship Logic (Close then Spawn) ===
+  // 1. Shrink Phase (0 -> 0.4): Close completely
+  const shrinkPhase = Math.min(transitionProgress / 0.4, 1);
+  const maskRadius = Math.max(0, (1 - shrinkPhase) * 150);
+
+  const maskStyle = {
+    maskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 0.1}%)`,
+    WebkitMaskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 0.1}%)`,
+  };
+
+
+
   return (
     <div
       ref={sectionRef}
       className="w-full relative"
       style={{
-        height: "500vh",
+        height: "800vh", // Extended height for time earning
       }}
     >
         {/* SVGフィルター定義 (不可視) */}
@@ -105,8 +147,15 @@ export default function AboutSection() {
 
       {/*
         Sticky Container
+        Removed Parallax Scale (content size stays constant)
+        Apply Mask here for Viewport Centering
       */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center bg-transparent text-black">
+      <div
+        className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center bg-transparent text-black"
+        style={{
+            ...maskStyle // Apply Iris Mask
+        }}
+      >
 
         {/* 横スクロールテキスト (Black text) */}
         <div
@@ -141,6 +190,7 @@ export default function AboutSection() {
         {/* プロフィール画像 (Full Screen Background) */}
         {/* containerの外に出して全画面表示にする */}
         {/* z-20: 白い円(z-10)より上、コンテンツコンテナ(z-30)より下に配置 */}
+
         <div
             className="absolute inset-0 z-20 w-full h-full overflow-hidden"
             style={{
@@ -148,13 +198,18 @@ export default function AboutSection() {
                 pointerEvents: contentOpacity > 0.5 ? 'auto' : 'none'
             }}
         >
-             <AboutThreeImage imageSrc="/images/about.png" />
+             <AboutThreeImage imageSrc={isMobile ? "/images/about-sp.png" : "/images/about.png"} />
+             {/* ダークネスオーバーレイ */}
+             <div
+                 className="absolute inset-0 z-30 pointer-events-none bg-black transition-opacity duration-100 ease-out"
+                 style={{ opacity: darknessOpacity }}
+             />
         </div>
 
         {/* プロフィールコンテンツ (Text Overlay) */}
         {/* container内でテキスト位置を制御 */}
         <div
-            className="absolute inset-0 z-30 w-full flex flex-col md:flex-row items-center justify-center pointer-events-none"
+            className="absolute inset-0 z-40 w-full flex flex-col md:flex-row items-center justify-center pointer-events-none"
             style={{
                 opacity: contentOpacity,
             }}
@@ -163,18 +218,40 @@ export default function AboutSection() {
             <div className="w-full h-full relative">
 
                 {/* 右下: テキストエリア (ポスター風タイポグラフィ) */}
-                <div className="absolute bottom-0 right-0 z-10 w-full md:w-1/2 p-8 md:p-12 pb-16 flex flex-col items-end text-black pointer-events-none">
-                     <h2
-                        className="text-2xl md:text-5xl font-bold tracking-tighter leading-[0.9] mb-8 text-right mix-blend-difference text-white"
-                        style={{ fontFamily: "'Inter', sans-serif", color: "#eae0cc" }}
-                    >
-                        HAYATO SUGAWARA<br/>
-                        <span className="text-gray-400  md:text-3xl">Technical Director & Developer</span>
-                    </h2>
+                {/* 右下: テキストエリア (ポスター風タイポグラフィ) */}
+                <div className="absolute bottom-0 right-0 z-10 w-full md:w-auto md:max-w-[70%] p-8 md:p-12 pr-2 md:pr-[calc(3rem+80px)] pb-16 flex flex-col items-end text-black pointer-events-none">
 
-                    <div className="max-w-md space-y-6 text-sm md:text-base font-medium tracking-wide leading-relaxed uppercase text-right text-white/90 mix-blend-difference" style={{ fontFamily: "'Inter', sans-serif", color: "#eae0cc" }}>
-                         <p>ここにテキストが入ります。ここにテキストが入ります。ここにテキストが入ります。</p>
-                        <p className="text-gray-400 text-xs mt-8">Based in IWATE</p>
+                    {/* Organization */}
+                    <div className="mb-6 text-right" style={{ fontFamily: "'Inter', sans-serif" }}>
+                         <h2 className="text-xl md:text-3xl font-bold tracking-widest text-[#eae0cc] mix-blend-difference mb-1">
+                            TANEBI CREATIVE
+                         </h2>
+                         <p className="text-xs md:text-sm text-gray-400 font-medium tracking-wide">
+                            Web / App / AI Development & DX Support
+                         </p>
+                    </div>
+
+                    {/* Person */}
+                    <div className="mb-8 text-right" style={{ fontFamily: "'Inter', sans-serif" }}>
+                         <h3 className="text-lg md:text-2xl font-bold tracking-tight text-[#eae0cc] mix-blend-difference">
+                            Hayato Sugawara
+                         </h3>
+                         <p className="text-xs md:text-sm text-gray-400 tracking-wider mt-1">
+                            Technical Director / Developer
+                         </p>
+                    </div>
+
+                    <div className="max-w-lg space-y-6 text-sm md:text-base font-medium tracking-wide leading-relaxed text-right text-white/90 mix-blend-difference" style={{ fontFamily: "'Inter', sans-serif", color: "#eae0cc" }}>
+                        <p>
+                            Web制作からAI活用・DX推進まで。<br />
+                            技術と対話を通じて、事業の前進を支援します。
+                        </p>
+                        <div className="mt-6 flex flex-col items-end gap-1 text-xs md:text-sm text-gray-400 normal-case font-bold tracking-wider opacity-80">
+                            <p>Core: Next.js / TypeScript / Tailwind CSS</p>
+                            <p>Creative: Three.js / GSAP / Framer Motion</p>
+                            <p>System: Supabase / MicroCMS / Resend</p>
+                        </div>
+                        <p className="text-gray-400 text-xs mt-8 tracking-widest uppercase">Based in IWATE</p>
                     </div>
                 </div>
 
@@ -182,6 +259,9 @@ export default function AboutSection() {
         </div>
 
       </div>
+
+
+
     </div>
   );
 }

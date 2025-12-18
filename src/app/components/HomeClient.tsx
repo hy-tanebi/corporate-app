@@ -1,17 +1,46 @@
 // src/app/components/HomeClient.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { HeroActions } from "@/components/ui/hero-actions";
-import { HeroActionButton } from "@/components/ui/hero-action-button";
+import { useState, useEffect, useRef } from "react";
+import { SidebarMenu } from "@/components/ui/sidebar-menu";
 import { AudioControlButton } from "@/components/ui/audio-control-button";
-import MissionSection from "./MissionSection";
+import MissionSection, { MissionSidebarHandle } from "./MissionSection";
 import ContactSection from "./ContactSection";
 
 export default function HomeClient() {
 	const [scrollProgress, setScrollProgress] = useState(0);
 	const [isCircleFullyExpanded, setIsCircleFullyExpanded] = useState(false);
 	const [missionSectionProgress, setMissionSectionProgress] = useState(0);
+	const missionRef = useRef<MissionSidebarHandle>(null);
+
+    const handleNavigate = (path: string) => {
+        if (path === '/about') {
+            // AboutセクションはMissionSectionの中にあるため、
+            // まずはメインのスクロールをMissionSectionが表示される位置（＝一番下）まで持っていく
+            window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: 'smooth'
+            });
+
+            // その後、MissionSection内部でAboutまでスクロール
+            // 少し遅延させて、メインスクロールが始まった後に実行（あるいは完了後が良いが、並行でも動くはず）
+            setTimeout(() => {
+                missionRef.current?.scrollToAbout();
+            }, 500);
+        } else if (path === '/contact') {
+             window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: 'smooth'
+            });
+            // 遅延なしで即時実行（MissionSection側でフラグ制御による即時表示を行う）
+            missionRef.current?.scrollToContact();
+        } else if (path === '/') {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    };
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -38,14 +67,14 @@ export default function HomeClient() {
 				setIsCircleFullyExpanded(true);
 				console.log("Circle fully expanded at scrollProgress:", scrollProgress);
 			}
-		} else {
-			// スクロールを戻して黒い円が縮小したらフラグをfalseに戻す
+		} else if (scrollProgress < CIRCLE_START) {
+			// スクロールを戻して黒い円が縮小したらフラグをfalseに戻す（ヒステリシスを持たせて即座に閉じないようにする）
 			if (isCircleFullyExpanded) {
 				setIsCircleFullyExpanded(false);
 				console.log("Circle shrinking at scrollProgress:", scrollProgress);
 			}
 		}
-	}, [scrollProgress, CIRCLE_ACTUAL_END, isCircleFullyExpanded]);
+	}, [scrollProgress, CIRCLE_ACTUAL_END, isCircleFullyExpanded, CIRCLE_START]);
 
 	// 黒い円が拡大中はすべてのUI要素を非表示
 	const isCircleExpanded = scrollProgress >= CIRCLE_SCROLL_END;
@@ -74,123 +103,110 @@ export default function HomeClient() {
 
 			{/* 第1テキスト: 最初のキャッチコピー */}
 			{!isCircleExpanded && (
-				<div
-					className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl pointer-events-none"
-					style={{
-						opacity: text1Opacity,
-						transform: `translateY(-50%) translateX(${
-							(1 - text1Opacity) * -20
-						}px)`,
-					}}
-				>
-					<h2
-						className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-8"
+				<div className="fixed inset-0 md:inset-auto md:left-16 md:top-1/2 md:-translate-y-1/2 z-10 pointer-events-none">
+					<div
+						className="w-full h-full flex flex-col justify-between py-24 px-6 md:block md:p-0 md:w-auto md:h-auto transition-all duration-1000 ease-out"
 						style={{
-							textShadow:
-								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+							opacity: text1Opacity,
+							transform: `translateX(${(1 - text1Opacity) * -20}px)`,
 						}}
 					>
-						WEBの
-						<br />
-						<span
-							className="font-extrabold"
+						<h2
+							className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
 							style={{
-								color: "#60d5fa",
+								textShadow:
+									"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
 							}}
 						>
-							困りごとに
-						</span>
-						<br />
-						寄り添いサポート
-					</h2>
-					<p
-						className="text-base md:text-xl text-white/80 leading-relaxed space-y-2"
-						style={{
-							textShadow:
-								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
-						}}
-					>
-						<span className="block">ホームページ制作 / ECサイト制作</span>
-						<span className="block">アプリ制作 / AI業務効率化 /</span>
-						<span className="block">時代はSEOからLLMOへ</span>
-						<span className="block">課題解決に向けてAI時代の最適な制作を</span>
-					</p>
+							WEBの
+							<br />
+							<span
+								className="font-extrabold"
+								style={{
+									color: "#60d5fa",
+								}}
+							>
+								困りごとに
+							</span>
+							<br />
+							寄り添いサポート
+						</h2>
+						<p
+							className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-12 md:mb-0"
+							style={{
+								textShadow:
+									"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+							}}
+						>
+							<span className="block">ホームページ制作 / ECサイト制作</span>
+							<span className="block">アプリ制作 / AI業務効率化 /</span>
+							<span className="block">時代はSEOからLLMOへ</span>
+							<span className="block">課題解決に向けてAI時代の最適な制作を</span>
+						</p>
+					</div>
 				</div>
 			)}
 
 			{/* 第2テキスト: 詳細メッセージ */}
 			{!isCircleExpanded && (
-				<div
-					className="fixed left-8 md:left-16 top-1/2 -translate-y-1/2 z-10 transition-all duration-1000 ease-out max-w-4xl pointer-events-none"
-					style={{
-						opacity: text2Opacity,
-						transform: `translateY(-50%) translateX(${
-							(1 - text2Opacity) * -20
-						}px)`,
-					}}
-				>
-					<h2
-						className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-8"
+				<div className="fixed inset-0 md:inset-auto md:left-16 md:top-1/2 md:-translate-y-1/2 z-10 pointer-events-none">
+					<div
+						className="w-full h-full flex flex-col justify-between py-24 px-6 md:block md:p-0 md:w-auto md:h-auto transition-all duration-1000 ease-out"
 						style={{
-							textShadow:
-								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+							opacity: text2Opacity,
+							transform: `translateX(${(1 - text2Opacity) * -20}px)`,
 						}}
 					>
-						現場が抱える
-						<br />
-						デジタルの悩みを、
-						<br />
-						もっと
-						<span
-							className="font-extrabold"
+						<h2
+							className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
 							style={{
-								color: "#fbbf24",
+								textShadow:
+									"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
 							}}
 						>
-							シンプル
-						</span>
-						に。
-					</h2>
-					<p
-						className="text-base md:text-xl text-white/80 leading-relaxed space-y-2"
-						style={{
-							textShadow:
-								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
-						}}
-					>
-						<span className="block">
-							わかりやすく、運用まで一緒に支えるWeb。
-						</span>
-						<span className="block">
-							使いやすく、日々の業務を軽くするアプリ。
-						</span>
-						<span className="block">身近に活かせるAI。</span>
-						<span className="block mt-4 text-white/90 font-medium">
-							そのすべてを、伴走しながら実現します。
-						</span>
-					</p>
+							現場が抱える
+							<br />
+							デジタルの悩みを、
+							<br />
+							もっと
+							<span
+								className="font-extrabold"
+								style={{
+									color: "#fbbf24",
+								}}
+							>
+								シンプル
+							</span>
+							に。
+						</h2>
+						<p
+							className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-12 md:mb-0"
+							style={{
+								textShadow:
+									"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+							}}
+						>
+							<span className="block">
+								わかりやすく、運用まで一緒に支えるWeb。
+							</span>
+							<span className="block">
+								使いやすく、日々の業務を軽くするアプリ。
+							</span>
+							<span className="block">身近に活かせるAI。</span>
+							<span className="block mt-4 text-white/90">
+								そのすべてを、伴走しながら実現します。
+							</span>
+						</p>
+					</div>
 				</div>
 			)}
 
-			{/* アクションボタン群 */}
-			{!isCircleExpanded && (
-				<HeroActions scrollProgress={scrollProgress} position="right">
-					<HeroActionButton
-						href="/blog"
-						label="ブログを見る"
-						variant="primary"
-					/>
-					<HeroActionButton href="/about" label="About" variant="secondary" />
-					<HeroActionButton
-						href="/contact"
-						label="お問い合わせ"
-						variant="secondary"
-					/>
-				</HeroActions>
-			)}
+			{/* 通知テキスト等はそのまま、ボタン群を削除してサイドバーメニューを追加 */}
+			<SidebarMenu onNavigate={handleNavigate} />
 
 			{/* MISSIONセクション */}
 			<MissionSection
+                ref={missionRef}
 				scrollProgress={scrollProgress}
 				isCircleFullyExpanded={isCircleFullyExpanded}
 				onProgressChange={setMissionSectionProgress}
