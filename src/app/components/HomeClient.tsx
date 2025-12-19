@@ -103,13 +103,15 @@ export default function HomeClient() {
 
 			{/* 第1テキスト: 最初のキャッチコピー */}
 			{!isCircleExpanded && (
-				<div className="fixed inset-0 md:inset-auto md:left-16 md:top-1/2 md:-translate-y-1/2 z-10 pointer-events-none">
-					<div
-						className="w-full h-full flex flex-col justify-between py-24 px-6 md:block md:p-0 md:w-auto md:h-auto transition-all duration-1000 ease-out"
-						style={{
-							opacity: text1Opacity,
-							transform: `translateX(${(1 - text1Opacity) * -20}px)`,
-						}}
+				<div
+                    className="fixed left-0 top-0 w-full z-10 pointer-events-none md:inset-0 md:h-auto"
+						className="w-full h-full flex flex-col justify-between px-6 md:block md:p-0 md:w-auto md:h-auto transition-all duration-1000 ease-out"
+                        style={{
+                            opacity: text1Opacity,
+                            transform: `translateX(${(1 - text1Opacity) * -20}px)`,
+                            paddingTop: 'calc(env(safe-area-inset-top) + 2rem)', // バー回避 + 余白(少なめ)
+                            paddingBottom: 'calc(env(safe-area-inset-bottom) + 2rem)' // バー回避 + 余白(少なめ)
+                        }}
 					>
 						<h2
 							className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
@@ -132,7 +134,7 @@ export default function HomeClient() {
 							寄り添いサポート
 						</h2>
 						<p
-							className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-12 md:mb-0"
+							className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
 							style={{
 								textShadow:
 									"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
@@ -149,13 +151,15 @@ export default function HomeClient() {
 
 			{/* 第2テキスト: 詳細メッセージ */}
 			{!isCircleExpanded && (
-				<div className="fixed inset-0 md:inset-auto md:left-16 md:top-1/2 md:-translate-y-1/2 z-10 pointer-events-none">
-					<div
-						className="w-full h-full flex flex-col justify-between py-24 px-6 md:block md:p-0 md:w-auto md:h-auto transition-all duration-1000 ease-out"
-						style={{
-							opacity: text2Opacity,
-							transform: `translateX(${(1 - text2Opacity) * -20}px)`,
-						}}
+				<div
+                    className="fixed left-0 top-0 w-full z-10 pointer-events-none md:inset-0 md:h-auto"
+						className="w-full h-full flex flex-col justify-between px-6 md:block md:p-0 md:w-auto md:h-auto transition-all duration-1000 ease-out"
+                        style={{
+                            opacity: text2Opacity,
+                            transform: `translateX(${(1 - text2Opacity) * -20}px)`,
+                            paddingTop: 'calc(env(safe-area-inset-top) + 2rem)', // バー回避 + 余白(少なめ)
+                            paddingBottom: 'calc(env(safe-area-inset-bottom) + 2rem)' // バー回避 + 余白(少なめ)
+                        }}
 					>
 						<h2
 							className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
@@ -180,7 +184,7 @@ export default function HomeClient() {
 							に。
 						</h2>
 						<p
-							className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-12 md:mb-0"
+							className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
 							style={{
 								textShadow:
 									"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",

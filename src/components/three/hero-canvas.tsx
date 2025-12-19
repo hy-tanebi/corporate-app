@@ -157,7 +157,7 @@ function HeroScene({
 	// 画面歪み（FBO合成）
 	const fluidRef = useRef<THREE.Mesh>(null);
 	const hoverMatRef = useRef<any>(null);
-	const fbo = useFBO({ samples: 4 });
+	const fbo = useFBO({ samples: 0 });
 
 	// FBO を Linear に（色ズレ防止）
 	useEffect(() => {
@@ -723,12 +723,13 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 		<HeroStateContext.Provider value={{ setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress }}>
 			<Canvas
 				camera={{ position: [0, 0, CAMERA_Z], fov: 75 }}
+				dpr={[1, 1.5]}
 				style={{
 					position: "fixed",
 					top: 0,
 					left: 0,
 					width: "100vw",
-					height: "100vh",
+					height: "100dvh",
 					zIndex: 0,
 					pointerEvents: "auto",
 				}}

@@ -193,7 +193,8 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 
 						{/* Menu Content Container */}
 						<div
-							className="fixed top-0 right-0 h-screen w-full max-w-[450px] z-50 flex flex-col p-8 md:p-12 pointer-events-auto"
+							className="fixed top-0 right-0 w-full max-w-[450px] z-50 flex flex-col p-8 md:p-12 pointer-events-auto"
+                            style={{ height: '100dvh' }} // モバイルアドレスバー対応
 						>
 							{/* Close Button Area */}
 							{/* Mobile: Absolute position to match the trigger button exactly */}

@@ -267,7 +267,7 @@ function MissionSection({
         // rect.bottom は画面上部からの距離
         // rect.bottom が windowHeight に近づくにつれて 0 -> 1 にしたい
         // Transition Zone: Bottomが画面下から「100vh」の位置にある間に行う
-        const TRANSITION_ZONE = windowHeight * 1.5; // 1.5画面分かけて変化
+        const TRANSITION_ZONE = windowHeight * 4.0; // 4.0画面分かけてゆっくり変化（修正前: 1.5）
 
         const distFromBottom = rect.bottom - windowHeight;
 
@@ -484,7 +484,7 @@ function MissionSection({
          <AboutSection transitionProgress={irisTransitionProgress} />
       </div>
 
-      <div ref={contactRef} className="w-full h-screen flex items-center justify-center">
+      <div ref={contactRef} className="w-full h-screen flex items-center justify-center relative z-30">
         <h2 className="text-6xl md:text-8xl font-bold text-white">CONTACT</h2>
       </div>
 
@@ -504,7 +504,9 @@ function MissionSection({
             isContactInView
           ),
           transition: "background-color 0.6s ease-out",
-          ...maskStyle
+          // Iris遷移中（>0）は背景を非表示にして、AboutSection側のマスクだけで透けさせる（二重円防止）
+          opacity: irisTransitionProgress > 0 ? 0 : 1,
+          // ...maskStyle // 削除: 二重マスクの原因となるため
         }}
       />
     </div>
