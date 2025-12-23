@@ -157,7 +157,7 @@ function HeroScene({
 	// 画面歪み（FBO合成）
 	const fluidRef = useRef<THREE.Mesh>(null);
 	const hoverMatRef = useRef<any>(null);
-	const fbo = useFBO({ samples: 4 });
+	const fbo = useFBO({ samples: 0 });
 
 	// FBO を Linear に（色ズレ防止）
 	useEffect(() => {
@@ -456,17 +456,34 @@ function HeroScene({
 
 		// ===== 黒円（拡大はゆっくり、縮小は速く） =====
 		if (circleRef.current) {
+			const isMobile = state.size.width < 768;
+
+            // モバイル用設定：
+            // 1. 範囲を広げる (0.85 ~ 0.99) - 長いスクロールが必要
+            // 2. スムージングをほぼなくす (speed 8.0) - 指に追従
+			const currentStart = isMobile ? 0.85 : CIRCLE_SCROLL_START;
+			const currentEnd = isMobile ? 0.99 : CIRCLE_SCROLL_END;
+			const currentSmoothExpand = isMobile ? 8.0 : CIRCLE_SMOOTH_EXPAND;
+
 			const endClamped = Math.max(
-				CIRCLE_SCROLL_START + 1e-6,
-				Math.min(CIRCLE_SCROLL_END, 1.0),
+				currentStart + 1e-6,
+				Math.min(currentEnd, 1.0),
 			);
-			const tTarget = sstep(scrollProgress, CIRCLE_SCROLL_START, endClamped);
-			const speed =
-				tTarget >= circleTRef.current
-					? CIRCLE_SMOOTH_EXPAND
-					: CIRCLE_SMOOTH_SHRINK;
-			const k = 1 - Math.exp(-delta * speed);
-			circleTRef.current += (tTarget - circleTRef.current) * k;
+			const tTarget = sstep(scrollProgress, currentStart, endClamped);
+
+            // モバイルなら完全同期、そうでなければスムージング
+            if (isMobile) {
+                circleTRef.current = tTarget;
+            } else {
+                const speed =
+                    tTarget >= circleTRef.current
+                        ? currentSmoothExpand
+                        : CIRCLE_SMOOTH_SHRINK;
+
+                const k = 1 - Math.exp(-delta * speed);
+                circleTRef.current += (tTarget - circleTRef.current) * k;
+            }
+
 			const growT = smooth01(circleTRef.current) ** CIRCLE_EASE;
 
 			if (growT > 0) {
@@ -723,12 +740,13 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 		<HeroStateContext.Provider value={{ setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress }}>
 			<Canvas
 				camera={{ position: [0, 0, CAMERA_Z], fov: 75 }}
+				dpr={[1, 1.5]}
 				style={{
 					position: "fixed",
 					top: 0,
 					left: 0,
 					width: "100vw",
-					height: "100vh",
+					height: "100dvh",
 					zIndex: 0,
 					pointerEvents: "auto",
 				}}

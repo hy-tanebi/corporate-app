@@ -33,12 +33,14 @@ function MissionSection({
   onProgressChange,
 }: MissionSectionProps, ref: React.Ref<MissionSidebarHandle>) {
   const { setIsContactVisible, setSpaceOpacity, setTransitionProgress } = useHeroState();
-
   const [isMobile, setIsMobile] = useState(false);
+
+  // Section Progress State (moved to top to avoid ReferenceError)
+  const [sectionProgress, setSectionProgress] = useState(0);
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // Adjust breakpoint as needed
+      setIsMobile(window.innerWidth < 768);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -46,14 +48,15 @@ function MissionSection({
   }, []);
 
   // ======= 調整パラメータ（ここをいじるだけで遅くできます） =======
-  const SECTION_START = 0.94; // この位置から演出を開始
-  const SECTION_END = 0.999; // この位置で演出を完了（区間を広げるほどゆっくり）
-  const PROGRESS_SPEED_FORWARD = 0.25; // 1秒あたり最大で 0.25 しか進まない（もっと遅く→0.15 など）
-  // スマホの場合は戻る速度を遅くして、「一気にトップまで戻る」事故を防ぐ
+  const SECTION_START = isMobile ? 0.85 : 0.94;
+  const SECTION_END = 0.999;
+
+  const PROGRESS_SPEED_FORWARD = isMobile ? 5.0 : 0.25;
   const PROGRESS_SPEED_BACKWARD = isMobile ? 1.0 : 2.0;
-  const SMOOTH_ALPHA = 0.08; // 慣性（追従割合）。小さいほど粘る
-  const SMOOTH_ALPHA_BACKWARD = 0.3; // 戻る時の慣性（より素早く反応）
-  const GAMMA = 1.8; // >1 で序盤をさらに遅く（2.2 とかでもOK）
+
+  const SMOOTH_ALPHA = isMobile ? 0.9 : 0.08;
+  const SMOOTH_ALPHA_BACKWARD = 0.3;
+  const GAMMA = 1.8;
 
   // 生のターゲット進捗（0→1）
   const rawTarget = useMemo(() => {
@@ -82,7 +85,7 @@ function MissionSection({
   // 速度上限＋慣性つきの追従進捗（実際に描画に使う）
   const targetRef = useRef(0);
   const currentRef = useRef(0);
-  const [sectionProgress, setSectionProgress] = useState(0);
+  // const [sectionProgress, setSectionProgress] = useState(0); // Moved to top
 
   useEffect(() => {
     targetRef.current = shapedTarget;
@@ -114,10 +117,16 @@ function MissionSection({
       const inertialStep = diff * smoothAlpha;
 
       // 実際に適用するステップは「慣性」と「速度上限」の小さい方
-      const step =
+      let step =
         Math.abs(inertialStep) > maxStep
           ? Math.sign(inertialStep) * maxStep
           : inertialStep;
+
+      // ★スマホの場合は完全連動（慣性・遅延ゼロ）にする
+      // 指の動きに吸い付くようにするため、計算したステップを無視して直接ターゲットへ
+      if (isMobile) {
+          step = diff; // diffをそのまま足せば cur + step = tgt になる
+      }
 
       cur += step;
 
@@ -134,13 +143,16 @@ function MissionSection({
 
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [onProgressChange]);
+  }, [onProgressChange, isMobile]);
 
   // 表示フラグ
   const showSection = isCircleFullyExpanded;
   const showMission = sectionProgress >= 0.15;
   const showCreative = sectionProgress >= 0.3;
-  const showDescription = sectionProgress >= 0.97; // アニメーション完了後に詳細テキストを表示
+  // 詳細テキストの表示（スクロールロック解除）タイミング
+  // スマホの場合は「待たされる感」を減らすため、アニメーションが9割完了したらもう出し始める
+  // さらに早めて0.75にする（文字の横移動中だが、もうスクロールできて良い）
+  const showDescription = sectionProgress >= (isMobile ? 0.75 : 0.97);
 
   // グラデーション遷移セクションのスクロール進捗を追跡
   const [gradientProgress, setGradientProgress] = useState(0);
@@ -267,7 +279,7 @@ function MissionSection({
         // rect.bottom は画面上部からの距離
         // rect.bottom が windowHeight に近づくにつれて 0 -> 1 にしたい
         // Transition Zone: Bottomが画面下から「100vh」の位置にある間に行う
-        const TRANSITION_ZONE = windowHeight * 1.5; // 1.5画面分かけて変化
+        const TRANSITION_ZONE = windowHeight * 4.0; // 4.0画面分かけてゆっくり変化（修正前: 1.5）
 
         const distFromBottom = rect.bottom - windowHeight;
 
@@ -307,8 +319,69 @@ function MissionSection({
       container.removeEventListener("scroll", handleScroll);
     };
   }, [showDescription, isContactInView, setIsContactVisible]);
+  // オーバーレイでのスクロールをメインウィンドウに伝播させる処理（スマホでの「戻る」を安定させる）
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !showSection) return;
 
-  // スクロール位置復元・リセット
+    let touchStartY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+        touchStartY = e.touches[0].clientY;
+    };
+
+    // RAFを使ったスロットリング用フラグ
+    let isScrolling = false;
+
+    const handleTouchMove = (e: TouchEvent) => {
+        if (isScrolling) return;
+
+        const touchY = e.touches[0].clientY;
+        const deltaY = touchY - touchStartY;
+
+        // 上端にいて、さらに下に引っ張ろうとしている（＝上に戻ろうとしている）場合
+        if (container.scrollTop <= 0 && deltaY > 0) {
+            isScrolling = true;
+            requestAnimationFrame(() => {
+                // メインウィンドウをスクロール（動きを少し滑らかにするために係数を調整）
+                window.scrollBy(0, -deltaY * 1.5);
+                isScrolling = false;
+            });
+
+            // デフォルト動作を防ぐ（オーバースクロールエフェクト防止等）
+            if (e.cancelable) e.preventDefault();
+        }
+        touchStartY = touchY;
+    };
+
+    // PC/トラックパッド対応
+    const handleWheel = (e: WheelEvent) => {
+        if (isScrolling) return;
+        if (container.scrollTop <= 0 && e.deltaY < 0) {
+             isScrolling = true;
+             requestAnimationFrame(() => {
+                 window.scrollBy(0, e.deltaY);
+                 isScrolling = false;
+             });
+        }
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    // wheelイベントはpassive: falseでないとpreventDefaultできないが、
+    // ここでは単純なscrollBy呼び出しのみ行うため、passive: trueでも動作はするが
+    // トラックパッドの「戻る」ジェスチャ等が暴発しないよう注意が必要。
+    // 安全のため passive: false を維持。
+    container.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+        container.removeEventListener('touchstart', handleTouchStart);
+        container.removeEventListener('touchmove', handleTouchMove);
+        container.removeEventListener('wheel', handleWheel);
+    };
+  }, [showSection, isMobile]);
+
+  // スクロールイベント
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -346,11 +419,17 @@ function MissionSection({
   // matrix 用パラメータ
   const scale = 1 + (1 - zAxisProgress) * 4;
 
-  // スマホ(768px未満)の場合は文字間隔を狭く、PCなどでは広くする
-  const baseTx = isMobile ? 60 : 100;
+  // スマホ(768px未満)、PC共にMISSIONの幅（text-6xl/text-8xl）に合わせるよう調整
+  // Mobile: 60 (微調整: 70から短縮), Desktop: 90 (微調整: 120から短縮)
+  // この `baseTx` の値を変更することで、TECHNICALとPARTNERの間隔を調整できます。
+  const baseTx = isMobile ? 65 : 104;
 
-  const leftTx = -baseTx * horizontalProgress;
-  const rightTx = +baseTx * horizontalProgress;
+  // 全体を右（または左）にずらすためのオフセット値（正の値で右へ、負の値で左へ）
+  // Mobile: 10, Desktop: 0 (必要に応じて変更してください)
+  const centerOffsetX = isMobile ? 5 : 10;
+
+  const leftTx = -baseTx * horizontalProgress + centerOffsetX;
+  const rightTx = +baseTx * horizontalProgress + centerOffsetX;
   const upTy = -25 * (1 - horizontalProgress);
   const dnTy = +25 * (1 - horizontalProgress);
 
@@ -397,7 +476,7 @@ function MissionSection({
           style={{ perspective: "1000px", minHeight: 150, width: "100%" }}
         >
           <p
-            className="text-2xl md:text-4xl text-white/90 font-bold absolute will-change-transform"
+            className="text-xl md:text-4xl text-white/90 font-bold absolute will-change-transform tracking-wider md:tracking-normal"
             style={{
               opacity: showCreative ? 1 : 0,
               transform: showCreative
@@ -410,7 +489,7 @@ function MissionSection({
           </p>
 
           <p
-            className="text-2xl md:text-4xl text-white/90 font-bold absolute will-change-transform"
+            className="text-xl md:text-4xl text-white/90 font-bold absolute will-change-transform tracking-wider md:tracking-normal"
             style={{
               opacity: showCreative ? 1 : 0,
               transform: showCreative
@@ -484,7 +563,7 @@ function MissionSection({
          <AboutSection transitionProgress={irisTransitionProgress} />
       </div>
 
-      <div ref={contactRef} className="w-full h-screen flex items-center justify-center">
+      <div ref={contactRef} className="w-full h-screen flex items-center justify-center relative z-30">
         <h2 className="text-6xl md:text-8xl font-bold text-white">CONTACT</h2>
       </div>
 
@@ -504,7 +583,9 @@ function MissionSection({
             isContactInView
           ),
           transition: "background-color 0.6s ease-out",
-          ...maskStyle
+          // Iris遷移中（>0）は背景を非表示にして、AboutSection側のマスクだけで透けさせる（二重円防止）
+          opacity: irisTransitionProgress > 0 ? 0 : 1,
+          // ...maskStyle // 削除: 二重マスクの原因となるため
         }}
       />
     </div>
