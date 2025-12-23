@@ -11,7 +11,17 @@ export default function HomeClient() {
 	const [scrollProgress, setScrollProgress] = useState(0);
 	const [isCircleFullyExpanded, setIsCircleFullyExpanded] = useState(false);
 	const [missionSectionProgress, setMissionSectionProgress] = useState(0);
+    const [isMobile, setIsMobile] = useState(false);
 	const missionRef = useRef<MissionSidebarHandle>(null);
+
+    useEffect(() => {
+        const checkMobile = () => {
+             setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const handleNavigate = (path: string) => {
         if (path === '/about') {
@@ -102,108 +112,125 @@ export default function HomeClient() {
 			</div>
 
 			{/* 第1テキスト: 最初のキャッチコピー */}
-			{!isCircleExpanded && (
+			<div
+				className={`fixed z-10 transition-all duration-1000 ease-out md:max-w-4xl ${
+                    isMobile
+                        ? 'left-0 top-0 w-full h-[100dvh] pointer-events-none'
+                        : 'left-8 md:left-16 top-1/2 pointer-events-none'
+                }`}
+				style={{
+					opacity: isCircleExpanded ? 0 : text1Opacity,
+					// Mobile: Just slide X. Desktop: Center Y + Slide X.
+					transform: isMobile
+                        ? `translateX(${(1 - text1Opacity) * -20}px)`
+                        : `translateY(-50%) translateX(${(1 - text1Opacity) * -20}px)`,
+				}}
+			>
 				<div
-                    className="fixed left-0 top-0 w-full z-10 pointer-events-none md:inset-0 md:h-auto"
-						className="w-full h-full flex flex-col justify-between px-6 md:block md:p-0 md:w-auto md:h-auto transition-all duration-1000 ease-out"
-                        style={{
-                            opacity: text1Opacity,
-                            transform: `translateX(${(1 - text1Opacity) * -20}px)`,
-                            paddingTop: 'calc(env(safe-area-inset-top) + 2rem)', // バー回避 + 余白(少なめ)
-                            paddingBottom: 'calc(env(safe-area-inset-bottom) + 2rem)' // バー回避 + 余白(少なめ)
-                        }}
+                    className={isMobile ? "w-full h-full flex flex-col justify-between px-6" : ""}
+                    style={{
+                        paddingTop: isMobile ? 'calc(env(safe-area-inset-top) + 8rem)' : undefined,
+                        paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom) + 2rem)' : undefined
+                    }}
+                >
+					<h2
+						className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
+						style={{
+							textShadow:
+								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+						}}
 					>
-						<h2
-							className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
+						WEBの
+						<br />
+						<span
+							className="font-extrabold"
 							style={{
-								textShadow:
-									"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+								color: "#60d5fa",
 							}}
 						>
-							WEBの
-							<br />
-							<span
-								className="font-extrabold"
-								style={{
-									color: "#60d5fa",
-								}}
-							>
-								困りごとに
-							</span>
-							<br />
-							寄り添いサポート
-						</h2>
-						<p
-							className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
-							style={{
-								textShadow:
-									"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
-							}}
-						>
-							<span className="block">ホームページ制作 / ECサイト制作</span>
-							<span className="block">アプリ制作 / AI業務効率化 /</span>
-							<span className="block">時代はSEOからLLMOへ</span>
-							<span className="block">課題解決に向けてAI時代の最適な制作を</span>
-						</p>
-					</div>
+							困りごとに
+						</span>
+						<br />
+						寄り添いサポート
+					</h2>
+					<p
+						className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
+						style={{
+							textShadow:
+								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+						}}
+					>
+						<span className="block">ホームページ制作 / ECサイト制作</span>
+						<span className="block">アプリ制作 / AI業務効率化 /</span>
+						<span className="block">時代はSEOからLLMOへ</span>
+						<span className="block">課題解決に向けてAI時代の最適な制作を</span>
+					</p>
 				</div>
-			)}
+			</div>
 
 			{/* 第2テキスト: 詳細メッセージ */}
-			{!isCircleExpanded && (
+			<div
+				className={`fixed z-10 transition-all duration-1000 ease-out md:max-w-4xl ${
+                    isMobile
+                        ? 'left-0 top-0 w-full h-[100dvh] pointer-events-none'
+                        : 'left-8 md:left-16 top-1/2 pointer-events-none'
+                }`}
+				style={{
+					opacity: isCircleExpanded ? 0 : text2Opacity,
+					transform: isMobile
+                        ? `translateX(${(1 - text2Opacity) * -20}px)`
+                        : `translateY(-50%) translateX(${(1 - text2Opacity) * -20}px)`,
+				}}
+			>
 				<div
-                    className="fixed left-0 top-0 w-full z-10 pointer-events-none md:inset-0 md:h-auto"
-						className="w-full h-full flex flex-col justify-between px-6 md:block md:p-0 md:w-auto md:h-auto transition-all duration-1000 ease-out"
-                        style={{
-                            opacity: text2Opacity,
-                            transform: `translateX(${(1 - text2Opacity) * -20}px)`,
-                            paddingTop: 'calc(env(safe-area-inset-top) + 2rem)', // バー回避 + 余白(少なめ)
-                            paddingBottom: 'calc(env(safe-area-inset-bottom) + 2rem)' // バー回避 + 余白(少なめ)
-                        }}
+                    className={isMobile ? "w-full h-full flex flex-col justify-between px-6" : ""}
+                    style={{
+    					paddingTop: isMobile ? 'calc(env(safe-area-inset-top) + 8rem)' : undefined,
+	    				paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom) + 2rem)' : undefined
+                    }}
+                >
+					<h2
+						className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
+						style={{
+							textShadow:
+								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+						}}
 					>
-						<h2
-							className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
+						現場が抱える
+						<br />
+						デジタルの悩みを、
+						<br />
+						もっと
+						<span
+							className="font-extrabold"
 							style={{
-								textShadow:
-									"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+								color: "#fbbf24",
 							}}
 						>
-							現場が抱える
-							<br />
-							デジタルの悩みを、
-							<br />
-							もっと
-							<span
-								className="font-extrabold"
-								style={{
-									color: "#fbbf24",
-								}}
-							>
-								シンプル
-							</span>
-							に。
-						</h2>
-						<p
-							className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
-							style={{
-								textShadow:
-									"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
-							}}
-						>
-							<span className="block">
-								わかりやすく、運用まで一緒に支えるWeb。
-							</span>
-							<span className="block">
-								使いやすく、日々の業務を軽くするアプリ。
-							</span>
-							<span className="block">身近に活かせるAI。</span>
-							<span className="block mt-4 text-white/90">
-								そのすべてを、伴走しながら実現します。
-							</span>
-						</p>
-					</div>
+							シンプル
+						</span>
+						に。
+					</h2>
+					<p
+						className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
+						style={{
+							textShadow:
+								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+						}}
+					>
+						<span className="block">
+							わかりやすく、運用まで一緒に支えるWeb。
+						</span>
+						<span className="block">
+							使いやすく、日々の業務を軽くするアプリ。
+						</span>
+						<span className="block">身近に活かせるAI。</span>
+						<span className="block mt-4 text-white/90">
+							そのすべてを、伴走しながら実現します。
+						</span>
+					</p>
 				</div>
-			)}
+			</div>
 
 			{/* 通知テキスト等はそのまま、ボタン群を削除してサイドバーメニューを追加 */}
 			<SidebarMenu onNavigate={handleNavigate} />

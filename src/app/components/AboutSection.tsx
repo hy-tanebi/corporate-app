@@ -107,11 +107,13 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
   // === Mask & Spaceship Logic (Close then Spawn) ===
   // 1. Shrink Phase (0 -> 0.4): Close completely
   const shrinkPhase = Math.min(transitionProgress / 0.4, 1);
-  const maskRadius = Math.max(0, (1 - shrinkPhase) * 150);
+  // 半径をマイナスまで行かせることで、ぼかし(+20%)を含めて完全に消滅させる
+  // 150 -> -25 (Range 175)
+  const maskRadius = (1 - shrinkPhase) * 175 - 25;
 
   const maskStyle = {
-    maskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 0.1}%)`,
-    WebkitMaskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 0.1}%)`,
+    maskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 20}%)`,
+    WebkitMaskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 20}%)`,
   };
 
 
