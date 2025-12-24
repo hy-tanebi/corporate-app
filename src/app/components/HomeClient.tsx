@@ -65,6 +65,17 @@ export default function HomeClient() {
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
 
+    // タイトル制御 (Top)
+    useEffect(() => {
+        // スクロールが浅い場合（Missionセクションに入る前）、タイトルをデフォルトに戻す
+        // かつ、ミッションセクション側で制御されていないタイミング
+        if (scrollProgress < 0.8 && !isMobile) {
+             document.title = "TANEBI CREATIVE タネビ クリエイティブ";
+        } else if (scrollProgress < 0.8 && isMobile) {
+             document.title = "TANEBI CREATIVE タネビ クリエイティブ";
+        }
+    }, [scrollProgress, isMobile]);
+
 	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
 	const CIRCLE_START = 0.86;
 	const CIRCLE_SCROLL_END = 0.95; // hero-canvas.tsxのCIRCLE_SCROLL_END
