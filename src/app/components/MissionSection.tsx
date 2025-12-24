@@ -242,6 +242,29 @@ function MissionSection({
     setSpaceOpacity(1);
   }, [irisTransitionProgress, setSpaceOpacity, setTransitionProgress]);
 
+  // タイトル制御 (Mission, Contact)
+  useEffect(() => {
+    if (!showSection) return;
+
+    // Contactが表示されている場合
+    if (isContactInView) {
+      document.title = "CONTACT | TANEBI CREATIVE タネビ クリエイティブ";
+      return;
+    }
+
+    // Iris遷移が始まっている場合（Aboutへの移行中）
+    // AboutSection側で制御するため何もしない（またはAboutへ渡す）
+    if (irisTransitionProgress > 0) {
+       // AboutSection側で "ABOUT ME" になるはずだが、遷移中はMISSIONのままでも違和感はない
+       // ただし、完全にAboutになったらAboutSectionにお任せする
+       return;
+    }
+
+    // Mission表示中
+    document.title = "MISSION | TANEBI CREATIVE タネビ クリエイティブ";
+
+  }, [showSection, isContactInView, irisTransitionProgress]);
+
   // スクロールイベント
   useEffect(() => {
     const container = containerRef.current;
@@ -279,7 +302,7 @@ function MissionSection({
         // rect.bottom は画面上部からの距離
         // rect.bottom が windowHeight に近づくにつれて 0 -> 1 にしたい
         // Transition Zone: Bottomが画面下から「100vh」の位置にある間に行う
-        const TRANSITION_ZONE = windowHeight * 4.0; // 4.0画面分かけてゆっくり変化（修正前: 1.5）
+        const TRANSITION_ZONE = windowHeight * 10.0; // 10.0画面分かけてゆっくり変化（修正前: 1.5 -> 4.0 -> 10.0）
 
         const distFromBottom = rect.bottom - windowHeight;
 
