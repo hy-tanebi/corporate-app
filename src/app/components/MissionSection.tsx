@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { ContactForm } from "@/components/contact/contact-form";
 import AboutSection from "./AboutSection";
+import MissionContent from "./MissionContent";
 import { useHeroState } from "../../contexts/HeroStateContext";
 
 // フォームセクションコンポーネント
@@ -536,37 +537,17 @@ function MissionSection({
       >
         <div className="max-w-4xl mx-auto px-4 w-full">
             <div className="flex flex-col gap-6">
-              {[
-                {
-                  title: "AIとWebを使って、ビジネスの課題に向き合います。",
-                  description: "AIによる業務効率化や、Webサイトの制作・運用を通じて、日々の業務や運用上の課題に取り組んでいます。複雑になりがちな技術を、現場で無理なく活用できる形に整理し、実務に役立つ形で取り入れます。"
-                },
-                {
-                  title: "外部の制作会社ではなく、チームの一員として。",
-                  description: "言われたものを作るだけではなく、業務内容や組織の状況を理解した上で、一緒に考えながら進めたいと考えています。社内のIT担当に近い立場で、WebやAI活用の相談役として継続的にサポートします。"
-                },
-                {
-                  title: "事業が前に進むための、実務的な支えとして。",
-                  description: "大規模なシステム開発ではなく、日々の業務や意思決定を支える技術活用を重視しています。技術を裏側から活かし、事業運営を支える役割を担っていければと思っています。"
-                }
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className="mb-12 md:pl-0"
-                  style={{
-                    opacity: showDescription ? 1 : 0,
-                    transform: `translateY(${showDescription ? 0 : 20}px)`,
-                    transition: `opacity 0.8s ease-out ${idx * 0.1 + 0.2}s, transform 0.8s ease-out ${idx * 0.1 + 0.2}s`
-                  }}
-                >
-                   <h3 className="text-lg md:text-2xl font-bold text-white mb-3 leading-relaxed">
-                     {item.title}
-                   </h3>
-                   <p className="text-lg md:text-2xl text-gray-300 leading-relaxed max-w-3xl">
-                     {item.description}
-                   </p>
-                </div>
-              ))}
+            {/* MissionContentコンポーネント (Desktop: 2カラムSticky / Mobile: 1カラムStatic) */}
+            <div
+               style={{
+                 opacity: showDescription ? 1 : 0,
+                 transform: `translateY(${showDescription ? 0 : 30}px)`,
+                 transition: "opacity 1s ease-out, transform 1s ease-out",
+                 width: "100%"
+               }}
+            >
+               <MissionContent scrollContainerRef={containerRef} />
+            </div>
 
 
             </div>
