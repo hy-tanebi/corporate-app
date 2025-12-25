@@ -7,18 +7,18 @@ import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 const CONTENT_ITEMS = [
   {
     id: '01',
-    title: 'AIとWebを使って、\nビジネスの課題に向き合います。',
+    title: 'AIとWebを使って、ビジネスの課題に向き合います。',
     description: 'AIによる業務効率化や、Webサイトの制作・運用を通じて、日々の業務や運用上の課題に取り組んでいます。複雑になりがちな技術を、現場で無理なく活用できる形に整理し、実務に役立つ形で取り入れます。'
   },
   {
     id: '02',
-    title: '外部の制作会社ではなく、\nチームの一員として。',
+    title: '外部の制作会社ではなく、チームの一員として。',
     description: '言われたものを作るだけではなく、業務内容や組織の状況を理解した上で、一緒に考えながら進めたいと考えています。社内のIT担当に近い立場で、WebやAI活用の相談役として継続的にサポートします。'
   },
   {
     id: '03',
-    title: '売り手よし、買い手よし、\n世間よしの精神で。',
-    description: '自社の利益だけでなく、クライアントとその顧客、さらには社会全体にとって価値あるものをつくる。三方よしの視点を持って、持続可能なビジネスの実現に貢献します。'
+    title: 'つくる人、使う人、続ける事業のために。',
+    description: '要件を満たすだけの制作ではなく、実際に使われ、事業の中で機能し続けることを見据えた三つの視点を重ねて設計・実装を行っていきます。'
   }
 ];
 
@@ -72,7 +72,10 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
   // Shape 3: Sanpo-yoshi (Triangle/Circles) - Phase 2-3
   const sanpoOpacity = useTransform(currentPhase, [2, 2.2, 2.8, 3.0], [0, 1, 1, 0]);
   const sanpoScale = useTransform(currentPhase, [2, 3], [0.95, 1.05]);
-  const sanpoRotate = useTransform(currentPhase, [2, 3], [180, 0]);
+  const sanpoRotate = useTransform(currentPhase, [2, 3], [0, 0]);
+  // Move from outside (expanded) to inside (tight overlap)
+  const sanpoOffset = useTransform(currentPhase, [2, 2.8], [100, 0]);
+  const centerScale = useTransform(currentPhase, [2.5, 2.9], [0, 1]); // Center circle appears late
 
   return (
     <div ref={containerRef} className="relative w-full max-w-[1600px] mx-auto" style={{ height: '500vh' }}>
@@ -84,7 +87,7 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
 
              {/* Shape 1: Square */}
              <motion.div
-               className="absolute bg-[#0066CC] rounded-3xl"
+               className="absolute bg-[#50B070] rounded-3xl"
                style={{
                  width: 280,
                  height: 280,
@@ -106,19 +109,19 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
              >
                 <div className="relative flex items-center justify-center">
                     <motion.div
-                        className="w-[180px] h-[180px] bg-[#0066CC] rounded-full mix-blend-multiply opacity-90"
+                        className="w-[180px] h-[180px] bg-[#E6C844] rounded-full mix-blend-multiply opacity-90"
                         style={{ x: pairGap }}
                     />
                     <motion.div
-                        className="w-[180px] h-[180px] bg-[#0066CC] rounded-full mix-blend-multiply opacity-90"
+                        className="w-[180px] h-[180px] bg-[#205090] rounded-full mix-blend-multiply opacity-90"
                         style={{ x: useTransform(pairGap, v => -v) }}
                     />
                 </div>
              </motion.div>
 
-             {/* Shape 3: Sanpo-yoshi */}
+             {/* Shape 3: Sanpo-yoshi (Pyramid Layout - Centered matching Pair) */}
              <motion.div
-                className="absolute w-[300px] h-[300px]"
+                className="absolute flex items-center justify-center"
                 style={{
                     scale: sanpoScale,
                     opacity: sanpoOpacity,
@@ -126,12 +129,44 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
                     zIndex: 10
                 }}
              >
-                 {/* Top Circle */}
-                 <div className="absolute top-[30px] left-1/2 -translate-x-1/2 w-[160px] h-[160px] bg-[#0066CC] rounded-full mix-blend-multiply opacity-90" />
-                 {/* Bottom Left Circle */}
-                 <div className="absolute bottom-[30px] left-[35px] w-[160px] h-[160px] bg-[#0066CC] rounded-full mix-blend-multiply opacity-90" />
-                 {/* Bottom Right Circle */}
-                 <div className="absolute bottom-[30px] right-[35px] w-[160px] h-[160px] bg-[#0066CC] rounded-full mix-blend-multiply opacity-90" />
+                <div className="relative w-[400px] h-[400px] flex items-center justify-center">
+                     {/* Top: Seller */}
+                     <motion.div
+                       className="absolute top-[30px] w-[180px] h-[180px] rounded-full mix-blend-multiply opacity-90"
+                       style={{ backgroundColor: '#50B070', y: useTransform(sanpoOffset, v => -v) }}
+                     />
+
+                     {/* Bottom Right: Buyer */}
+                     <motion.div
+                       className="absolute bottom-[40px] right-[40px] w-[180px] h-[180px] rounded-full mix-blend-multiply opacity-90"
+                       style={{ backgroundColor: '#205090', x: sanpoOffset, y: sanpoOffset }}
+                     />
+
+                     {/* Bottom Left: Society (Sun) */}
+                     <motion.div
+                       className="absolute bottom-[40px] left-[40px] w-[180px] h-[180px] rounded-full mix-blend-multiply opacity-90"
+                       style={{ backgroundColor: '#E6C844', x: useTransform(sanpoOffset, v => -v), y: sanpoOffset }}
+                     />
+
+                     {/* Center: Sanpo (Flower) */}
+                     <motion.div
+                        className="absolute flex items-center justify-center z-20"
+                        style={{ scale: centerScale, width: 140, height: 140 }}
+                     >
+                        {/* Petals */}
+                        {[0, 60, 120, 180, 240, 300].map((deg) => (
+                           <div
+                              key={deg}
+                              className="absolute w-[60px] h-[60px] bg-white rounded-full shadow-sm"
+                              style={{ transform: `rotate(${deg}deg) translate(28px)` }}
+                           />
+                        ))}
+                        {/* Center Stigma */}
+                        <div className="absolute w-[70px] h-[70px] bg-[#FFF5E5] rounded-full shadow-inner flex items-center justify-center">
+                           <div className="w-[30px] h-[30px] bg-[#FF8C00] rounded-full opacity-90 shadow-sm" />
+                        </div>
+                     </motion.div>
+                </div>
              </motion.div>
 
           </div>
@@ -173,8 +208,18 @@ function ScrollOpacityItem({ data, index, phase }: { data: any, index: number, p
       className="absolute w-full max-w-4xl"
       style={{ opacity, y }}
     >
-      <span className="block text-[#0066CC] font-bold text-xl mb-4">{data.id}.</span>
-      <h3 className="text-2xl lg:text-4xl font-black text-white mb-6 leading-relaxed font-sans tracking-wide whitespace-pre-line">
+      {index === 0 && <span className="block text-[#50B070] font-bold text-xl mb-4">01.</span>}
+      {index === 1 && (
+        <span className="block font-bold text-xl mb-4">
+          <span className="text-[#E6C844]">02</span><span className="text-[#205090]">.</span>
+        </span>
+      )}
+      {index === 2 && (
+        <span className="block font-bold text-xl mb-4">
+          <span className="text-[#50B070]">0</span><span className="text-[#E6C844]">3</span><span className="text-[#205090]">.</span>
+        </span>
+      )}
+      <h3 className="text-[2rem] font-black text-white mb-6 leading-[1.3] font-sans tracking-wide">
         {data.title}
       </h3>
       <p className="text-base text-gray-300 leading-loose">
@@ -194,29 +239,51 @@ function MissionContentMobile() {
           <div className="flex justify-center items-center h-[240px]">
              {index === 0 && (
                /* Square */
-               <div className="relative w-[160px] h-[160px] bg-[#0066CC] rounded-3xl rotate-[10deg]" />
+               <div className="relative w-[160px] h-[160px] bg-[#50B070] rounded-3xl rotate-[10deg]" />
              )}
              {index === 1 && (
                /* Pair */
                <div className="relative w-[160px] h-[160px] flex items-center justify-center">
-                  <div className="absolute w-[100px] h-[100px] bg-[#0066CC] rounded-full mix-blend-multiply opacity-90 -translate-x-8" />
-                  <div className="absolute w-[100px] h-[100px] bg-[#0066CC] rounded-full mix-blend-multiply opacity-90 translate-x-8" />
+                  <div className="absolute w-[100px] h-[100px] bg-[#E6C844] rounded-full mix-blend-multiply opacity-90 -translate-x-8" />
+                  <div className="absolute w-[100px] h-[100px] bg-[#205090] rounded-full mix-blend-multiply opacity-90 translate-x-8" />
                </div>
              )}
              {index === 2 && (
-               /* Sanpo (3 circles) */
-               <div className="relative w-[160px] h-[160px]">
-                  <div className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[90px] h-[90px] bg-[#0066CC] rounded-full mix-blend-multiply opacity-90" />
-                  <div className="absolute bottom-[20px] left-[15px] w-[90px] h-[90px] bg-[#0066CC] rounded-full mix-blend-multiply opacity-90" />
-                  <div className="absolute bottom-[20px] right-[15px] w-[90px] h-[90px] bg-[#0066CC] rounded-full mix-blend-multiply opacity-90" />
+               /* Sanpo (Pyramid Layout for Mobile) */
+               <div className="relative w-[200px] h-[200px]">
+                  <div className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[100px] h-[100px] rounded-full bg-[#50B070] mix-blend-multiply opacity-90" />
+                  <div className="absolute bottom-[20px] left-[15px] w-[100px] h-[100px] rounded-full bg-[#E6C844] mix-blend-multiply opacity-90" />
+                  <div className="absolute bottom-[20px] right-[15px] w-[100px] h-[100px] rounded-full bg-[#205090] mix-blend-multiply opacity-90" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70px] h-[70px] flex items-center justify-center scale-90">
+                      {[0, 60, 120, 180, 240, 300].map((deg) => (
+                          <div
+                              key={deg}
+                              className="absolute w-[35px] h-[35px] bg-white rounded-full shadow-sm"
+                              style={{ transform: `rotate(${deg}deg) translate(15px)` }}
+                          />
+                      ))}
+                      <div className="absolute w-[40px] h-[40px] bg-[#FFF5E5] rounded-full shadow-inner flex items-center justify-center">
+                          <div className="w-[18px] h-[18px] bg-[#FF8C00] rounded-full opacity-90 shadow-sm" />
+                      </div>
+                  </div>
                </div>
              )}
           </div>
 
           {/* Text Area */}
-          <div className="flex flex-col gap-4">
-             <span className="text-[#0066CC] font-bold text-xl">{item.id}.</span>
-             <h3 className="text-2xl font-black text-white leading-relaxed whitespace-pre-line">
+           <div className="flex flex-col gap-4">
+              {index === 0 && <span className="text-[#50B070] font-bold text-xl">01.</span>}
+              {index === 1 && (
+                <span className="font-bold text-xl">
+                  <span className="text-[#E6C844]">02</span><span className="text-[#205090]">.</span>
+                </span>
+              )}
+              {index === 2 && (
+                <span className="font-bold text-xl">
+                  <span className="text-[#50B070]">0</span><span className="text-[#E6C844]">3</span><span className="text-[#205090]">.</span>
+                </span>
+              )}
+             <h3 className="text-[2rem] font-black text-white leading-[1.3]">
                 {item.title}
              </h3>
              <p className="text-base text-gray-300 leading-relaxed">
