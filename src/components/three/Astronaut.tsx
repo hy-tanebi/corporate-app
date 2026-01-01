@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useRef, useEffect, useMemo } from "react";
+import { useFrame, useGraph } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import * as THREE from "three";
+import { SkeletonUtils } from "three-stdlib";
 
 interface AstronautProps {
     position?: [number, number, number];
@@ -16,6 +17,12 @@ export function Astronaut({ position = [0, 0, 0], scale = 2, isMobile = false }:
 	const { scene, animations } = useGLTF(
 		"https://mb9hgkfxcmjgkuip.public.blob.vercel-storage.com/artro_perfect.glb",
 	);
+
+    // シーンをクローンして、各インスタンスが独立したモデルを持つようにする
+    const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
+    // クローンされたシーンのグラフを取得（必要であれば）
+    const { nodes } = useGraph(clone);
+
 	const { actions, names } = useAnimations(animations, groupRef);
 
 	// アニメーションを再生
@@ -32,8 +39,8 @@ export function Astronaut({ position = [0, 0, 0], scale = 2, isMobile = false }:
 			});
 		}
 
-		// マテリアル設定
-		scene.traverse((child) => {
+		// マテリアル設定（クローンに対して行う）
+		clone.traverse((child: THREE.Object3D) => {
 			if ((child as THREE.Mesh).isMesh) {
 				const mesh = child as THREE.Mesh;
 				if (mesh.material) {
@@ -44,7 +51,7 @@ export function Astronaut({ position = [0, 0, 0], scale = 2, isMobile = false }:
 				}
 			}
 		});
-	}, [actions, names, animations, scene]);
+	}, [actions, names, animations, clone]);
 
 	useFrame((state) => {
 		if (groupRef.current) {
@@ -72,7 +79,7 @@ export function Astronaut({ position = [0, 0, 0], scale = 2, isMobile = false }:
 
 	return (
 		<group ref={groupRef}>
-			<primitive object={scene} scale={scale} />
+			<primitive object={clone} scale={scale} />
 		</group>
 	);
 }
