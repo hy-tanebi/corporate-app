@@ -95,9 +95,10 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
   // "ABOUT US" テキスト用
   const repeatCount = 10;
 
-  // 4. ダークネス効果 (0.70 - 0.95)
+  // 4. ダークネス効果 (0.55 - 0.95)
   // コンテンツが表示された後、スクロールに応じて画面を暗くしていく
-  const darknessStart = 0.70;
+  // Start earlier (0.55) so it's clearly visible before Iris starts (at ~0.6)
+  const darknessStart = 0.55;
   const darknessEnd = 0.95;
   const rawDarkness = (scrollProgress - darknessStart) / (darknessEnd - darknessStart);
   const darknessOpacity = Math.max(0, Math.min(1, rawDarkness)) * 0.7; // 最大0.7（少し明るさを残す）
@@ -112,8 +113,10 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
   // Parallax Scale Removed: Content size stays constant.
 
   // === Mask & Spaceship Logic (Close then Spawn) ===
-  // 1. Shrink Phase (0 -> 0.4): Close completely
-  const shrinkPhase = Math.min(transitionProgress / 0.4, 1);
+  // === Mask & Spaceship Logic (Close then Spawn) ===
+  // 1. Shrink Phase (0 -> 0.8): Close over a balanced duration
+  // Use 0.8 so it closes exactly when Darkness effect (ends at ~2.15h from bottom) finishes.
+  const shrinkPhase = Math.min(transitionProgress / 0.8, 1);
   // 半径をマイナスまで行かせることで、ぼかし(+20%)を含めて完全に消滅させる
   // 150 -> -25 (Range 175)
   const maskRadius = (1 - shrinkPhase) * 175 - 25;

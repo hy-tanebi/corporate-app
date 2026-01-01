@@ -55,8 +55,8 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
     restDelta: 0.001
   });
 
-  // Unified Phase Logic: 0 to 3 (since there are 3 items)
-  const currentPhase = useTransform(smoothProgress, [0, 1], [0, 3]);
+  // Unified Phase Logic: 0 to 4 (Item 3 gets double duration: 2-4)
+  const currentPhase = useTransform(smoothProgress, [0, 1], [0, 4]);
 
   // Shapes Transforms (Syncing perfectly with phase)
   // Shape 1: Square (Business) - Phase 0-1
@@ -69,16 +69,16 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
   const pairScale = useTransform(currentPhase, [1, 2], [0.95, 1.05]);
   const pairGap = useTransform(currentPhase, [1, 2], [-50, 50]);
 
-  // Shape 3: Sanpo-yoshi (Triangle/Circles) - Phase 2-3
-  const sanpoOpacity = useTransform(currentPhase, [2, 2.2, 2.8, 3.0], [0, 1, 1, 0]);
-  const sanpoScale = useTransform(currentPhase, [2, 3], [0.95, 1.05]);
-  const sanpoRotate = useTransform(currentPhase, [2, 3], [0, 0]);
-  // Move from outside (expanded) to inside (tight overlap)
+  // Shape 3: Sanpo-yoshi (Triangle/Circles) - Phase 2-4 (Extended)
+  const sanpoOpacity = useTransform(currentPhase, [2, 2.2, 3.8, 4.0], [0, 1, 1, 0]);
+  const sanpoScale = useTransform(currentPhase, [2, 4], [0.95, 1.05]);
+  const sanpoRotate = useTransform(currentPhase, [2, 4], [0, 0]);
+  // Move from outside (expanded) to inside (tight overlap) - Keep convergence speed punchy
   const sanpoOffset = useTransform(currentPhase, [2, 2.8], [100, 0]);
   const centerScale = useTransform(currentPhase, [2.5, 2.9], [0, 1]); // Center circle appears late
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-[1600px] mx-auto" style={{ height: '500vh' }}>
+    <div ref={containerRef} className="relative w-full max-w-[1600px] mx-auto" style={{ height: '700vh' }}>
       <div className="sticky top-0 h-screen w-full flex flex-row overflow-hidden">
 
         {/* Left Column: Visuals (50%) - Centered */}
@@ -156,9 +156,9 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
                         {/* Petals */}
                         {[0, 60, 120, 180, 240, 300].map((deg) => (
                            <div
-                              key={deg}
-                              className="absolute w-[60px] h-[60px] bg-white rounded-full shadow-sm"
-                              style={{ transform: `rotate(${deg}deg) translate(28px)` }}
+                               key={deg}
+                               className="absolute w-[60px] h-[60px] bg-white rounded-full shadow-sm"
+                               style={{ transform: `rotate(${deg}deg) translate(28px)` }}
                            />
                         ))}
                         {/* Center Stigma */}
@@ -181,6 +181,7 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
                   data={item}
                   index={index}
                   phase={currentPhase}
+                  duration={index === 2 ? 2.0 : 1.0}
                 />
              ))}
            </div>
@@ -190,16 +191,16 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
   );
 }
 
-function ScrollOpacityItem({ data, index, phase }: { data: any, index: number, phase: any }) {
+function ScrollOpacityItem({ data, index, phase, duration = 1.0 }: { data: any, index: number, phase: any, duration?: number }) {
   const opacity = useTransform(
     phase,
-    [index, index + 0.2, index + 0.8, index + 1.0],
+    [index, index + 0.2, index + duration - 0.2, index + duration],
     [0, 1, 1, 0]
   );
 
   const y = useTransform(
     phase,
-    [index, index + 1],
+    [index, index + duration],
     [50, -50]
   );
 
@@ -232,7 +233,7 @@ function ScrollOpacityItem({ data, index, phase }: { data: any, index: number, p
 // === Mobile Implementation (Static Column) ===
 function MissionContentMobile() {
   return (
-    <div className="w-full py-10 px-4 flex flex-col gap-24">
+    <div className="w-full py-10 px-2 flex flex-col gap-24">
       {CONTENT_ITEMS.map((item, index) => (
         <div key={item.id} className="flex flex-col gap-8">
           {/* Visual Area */}
@@ -271,7 +272,7 @@ function MissionContentMobile() {
           </div>
 
           {/* Text Area */}
-           <div className="flex flex-col gap-4">
+           <div className="flex flex-col gap-4 px-6">
               {index === 0 && <span className="text-[#50B070] font-bold text-xl">01.</span>}
               {index === 1 && (
                 <span className="font-bold text-xl">
@@ -283,7 +284,7 @@ function MissionContentMobile() {
                   <span className="text-[#50B070]">0</span><span className="text-[#E6C844]">3</span><span className="text-[#205090]">.</span>
                 </span>
               )}
-             <h3 className="text-[2rem] font-black text-white leading-[1.3]">
+             <h3 className="text-[1.6rem] md:text-[2rem] font-black text-white leading-[1.3]">
                 {item.title}
              </h3>
              <p className="text-base text-gray-300 leading-relaxed">

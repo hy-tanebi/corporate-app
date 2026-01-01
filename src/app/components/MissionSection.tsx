@@ -20,6 +20,7 @@ interface MissionSectionProps {
 
 export interface MissionSidebarHandle {
   scrollToAbout: () => void;
+  scrollToMission: () => void;
   scrollToContact: () => void;
 }
 
@@ -27,6 +28,7 @@ export interface MissionSidebarHandle {
 const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
 const remap01 = (v: number, a: number, b: number) => clamp((v - a) / (b - a));
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - clamp(t), 3);
+const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 function MissionSection({
   scrollProgress,
@@ -164,6 +166,7 @@ function MissionSection({
   const gradientRef = useRef<HTMLDivElement>(null);
   const aboutWrapperRef = useRef<HTMLDivElement>(null); // AboutSectionを囲うラッパー
   const contactRef = useRef<HTMLDivElement>(null);
+  const contactTitleRef = useRef<HTMLHeadingElement>(null);
   const contactFormRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef(0);
@@ -195,6 +198,33 @@ function MissionSection({
          setSectionProgress(1.0);
       }
     },
+    scrollToMission: () => {
+        if (containerRef.current) {
+            // 自動スクロールフラグを解除
+            isAutoScrollingToContact.current = false;
+
+            // コンタクト表示フラグを強制解除 (宇宙空間のままになるのを防ぐ)
+            setIsContactVisible(false);
+            setIsContactInView(false);
+
+            // 背景状態を強制リセット (グレー画面を防ぐ)
+            setGradientProgress(0);
+            setIrisTransitionProgress(0);
+            setSpaceOpacity(1);
+            setTransitionProgress(0);
+
+            // グレー背景(gradientProgress)を即座にリセットするために auto
+            containerRef.current.scrollTo({
+                top: 0,
+                behavior: "auto"
+            });
+
+            // Physicsをターゲット位置(0.95)に強制リセットして、表示完了状態から開始
+            currentRef.current = 0.95;
+            targetRef.current = 0.95;
+            setSectionProgress(0.95);
+        }
+    },
     scrollToContact: () => {
         if (containerRef.current && contactFormRef.current) {
             // 自動スクロールフラグを立てて、即座にContact表示モードにする
@@ -221,16 +251,28 @@ function MissionSection({
     }
   }));
 
-  // 最終的な背景色を計算（黒→薄いグレー→黒）
+  // 最終的な背景色を計算（黒→薄いグレー→透明）
   const calculateFinalBackgroundColor = useCallback(
     (progress1: number, irisProgress: number, contactInView: boolean) => {
-      if (contactInView) return "rgba(0, 0, 0, 0)";
+      // Contactが表示されている、またはIris遷移が完了している場合は完全に透明（宇宙を表示）
+      if (contactInView || irisProgress >= 1) return "rgba(0, 0, 0, 0)";
 
       const clampedProgress1 = Math.max(0, Math.min(1, progress1));
+      // User request: About section (text flow) needs white background.
+      // Reverting to 235 (Light Gray/White).
       const TARGET_GRAY = 235;
-      let colorValue = Math.round(clampedProgress1 * TARGET_GRAY);
 
-      return `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
+      // メインカラー（進捗に応じて黒→グレー）
+      // Iris遷移が進むにつれて黒（0）に近づける
+      const irisFactor = Math.max(0, Math.min(1, irisProgress));
+      let colorValue = Math.round(clampedProgress1 * TARGET_GRAY * (1 - irisFactor));
+
+      // 不透明度（Iris遷移が進むにつれて透明にしていく）
+      // irisProgress: 0 (Mission/About) -> 1 (Space/Contact)
+      // alpha: 1 -> 0
+      const alpha = 1 - irisFactor;
+
+      return `rgba(${colorValue}, ${colorValue}, ${colorValue}, ${alpha})`;
     },
     []
   );
@@ -288,50 +330,75 @@ function MissionSection({
         if (rect.top <= windowHeight && rect.bottom >= 0) {
           const sectionHeight = rect.height;
           const scrolled = windowHeight - rect.top;
-          const progress = Math.max(
-            0,
-            Math.min(1, scrolled / (sectionHeight + windowHeight))
-          );
-          setGradientProgress(progress);
+          // 0~1 の線形進行
+          const rawProgress = Math.max(0, Math.min(1, scrolled / (sectionHeight + windowHeight)));
+
+          // User request: Mission content remaining Black, About becoming White.
+          // Delay the fade so it stays black longer, then fades to white near the end (About).
+          // 0.0 -> 0.5: Black
+          // 0.5 -> 1.0: Fade to White
+          const delayedProgress = Math.max(0, (rawProgress - 0.5) * 2);
+
+          setGradientProgress(delayedProgress);
+        } else if (rect.top > windowHeight) {
+            // 画面より下にある場合は 0 にリセット
+            setGradientProgress(0);
+        } else {
+             // 画面より上にある場合（通り過ぎた後）は 1 を維持
+             setGradientProgress(1);
         }
       }
-
       // === Iris Transition Logic ===
       // About Wrapperがある場合、その「最後尾」に近づいたらIrisを閉じる
       if (aboutWrapperRef.current) {
         const rect = aboutWrapperRef.current.getBoundingClientRect();
-        // rect.bottom は画面上部からの距離
-        // rect.bottom が windowHeight に近づくにつれて 0 -> 1 にしたい
-        // Transition Zone: Bottomが画面下から「100vh」の位置にある間に行う
-        const TRANSITION_ZONE = windowHeight * 10.0; // 10.0画面分かけてゆっくり変化（修正前: 1.5 -> 4.0 -> 10.0）
+        // User feedback: "Closing was better before (slower)".
+        // Reverting to 10.0 (slow) but relied on AboutSection's updated shrinkPhase to ensure darkness is seen.
+        const TRANSITION_ZONE = windowHeight * 10.0;
 
         const distFromBottom = rect.bottom - windowHeight;
 
         if (distFromBottom <= TRANSITION_ZONE && distFromBottom >= 0) {
-            // Zone内: 0 -> 1
-            // dist: ZONE -> 0 => progress: 0 -> 1
-            const p = 1 - (distFromBottom / TRANSITION_ZONE);
+            // Zone内: 0 -> 1 (Easing applied for smoother space movement)
+            const linearP = 1 - (distFromBottom / TRANSITION_ZONE);
+            // Use Ease-in-out for smooth start and smooth end
+            const p = easeInOutCubic(linearP);
             setIrisTransitionProgress(p);
         } else if (distFromBottom < 0) {
-            // 通過後: 1
             setIrisTransitionProgress(1);
         } else {
-            // まだ来てない: 0
             setIrisTransitionProgress(0);
         }
       }
 
-      // Contact Section Visibility Check
+      // Contact Section Visibility Check & Title Animation
       if (contactRef.current) {
         const rect = contactRef.current.getBoundingClientRect();
         const isVisible = rect.top < windowHeight * 0.8;
 
-        // 自動スクロール中は強制的に表示状態とみなす
         const effectiveIsVisible = isAutoScrollingToContact.current ? true : isVisible;
 
         if (effectiveIsVisible !== isContactInView) {
           setIsContactInView(effectiveIsVisible);
           setIsContactVisible(effectiveIsVisible);
+        }
+
+        // Title Animation: Triggered (CSS transition) instead of Scroll-Linked (JS)
+        // "ふわっと" 表示させるため、ある地点を超えたら opacity 1, translate 0 にする
+        if (contactTitleRef.current) {
+             const startOffset = windowHeight * 0.85; // 画面内に15%入ったら開始
+
+             if (rect.top < startOffset) {
+                 // Trigger Animation - Long duration (1.5s) and large distance for "fuwatto" (floating) feel
+                 contactTitleRef.current.style.opacity = "1";
+                 contactTitleRef.current.style.transform = "translateY(0)";
+                 contactTitleRef.current.style.transition = "opacity 1.5s ease-out, transform 1.5s ease-out";
+             } else {
+                 // Reset
+                 contactTitleRef.current.style.opacity = "0";
+                 contactTitleRef.current.style.transform = "translateY(100px)"; // Increased to 100px
+                 contactTitleRef.current.style.transition = "opacity 0.5s ease-out, transform 0.5s ease-out";
+             }
         }
       }
     };
@@ -528,14 +595,14 @@ function MissionSection({
       </div>
 
       <div
-        className="w-full min-h-screen flex flex-col items-center justify-center px-8 py-20"
+        className="w-full min-h-screen flex flex-col items-center justify-center px-0 md:px-8 py-20"
         style={{
           opacity: showDescription ? 1 : 0,
           transform: `translateY(${showDescription ? 0 : 30}px)`,
           transition: "opacity 1s ease-out, transform 1s ease-out",
         }}
       >
-        <div className="max-w-4xl mx-auto px-4 w-full">
+        <div className="max-w-4xl mx-auto px-0 md:px-4 w-full">
             <div className="flex flex-col gap-6">
             {/* MissionContentコンポーネント (Desktop: 2カラムSticky / Mobile: 1カラムStatic) */}
             <div
@@ -568,7 +635,13 @@ function MissionSection({
       </div>
 
       <div ref={contactRef} className="w-full h-screen flex items-center justify-center relative z-30">
-        <h2 className="text-6xl md:text-8xl font-bold text-white">CONTACT</h2>
+        <h2
+            ref={contactTitleRef}
+            className="text-6xl md:text-8xl font-bold text-white will-change-transform" // optimizations
+            style={{ opacity: 0, transform: 'translateY(100px)' }} // Initial state
+        >
+            CONTACT
+        </h2>
       </div>
 
       <div className="w-full min-h-[calc(100dvh+1px)] flex items-center justify-center p-4">
@@ -587,8 +660,7 @@ function MissionSection({
             isContactInView
           ),
           transition: "background-color 0.6s ease-out",
-          // Iris遷移中（>0）は背景を非表示にして、AboutSection側のマスクだけで透けさせる（二重円防止）
-          opacity: irisTransitionProgress > 0 ? 0 : 1,
+          // Removed opacity toggle to fix whitening issue
           // ...maskStyle // 削除: 二重マスクの原因となるため
         }}
       />

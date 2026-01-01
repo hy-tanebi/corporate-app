@@ -16,6 +16,7 @@ import { StarParticles } from "./StarParticles";
 import { ShootingStars } from "./ShootingStars";
 import { PurpleNebula } from "./PurpleNebula";
 import VideoCardsRenderer from "./VideoCardsRenderer";
+import { Astronaut } from "./Astronaut";
 import { FeatherCircleMaterial } from "./materials";
 import { getSafeVideoSlides } from "../../data/fallback-content";
 import type { VideoSlide } from "../../types/content";
@@ -104,6 +105,7 @@ interface HeroSceneProps {
 	isContactVisible: boolean;
     spaceOpacity: number;
     transitionProgress: number;
+    shouldSnapAnimation: boolean;
 }
 
 function HeroScene({
@@ -114,6 +116,7 @@ function HeroScene({
 	isContactVisible,
     spaceOpacity,
     transitionProgress,
+    shouldSnapAnimation,
 }: HeroSceneProps) {
 	const heroMatRef = useRef<any>(null);
 	const starGroupRef = useRef<THREE.Group>(null);
@@ -472,7 +475,8 @@ function HeroScene({
 			const tTarget = sstep(scrollProgress, currentStart, endClamped);
 
             // モバイルなら完全同期、そうでなければスムージング
-            if (isMobile) {
+            // ★修正: shouldSnapAnimationがtrueの場合はスムージングを無効化（即時同期）
+            if (isMobile || shouldSnapAnimation) {
                 circleTRef.current = tTarget;
             } else {
                 const speed =
@@ -581,6 +585,12 @@ function HeroScene({
 		<>
 			<color attach="background" args={["black"]} />
 
+            {/* 照明設定 (Astronaut表示用) */}
+			<ambientLight intensity={2} />
+			<directionalLight position={[0, 5, 10]} intensity={3} />
+			<directionalLight position={[-5, 0, -5]} intensity={1.5} />
+			<directionalLight position={[5, 0, -5]} intensity={1.5} />
+
 			{/* ===== 通常シーン ===== */}
 			<group ref={rootRef} position={[0, 0, ROOT_Z_OFFSET]}>
 				<group ref={starGroupRef}>
@@ -598,6 +608,12 @@ function HeroScene({
 								rotation={[0, 0, pos.rotation]}
 							/>
 						))}
+                        {/* 宇宙飛行士 (Topページ & 最後の宇宙エリアで表示) */}
+                        <Astronaut
+                            position={[0, 0, -5]}
+                            scale={2}
+                            isMobile={typeof window !== 'undefined' && window.innerWidth < 768}
+                        />
 					</Suspense>
 				</group>
 
@@ -713,6 +729,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 	const [isContactVisible, setIsContactVisible] = useState(false);
     const [spaceOpacity, setSpaceOpacity] = useState(1);
     const [transitionProgress, setTransitionProgress] = useState(0);
+    const [shouldSnapAnimation, setShouldSnapAnimation] = useState(false);
 
 	const handleCardClick = (slide: VideoSlide, index: number) => {
 		setSelectedCard({ slide, index });
@@ -737,7 +754,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 	}, []);
 
 	return (
-		<HeroStateContext.Provider value={{ setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress }}>
+		<HeroStateContext.Provider value={{ setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress, shouldSnapAnimation, setShouldSnapAnimation }}>
 			<Canvas
 				camera={{ position: [0, 0, CAMERA_Z], fov: 75 }}
 				dpr={[1, 1.5]}
@@ -760,6 +777,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 					isContactVisible={isContactVisible}
                     spaceOpacity={spaceOpacity}
                     transitionProgress={transitionProgress}
+                    shouldSnapAnimation={shouldSnapAnimation}
 				/>
 			</Canvas>
 
