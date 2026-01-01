@@ -95,23 +95,35 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
   // "ABOUT US" テキスト用
   const repeatCount = 10;
 
-  // 4. ダークネス効果 (0.45 - 0.9)
+  // 4. ダークネス効果 (0.55 - 0.95)
   // コンテンツが表示された後、スクロールに応じて画面を暗くしていく
-  const darknessStart = 0.45;
+  // Start earlier (0.55) so it's clearly visible before Iris starts (at ~0.6)
+  const darknessStart = 0.55;
   const darknessEnd = 0.95;
   const rawDarkness = (scrollProgress - darknessStart) / (darknessEnd - darknessStart);
   const darknessOpacity = Math.max(0, Math.min(1, rawDarkness)) * 0.7; // 最大0.7（少し明るさを残す）
 
+  // タイトル制御 (About)
+  useEffect(() => {
+    if (contentOpacity > 0) {
+      document.title = "ABOUT ME | TANEBI CREATIVE タネビ クリエイティブ";
+    }
+  }, [contentOpacity]);
+
   // Parallax Scale Removed: Content size stays constant.
 
   // === Mask & Spaceship Logic (Close then Spawn) ===
-  // 1. Shrink Phase (0 -> 0.4): Close completely
-  const shrinkPhase = Math.min(transitionProgress / 0.4, 1);
-  const maskRadius = Math.max(0, (1 - shrinkPhase) * 150);
+  // === Mask & Spaceship Logic (Close then Spawn) ===
+  // 1. Shrink Phase (0 -> 0.8): Close over a balanced duration
+  // Use 0.8 so it closes exactly when Darkness effect (ends at ~2.15h from bottom) finishes.
+  const shrinkPhase = Math.min(transitionProgress / 0.8, 1);
+  // 半径をマイナスまで行かせることで、ぼかし(+20%)を含めて完全に消滅させる
+  // 150 -> -25 (Range 175)
+  const maskRadius = (1 - shrinkPhase) * 175 - 25;
 
   const maskStyle = {
-    maskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 0.1}%)`,
-    WebkitMaskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 0.1}%)`,
+    maskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 20}%)`,
+    WebkitMaskImage: `radial-gradient(circle at 50% 50%, black ${maskRadius}%, transparent ${maskRadius + 20}%)`,
   };
 
 
@@ -121,7 +133,7 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
       ref={sectionRef}
       className="w-full relative"
       style={{
-        height: "800vh", // Extended height for time earning
+        height: "2400vh", // Extended height for time earning
       }}
     >
         {/* SVGフィルター定義 (不可視) */}
@@ -167,10 +179,10 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
           {Array.from({ length: repeatCount }).map((_, i) => (
             <span
               key={i}
-              className="text-[8vw] md:text-[7vw] font-bold mx-8"
+              className="text-[8vw] md:text-[7vw] font-bold mx-2 md:mx-8"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              ABOUT US
+              ABOUT ME
             </span>
           ))}
         </div>

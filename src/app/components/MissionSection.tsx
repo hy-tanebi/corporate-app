@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { ContactForm } from "@/components/contact/contact-form";
 import AboutSection from "./AboutSection";
+import MissionContent from "./MissionContent";
 import { useHeroState } from "../../contexts/HeroStateContext";
 
 // フォームセクションコンポーネント
@@ -19,6 +20,7 @@ interface MissionSectionProps {
 
 export interface MissionSidebarHandle {
   scrollToAbout: () => void;
+  scrollToMission: () => void;
   scrollToContact: () => void;
 }
 
@@ -26,6 +28,7 @@ export interface MissionSidebarHandle {
 const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
 const remap01 = (v: number, a: number, b: number) => clamp((v - a) / (b - a));
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - clamp(t), 3);
+const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 function MissionSection({
   scrollProgress,
@@ -33,12 +36,14 @@ function MissionSection({
   onProgressChange,
 }: MissionSectionProps, ref: React.Ref<MissionSidebarHandle>) {
   const { setIsContactVisible, setSpaceOpacity, setTransitionProgress } = useHeroState();
-
   const [isMobile, setIsMobile] = useState(false);
+
+  // Section Progress State (moved to top to avoid ReferenceError)
+  const [sectionProgress, setSectionProgress] = useState(0);
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // Adjust breakpoint as needed
+      setIsMobile(window.innerWidth < 768);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -46,14 +51,15 @@ function MissionSection({
   }, []);
 
   // ======= 調整パラメータ（ここをいじるだけで遅くできます） =======
-  const SECTION_START = 0.94; // この位置から演出を開始
-  const SECTION_END = 0.999; // この位置で演出を完了（区間を広げるほどゆっくり）
-  const PROGRESS_SPEED_FORWARD = 0.25; // 1秒あたり最大で 0.25 しか進まない（もっと遅く→0.15 など）
-  // スマホの場合は戻る速度を遅くして、「一気にトップまで戻る」事故を防ぐ
+  const SECTION_START = isMobile ? 0.85 : 0.94;
+  const SECTION_END = 0.999;
+
+  const PROGRESS_SPEED_FORWARD = isMobile ? 5.0 : 0.25;
   const PROGRESS_SPEED_BACKWARD = isMobile ? 1.0 : 2.0;
-  const SMOOTH_ALPHA = 0.08; // 慣性（追従割合）。小さいほど粘る
-  const SMOOTH_ALPHA_BACKWARD = 0.3; // 戻る時の慣性（より素早く反応）
-  const GAMMA = 1.8; // >1 で序盤をさらに遅く（2.2 とかでもOK）
+
+  const SMOOTH_ALPHA = isMobile ? 0.9 : 0.08;
+  const SMOOTH_ALPHA_BACKWARD = 0.3;
+  const GAMMA = 1.8;
 
   // 生のターゲット進捗（0→1）
   const rawTarget = useMemo(() => {
@@ -82,7 +88,7 @@ function MissionSection({
   // 速度上限＋慣性つきの追従進捗（実際に描画に使う）
   const targetRef = useRef(0);
   const currentRef = useRef(0);
-  const [sectionProgress, setSectionProgress] = useState(0);
+  // const [sectionProgress, setSectionProgress] = useState(0); // Moved to top
 
   useEffect(() => {
     targetRef.current = shapedTarget;
@@ -114,10 +120,16 @@ function MissionSection({
       const inertialStep = diff * smoothAlpha;
 
       // 実際に適用するステップは「慣性」と「速度上限」の小さい方
-      const step =
+      let step =
         Math.abs(inertialStep) > maxStep
           ? Math.sign(inertialStep) * maxStep
           : inertialStep;
+
+      // ★スマホの場合は完全連動（慣性・遅延ゼロ）にする
+      // 指の動きに吸い付くようにするため、計算したステップを無視して直接ターゲットへ
+      if (isMobile) {
+          step = diff; // diffをそのまま足せば cur + step = tgt になる
+      }
 
       cur += step;
 
@@ -134,13 +146,16 @@ function MissionSection({
 
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [onProgressChange]);
+  }, [onProgressChange, isMobile]);
 
   // 表示フラグ
   const showSection = isCircleFullyExpanded;
   const showMission = sectionProgress >= 0.15;
   const showCreative = sectionProgress >= 0.3;
-  const showDescription = sectionProgress >= 0.97; // アニメーション完了後に詳細テキストを表示
+  // 詳細テキストの表示（スクロールロック解除）タイミング
+  // スマホの場合は「待たされる感」を減らすため、アニメーションが9割完了したらもう出し始める
+  // さらに早めて0.75にする（文字の横移動中だが、もうスクロールできて良い）
+  const showDescription = sectionProgress >= (isMobile ? 0.75 : 0.97);
 
   // グラデーション遷移セクションのスクロール進捗を追跡
   const [gradientProgress, setGradientProgress] = useState(0);
@@ -151,6 +166,7 @@ function MissionSection({
   const gradientRef = useRef<HTMLDivElement>(null);
   const aboutWrapperRef = useRef<HTMLDivElement>(null); // AboutSectionを囲うラッパー
   const contactRef = useRef<HTMLDivElement>(null);
+  const contactTitleRef = useRef<HTMLHeadingElement>(null);
   const contactFormRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef(0);
@@ -182,6 +198,33 @@ function MissionSection({
          setSectionProgress(1.0);
       }
     },
+    scrollToMission: () => {
+        if (containerRef.current) {
+            // 自動スクロールフラグを解除
+            isAutoScrollingToContact.current = false;
+
+            // コンタクト表示フラグを強制解除 (宇宙空間のままになるのを防ぐ)
+            setIsContactVisible(false);
+            setIsContactInView(false);
+
+            // 背景状態を強制リセット (グレー画面を防ぐ)
+            setGradientProgress(0);
+            setIrisTransitionProgress(0);
+            setSpaceOpacity(1);
+            setTransitionProgress(0);
+
+            // グレー背景(gradientProgress)を即座にリセットするために auto
+            containerRef.current.scrollTo({
+                top: 0,
+                behavior: "auto"
+            });
+
+            // Physicsをターゲット位置(0.95)に強制リセットして、表示完了状態から開始
+            currentRef.current = 0.95;
+            targetRef.current = 0.95;
+            setSectionProgress(0.95);
+        }
+    },
     scrollToContact: () => {
         if (containerRef.current && contactFormRef.current) {
             // 自動スクロールフラグを立てて、即座にContact表示モードにする
@@ -208,16 +251,28 @@ function MissionSection({
     }
   }));
 
-  // 最終的な背景色を計算（黒→薄いグレー→黒）
+  // 最終的な背景色を計算（黒→薄いグレー→透明）
   const calculateFinalBackgroundColor = useCallback(
     (progress1: number, irisProgress: number, contactInView: boolean) => {
-      if (contactInView) return "rgba(0, 0, 0, 0)";
+      // Contactが表示されている、またはIris遷移が完了している場合は完全に透明（宇宙を表示）
+      if (contactInView || irisProgress >= 1) return "rgba(0, 0, 0, 0)";
 
       const clampedProgress1 = Math.max(0, Math.min(1, progress1));
+      // User request: About section (text flow) needs white background.
+      // Reverting to 235 (Light Gray/White).
       const TARGET_GRAY = 235;
-      let colorValue = Math.round(clampedProgress1 * TARGET_GRAY);
 
-      return `rgb(${colorValue}, ${colorValue}, ${colorValue})`;
+      // メインカラー（進捗に応じて黒→グレー）
+      // Iris遷移が進むにつれて黒（0）に近づける
+      const irisFactor = Math.max(0, Math.min(1, irisProgress));
+      let colorValue = Math.round(clampedProgress1 * TARGET_GRAY * (1 - irisFactor));
+
+      // 不透明度（Iris遷移が進むにつれて透明にしていく）
+      // irisProgress: 0 (Mission/About) -> 1 (Space/Contact)
+      // alpha: 1 -> 0
+      const alpha = 1 - irisFactor;
+
+      return `rgba(${colorValue}, ${colorValue}, ${colorValue}, ${alpha})`;
     },
     []
   );
@@ -229,6 +284,29 @@ function MissionSection({
     // Space Opacityは常に1 (マスクで隠したり見せたりする)
     setSpaceOpacity(1);
   }, [irisTransitionProgress, setSpaceOpacity, setTransitionProgress]);
+
+  // タイトル制御 (Mission, Contact)
+  useEffect(() => {
+    if (!showSection) return;
+
+    // Contactが表示されている場合
+    if (isContactInView) {
+      document.title = "CONTACT | TANEBI CREATIVE タネビ クリエイティブ";
+      return;
+    }
+
+    // Iris遷移が始まっている場合（Aboutへの移行中）
+    // AboutSection側で制御するため何もしない（またはAboutへ渡す）
+    if (irisTransitionProgress > 0) {
+       // AboutSection側で "ABOUT ME" になるはずだが、遷移中はMISSIONのままでも違和感はない
+       // ただし、完全にAboutになったらAboutSectionにお任せする
+       return;
+    }
+
+    // Mission表示中
+    document.title = "MISSION | TANEBI CREATIVE タネビ クリエイティブ";
+
+  }, [showSection, isContactInView, irisTransitionProgress]);
 
   // スクロールイベント
   useEffect(() => {
@@ -252,50 +330,75 @@ function MissionSection({
         if (rect.top <= windowHeight && rect.bottom >= 0) {
           const sectionHeight = rect.height;
           const scrolled = windowHeight - rect.top;
-          const progress = Math.max(
-            0,
-            Math.min(1, scrolled / (sectionHeight + windowHeight))
-          );
-          setGradientProgress(progress);
+          // 0~1 の線形進行
+          const rawProgress = Math.max(0, Math.min(1, scrolled / (sectionHeight + windowHeight)));
+
+          // User request: Mission content remaining Black, About becoming White.
+          // Delay the fade so it stays black longer, then fades to white near the end (About).
+          // 0.0 -> 0.5: Black
+          // 0.5 -> 1.0: Fade to White
+          const delayedProgress = Math.max(0, (rawProgress - 0.5) * 2);
+
+          setGradientProgress(delayedProgress);
+        } else if (rect.top > windowHeight) {
+            // 画面より下にある場合は 0 にリセット
+            setGradientProgress(0);
+        } else {
+             // 画面より上にある場合（通り過ぎた後）は 1 を維持
+             setGradientProgress(1);
         }
       }
-
       // === Iris Transition Logic ===
       // About Wrapperがある場合、その「最後尾」に近づいたらIrisを閉じる
       if (aboutWrapperRef.current) {
         const rect = aboutWrapperRef.current.getBoundingClientRect();
-        // rect.bottom は画面上部からの距離
-        // rect.bottom が windowHeight に近づくにつれて 0 -> 1 にしたい
-        // Transition Zone: Bottomが画面下から「100vh」の位置にある間に行う
-        const TRANSITION_ZONE = windowHeight * 1.5; // 1.5画面分かけて変化
+        // User feedback: "Closing was better before (slower)".
+        // Reverting to 10.0 (slow) but relied on AboutSection's updated shrinkPhase to ensure darkness is seen.
+        const TRANSITION_ZONE = windowHeight * 10.0;
 
         const distFromBottom = rect.bottom - windowHeight;
 
         if (distFromBottom <= TRANSITION_ZONE && distFromBottom >= 0) {
-            // Zone内: 0 -> 1
-            // dist: ZONE -> 0 => progress: 0 -> 1
-            const p = 1 - (distFromBottom / TRANSITION_ZONE);
+            // Zone内: 0 -> 1 (Easing applied for smoother space movement)
+            const linearP = 1 - (distFromBottom / TRANSITION_ZONE);
+            // Use Ease-in-out for smooth start and smooth end
+            const p = easeInOutCubic(linearP);
             setIrisTransitionProgress(p);
         } else if (distFromBottom < 0) {
-            // 通過後: 1
             setIrisTransitionProgress(1);
         } else {
-            // まだ来てない: 0
             setIrisTransitionProgress(0);
         }
       }
 
-      // Contact Section Visibility Check
+      // Contact Section Visibility Check & Title Animation
       if (contactRef.current) {
         const rect = contactRef.current.getBoundingClientRect();
         const isVisible = rect.top < windowHeight * 0.8;
 
-        // 自動スクロール中は強制的に表示状態とみなす
         const effectiveIsVisible = isAutoScrollingToContact.current ? true : isVisible;
 
         if (effectiveIsVisible !== isContactInView) {
           setIsContactInView(effectiveIsVisible);
           setIsContactVisible(effectiveIsVisible);
+        }
+
+        // Title Animation: Triggered (CSS transition) instead of Scroll-Linked (JS)
+        // "ふわっと" 表示させるため、ある地点を超えたら opacity 1, translate 0 にする
+        if (contactTitleRef.current) {
+             const startOffset = windowHeight * 0.85; // 画面内に15%入ったら開始
+
+             if (rect.top < startOffset) {
+                 // Trigger Animation - Long duration (1.5s) and large distance for "fuwatto" (floating) feel
+                 contactTitleRef.current.style.opacity = "1";
+                 contactTitleRef.current.style.transform = "translateY(0)";
+                 contactTitleRef.current.style.transition = "opacity 1.5s ease-out, transform 1.5s ease-out";
+             } else {
+                 // Reset
+                 contactTitleRef.current.style.opacity = "0";
+                 contactTitleRef.current.style.transform = "translateY(100px)"; // Increased to 100px
+                 contactTitleRef.current.style.transition = "opacity 0.5s ease-out, transform 0.5s ease-out";
+             }
         }
       }
     };
@@ -307,8 +410,69 @@ function MissionSection({
       container.removeEventListener("scroll", handleScroll);
     };
   }, [showDescription, isContactInView, setIsContactVisible]);
+  // オーバーレイでのスクロールをメインウィンドウに伝播させる処理（スマホでの「戻る」を安定させる）
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !showSection) return;
 
-  // スクロール位置復元・リセット
+    let touchStartY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+        touchStartY = e.touches[0].clientY;
+    };
+
+    // RAFを使ったスロットリング用フラグ
+    let isScrolling = false;
+
+    const handleTouchMove = (e: TouchEvent) => {
+        if (isScrolling) return;
+
+        const touchY = e.touches[0].clientY;
+        const deltaY = touchY - touchStartY;
+
+        // 上端にいて、さらに下に引っ張ろうとしている（＝上に戻ろうとしている）場合
+        if (container.scrollTop <= 0 && deltaY > 0) {
+            isScrolling = true;
+            requestAnimationFrame(() => {
+                // メインウィンドウをスクロール（動きを少し滑らかにするために係数を調整）
+                window.scrollBy(0, -deltaY * 1.5);
+                isScrolling = false;
+            });
+
+            // デフォルト動作を防ぐ（オーバースクロールエフェクト防止等）
+            if (e.cancelable) e.preventDefault();
+        }
+        touchStartY = touchY;
+    };
+
+    // PC/トラックパッド対応
+    const handleWheel = (e: WheelEvent) => {
+        if (isScrolling) return;
+        if (container.scrollTop <= 0 && e.deltaY < 0) {
+             isScrolling = true;
+             requestAnimationFrame(() => {
+                 window.scrollBy(0, e.deltaY);
+                 isScrolling = false;
+             });
+        }
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    // wheelイベントはpassive: falseでないとpreventDefaultできないが、
+    // ここでは単純なscrollBy呼び出しのみ行うため、passive: trueでも動作はするが
+    // トラックパッドの「戻る」ジェスチャ等が暴発しないよう注意が必要。
+    // 安全のため passive: false を維持。
+    container.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+        container.removeEventListener('touchstart', handleTouchStart);
+        container.removeEventListener('touchmove', handleTouchMove);
+        container.removeEventListener('wheel', handleWheel);
+    };
+  }, [showSection, isMobile]);
+
+  // スクロールイベント
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -346,11 +510,17 @@ function MissionSection({
   // matrix 用パラメータ
   const scale = 1 + (1 - zAxisProgress) * 4;
 
-  // スマホ(768px未満)の場合は文字間隔を狭く、PCなどでは広くする
-  const baseTx = isMobile ? 60 : 100;
+  // スマホ(768px未満)、PC共にMISSIONの幅（text-6xl/text-8xl）に合わせるよう調整
+  // Mobile: 60 (微調整: 70から短縮), Desktop: 90 (微調整: 120から短縮)
+  // この `baseTx` の値を変更することで、TECHNICALとPARTNERの間隔を調整できます。
+  const baseTx = isMobile ? 65 : 104;
 
-  const leftTx = -baseTx * horizontalProgress;
-  const rightTx = +baseTx * horizontalProgress;
+  // 全体を右（または左）にずらすためのオフセット値（正の値で右へ、負の値で左へ）
+  // Mobile: 10, Desktop: 0 (必要に応じて変更してください)
+  const centerOffsetX = isMobile ? 5 : 10;
+
+  const leftTx = -baseTx * horizontalProgress + centerOffsetX;
+  const rightTx = +baseTx * horizontalProgress + centerOffsetX;
   const upTy = -25 * (1 - horizontalProgress);
   const dnTy = +25 * (1 - horizontalProgress);
 
@@ -397,7 +567,7 @@ function MissionSection({
           style={{ perspective: "1000px", minHeight: 150, width: "100%" }}
         >
           <p
-            className="text-2xl md:text-4xl text-white/90 font-bold absolute will-change-transform"
+            className="text-xl md:text-4xl text-white/90 font-bold absolute will-change-transform tracking-wider md:tracking-normal"
             style={{
               opacity: showCreative ? 1 : 0,
               transform: showCreative
@@ -410,7 +580,7 @@ function MissionSection({
           </p>
 
           <p
-            className="text-2xl md:text-4xl text-white/90 font-bold absolute will-change-transform"
+            className="text-xl md:text-4xl text-white/90 font-bold absolute will-change-transform tracking-wider md:tracking-normal"
             style={{
               opacity: showCreative ? 1 : 0,
               transform: showCreative
@@ -425,46 +595,26 @@ function MissionSection({
       </div>
 
       <div
-        className="w-full min-h-screen flex flex-col items-center justify-center px-8 py-20"
+        className="w-full min-h-screen flex flex-col items-center justify-center px-0 md:px-8 py-20"
         style={{
           opacity: showDescription ? 1 : 0,
           transform: `translateY(${showDescription ? 0 : 30}px)`,
           transition: "opacity 1s ease-out, transform 1s ease-out",
         }}
       >
-        <div className="max-w-4xl mx-auto px-4 w-full">
+        <div className="max-w-4xl mx-auto px-0 md:px-4 w-full">
             <div className="flex flex-col gap-6">
-              {[
-                {
-                  title: "AIとWebを使って、ビジネスの課題に向き合います。",
-                  description: "AIによる業務効率化や、Webサイトの制作・運用を通じて、日々の業務や運用上の課題に取り組んでいます。複雑になりがちな技術を、現場で無理なく活用できる形に整理し、実務に役立つ形で取り入れます。"
-                },
-                {
-                  title: "外部の制作会社ではなく、チームの一員として。",
-                  description: "言われたものを作るだけではなく、業務内容や組織の状況を理解した上で、一緒に考えながら進めたいと考えています。社内のIT担当に近い立場で、WebやAI活用の相談役として継続的にサポートします。"
-                },
-                {
-                  title: "事業が前に進むための、実務的な支えとして。",
-                  description: "大規模なシステム開発ではなく、日々の業務や意思決定を支える技術活用を重視しています。技術を裏側から活かし、事業運営を支える役割を担っていければと思っています。"
-                }
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className="mb-12 md:pl-0"
-                  style={{
-                    opacity: showDescription ? 1 : 0,
-                    transform: `translateY(${showDescription ? 0 : 20}px)`,
-                    transition: `opacity 0.8s ease-out ${idx * 0.1 + 0.2}s, transform 0.8s ease-out ${idx * 0.1 + 0.2}s`
-                  }}
-                >
-                   <h3 className="text-lg md:text-2xl font-bold text-white mb-3 leading-relaxed">
-                     {item.title}
-                   </h3>
-                   <p className="text-lg md:text-2xl text-gray-300 leading-relaxed max-w-3xl">
-                     {item.description}
-                   </p>
-                </div>
-              ))}
+            {/* MissionContentコンポーネント (Desktop: 2カラムSticky / Mobile: 1カラムStatic) */}
+            <div
+               style={{
+                 opacity: showDescription ? 1 : 0,
+                 transform: `translateY(${showDescription ? 0 : 30}px)`,
+                 transition: "opacity 1s ease-out, transform 1s ease-out",
+                 width: "100%"
+               }}
+            >
+               <MissionContent scrollContainerRef={containerRef} />
+            </div>
 
 
             </div>
@@ -484,8 +634,14 @@ function MissionSection({
          <AboutSection transitionProgress={irisTransitionProgress} />
       </div>
 
-      <div ref={contactRef} className="w-full h-screen flex items-center justify-center">
-        <h2 className="text-6xl md:text-8xl font-bold text-white">CONTACT</h2>
+      <div ref={contactRef} className="w-full h-screen flex items-center justify-center relative z-30">
+        <h2
+            ref={contactTitleRef}
+            className="text-6xl md:text-8xl font-bold text-white will-change-transform" // optimizations
+            style={{ opacity: 0, transform: 'translateY(100px)' }} // Initial state
+        >
+            CONTACT
+        </h2>
       </div>
 
       <div className="w-full min-h-[calc(100dvh+1px)] flex items-center justify-center p-4">
@@ -504,7 +660,8 @@ function MissionSection({
             isContactInView
           ),
           transition: "background-color 0.6s ease-out",
-          ...maskStyle
+          // Removed opacity toggle to fix whitening issue
+          // ...maskStyle // 削除: 二重マスクの原因となるため
         }}
       />
     </div>

@@ -6,6 +6,8 @@ interface HeroStateContextType {
   setSpaceOpacity: (opacity: number) => void;
   transitionProgress: number;
   setTransitionProgress: (progress: number) => void;
+  shouldSnapAnimation: boolean;
+  setShouldSnapAnimation: (shouldSnap: boolean) => void;
 }
 
 export const HeroStateContext = createContext<HeroStateContextType>({
@@ -14,6 +16,8 @@ export const HeroStateContext = createContext<HeroStateContextType>({
   setSpaceOpacity: () => {},
   transitionProgress: 0,
   setTransitionProgress: () => {},
+  shouldSnapAnimation: false,
+  setShouldSnapAnimation: () => {},
 });
 
 export const useHeroState = () => useContext(HeroStateContext);

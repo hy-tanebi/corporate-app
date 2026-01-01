@@ -54,7 +54,7 @@ export function StarParticles({
 	particleTexture.wrapT = THREE.ClampToEdgeWrapping;
 	particleTexture.premultiplyAlpha = true;
 	const particles = useMemo(() => {
-		const count = 5000;
+		const count = 2500;
 		const positions = new Float32Array(count * 3);
 		const colors = new Float32Array(count * 3);
 		const color = new THREE.Color();

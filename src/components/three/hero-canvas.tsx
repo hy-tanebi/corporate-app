@@ -16,6 +16,7 @@ import { StarParticles } from "./StarParticles";
 import { ShootingStars } from "./ShootingStars";
 import { PurpleNebula } from "./PurpleNebula";
 import VideoCardsRenderer from "./VideoCardsRenderer";
+import { Astronaut } from "./Astronaut";
 import { FeatherCircleMaterial } from "./materials";
 import { getSafeVideoSlides } from "../../data/fallback-content";
 import type { VideoSlide } from "../../types/content";
@@ -104,6 +105,7 @@ interface HeroSceneProps {
 	isContactVisible: boolean;
     spaceOpacity: number;
     transitionProgress: number;
+    shouldSnapAnimation: boolean;
 }
 
 function HeroScene({
@@ -114,6 +116,7 @@ function HeroScene({
 	isContactVisible,
     spaceOpacity,
     transitionProgress,
+    shouldSnapAnimation,
 }: HeroSceneProps) {
 	const heroMatRef = useRef<any>(null);
 	const starGroupRef = useRef<THREE.Group>(null);
@@ -157,7 +160,7 @@ function HeroScene({
 	// 画面歪み（FBO合成）
 	const fluidRef = useRef<THREE.Mesh>(null);
 	const hoverMatRef = useRef<any>(null);
-	const fbo = useFBO({ samples: 4 });
+	const fbo = useFBO({ samples: 0 });
 
 	// FBO を Linear に（色ズレ防止）
 	useEffect(() => {
@@ -456,17 +459,35 @@ function HeroScene({
 
 		// ===== 黒円（拡大はゆっくり、縮小は速く） =====
 		if (circleRef.current) {
+			const isMobile = state.size.width < 768;
+
+            // モバイル用設定：
+            // 1. 範囲を広げる (0.85 ~ 0.99) - 長いスクロールが必要
+            // 2. スムージングをほぼなくす (speed 8.0) - 指に追従
+			const currentStart = isMobile ? 0.85 : CIRCLE_SCROLL_START;
+			const currentEnd = isMobile ? 0.99 : CIRCLE_SCROLL_END;
+			const currentSmoothExpand = isMobile ? 8.0 : CIRCLE_SMOOTH_EXPAND;
+
 			const endClamped = Math.max(
-				CIRCLE_SCROLL_START + 1e-6,
-				Math.min(CIRCLE_SCROLL_END, 1.0),
+				currentStart + 1e-6,
+				Math.min(currentEnd, 1.0),
 			);
-			const tTarget = sstep(scrollProgress, CIRCLE_SCROLL_START, endClamped);
-			const speed =
-				tTarget >= circleTRef.current
-					? CIRCLE_SMOOTH_EXPAND
-					: CIRCLE_SMOOTH_SHRINK;
-			const k = 1 - Math.exp(-delta * speed);
-			circleTRef.current += (tTarget - circleTRef.current) * k;
+			const tTarget = sstep(scrollProgress, currentStart, endClamped);
+
+            // モバイルなら完全同期、そうでなければスムージング
+            // ★修正: shouldSnapAnimationがtrueの場合はスムージングを無効化（即時同期）
+            if (isMobile || shouldSnapAnimation) {
+                circleTRef.current = tTarget;
+            } else {
+                const speed =
+                    tTarget >= circleTRef.current
+                        ? currentSmoothExpand
+                        : CIRCLE_SMOOTH_SHRINK;
+
+                const k = 1 - Math.exp(-delta * speed);
+                circleTRef.current += (tTarget - circleTRef.current) * k;
+            }
+
 			const growT = smooth01(circleTRef.current) ** CIRCLE_EASE;
 
 			if (growT > 0) {
@@ -564,6 +585,12 @@ function HeroScene({
 		<>
 			<color attach="background" args={["black"]} />
 
+            {/* 照明設定 (Astronaut表示用) */}
+			<ambientLight intensity={2} />
+			<directionalLight position={[0, 5, 10]} intensity={3} />
+			<directionalLight position={[-5, 0, -5]} intensity={1.5} />
+			<directionalLight position={[5, 0, -5]} intensity={1.5} />
+
 			{/* ===== 通常シーン ===== */}
 			<group ref={rootRef} position={[0, 0, ROOT_Z_OFFSET]}>
 				<group ref={starGroupRef}>
@@ -581,6 +608,12 @@ function HeroScene({
 								rotation={[0, 0, pos.rotation]}
 							/>
 						))}
+                        {/* 宇宙飛行士 (Topページ & 最後の宇宙エリアで表示) */}
+                        <Astronaut
+                            position={[0, 0, -5]}
+                            scale={2}
+                            isMobile={typeof window !== 'undefined' && window.innerWidth < 768}
+                        />
 					</Suspense>
 				</group>
 
@@ -696,6 +729,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 	const [isContactVisible, setIsContactVisible] = useState(false);
     const [spaceOpacity, setSpaceOpacity] = useState(1);
     const [transitionProgress, setTransitionProgress] = useState(0);
+    const [shouldSnapAnimation, setShouldSnapAnimation] = useState(false);
 
 	const handleCardClick = (slide: VideoSlide, index: number) => {
 		setSelectedCard({ slide, index });
@@ -720,15 +754,16 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 	}, []);
 
 	return (
-		<HeroStateContext.Provider value={{ setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress }}>
+		<HeroStateContext.Provider value={{ setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress, shouldSnapAnimation, setShouldSnapAnimation }}>
 			<Canvas
 				camera={{ position: [0, 0, CAMERA_Z], fov: 75 }}
+				dpr={[1, 1.5]}
 				style={{
 					position: "fixed",
 					top: 0,
 					left: 0,
 					width: "100vw",
-					height: "100vh",
+					height: "100dvh",
 					zIndex: 0,
 					pointerEvents: "auto",
 				}}
@@ -742,6 +777,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 					isContactVisible={isContactVisible}
                     spaceOpacity={spaceOpacity}
                     transitionProgress={transitionProgress}
+                    shouldSnapAnimation={shouldSnapAnimation}
 				/>
 			</Canvas>
 

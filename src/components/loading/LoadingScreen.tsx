@@ -87,14 +87,14 @@ export default function LoadingScreen({
 
 			{/* ローディングUI */}
 			<div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-				<div className="text-center space-y-8">
+				<div className="text-center space-y-8 px-4">
 					{/* 屋号 */}
-					<h2 className="text-4xl md:text-4xl font-bold text-white tracking-widest mb-4">
+					<h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
 						TANEBI CREATIVE
 					</h2>
 
 					{/* タイトル */}
-					<h1 className="text-2xl md:text-3xl font-bold text-white tracking-wider animate-pulse">
+					<h1 className="text-xl md:text-2xl font-bold text-white tracking-wider animate-pulse">
 						LOADING
 					</h1>
 

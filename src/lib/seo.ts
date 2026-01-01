@@ -3,7 +3,7 @@ import type { BlogPost } from "./microcms";
 
 // サイトの基本情報
 const SITE_CONFIG = {
-	name: "ポートフォリオサイト",
+	name: "TANEBI CREATIVE タネビ クリエイティブ",
 	description:
 		"Next.js, TypeScript, Three.jsを使ったモダンなポートフォリオサイト",
 	url: process.env.NEXT_PUBLIC_SITE_URL || "https://your-domain.com",
