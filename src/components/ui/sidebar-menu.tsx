@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion"; // Keep for content fade/slide if needed, or fully GSAP. Mixing is fine for simple item staggering.
-import { Menu, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Menu, X, Home, Rocket, User, MessageCircle } from "lucide-react";
 import gsap from "gsap";
 
 interface SidebarMenuProps {
@@ -14,7 +14,6 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 	const [isOpen, setIsOpen] = useState(false);
     const [isClosing, setIsClosing] = useState(false); // For X button animation
 	const pathRef = useRef<SVGPathElement>(null);
-	const menuRef = useRef<HTMLDivElement>(null);
 
 	const toggleMenu = () => setIsOpen((prev) => !prev);
 
@@ -28,42 +27,13 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
     };
 
 	const menuItems = [
-		{ href: "/", label: "TOP" },
-		// { href: "/blog", label: "Blog" },
-		{ href: "/about", label: "About" },
-		{ href: "/contact", label: "Contact" },
+		{ href: "/", label: "TOP", icon: Home, description: "トップページ" },
+		{ href: "/mission", label: "MISSION", icon: Rocket, description: "目指すもの" },
+		{ href: "/about", label: "ABOUT", icon: User, description: "TANEBI CREATIVEについて" },
+		{ href: "/contact", label: "CONTACT", icon: MessageCircle, description: "お気軽にお問い合わせください" },
 	];
 
-	useEffect(() => {
-		if (isOpen) {
-			// Open Animation
-			// Start flat on the right
-			const width = window.innerWidth;
-			const height = window.innerHeight;
-
-            // 画面の少し右外からスタート
-			const startPath = `M ${width} 0 Q ${width} ${height / 2} ${width} ${height}`;
-            // 最終的になめらかな曲線で覆う (画面幅の半分くらいまで)
-            // 制御点を遠くに飛ばして「ニュルっ」とさせる
-			const targetX = width > 768 ? width - 400 : 0; // PC: 400px幅, SP: 全画面
-            const controlOffset = width > 768 ? 200 : 100; // 制御点の引っ張り具合
-
-            // アニメーションステップ
-            // 1. 制御点が先行して左に伸びる（液体が伸びる感じ）
-			const midPath = `M ${width} 0 Q ${targetX - controlOffset} ${height / 2} ${width} ${height}`;
-            // 2. 最終形（長方形に近いが、少しアールを残すか、完全に埋める）
-            // 完全に四角にするなら Lを使うが、ニュルっと感なら曲線のまま着地が良い
-            // ここではシンプルに四角形に着地させる
-			const endPath = `M ${width} 0 Q ${targetX} ${height / 2} ${width} ${height} L ${targetX} ${height} L ${targetX} 0 Z`;
-
-            // GSAPでpathのd属性を補間するのは難しいので、カスタムオブジェクトで数値をトゥイーンさせてdを更新する
-            // あるいは、シンプルなSVG変形ならSnap.svgなどが強いが、今回はReact+GSAPでやる。
-            // GSAPのMorphSVGPluginは有料なので、自前で制御点座標をアニメーションさせる。
-
-		}
-	}, [isOpen]);
-
-    // GSAP Context Effect
+    // GSAP Context Effect for Liquid Animation
     useEffect(() => {
         const svgPath = pathRef.current;
         if (!svgPath) return;
@@ -152,7 +122,7 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
              {/* Liquid Background Layer */}
              <div className="fixed inset-0 z-50 pointer-events-none" style={{ zIndex: 45 }}>
                 <svg className="w-full h-full" style={{ display: isOpen ? 'block' : 'none', overflow: 'visible' }}>
-                    <path ref={pathRef} fill="#5c5c58" />
+                    <path ref={pathRef} fill="#1f1f1f" />
                 </svg>
              </div>
 
@@ -197,8 +167,6 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
                             style={{ height: '100dvh' }} // モバイルアドレスバー対応
 						>
 							{/* Close Button Area */}
-							{/* Mobile: Absolute position to match the trigger button exactly */}
-							{/* Desktop: Flow layout with margin */}
 							<div className="absolute top-8 right-2 w-[50px] h-[50px] flex items-center justify-center z-50 md:static md:w-full md:h-auto md:block md:text-right md:mb-12">
 								<button
 									onClick={handleClose}
@@ -215,7 +183,7 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 								</button>
 							</div>
 
-							<nav className="flex flex-col space-y-8 flex-1 justify-center items-center md:items-start md:justify-start md:flex-initial">
+							<nav className="flex flex-col space-y-4 md:space-y-6 flex-1 justify-center items-center md:items-start md:justify-start md:flex-initial w-full">
 								{menuItems.map((item, i) => (
                                     <motion.div
                                         key={item.href}
@@ -230,23 +198,51 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
                                             opacity: 0,
                                             transition: { delay: 0, duration: 0.2 }
                                         }}
+                                        className="w-full"
                                     >
                                         <Link
                                             href={item.href}
                                             onClick={(e) => {
                                                 if (onNavigate) {
-                                                    if (item.href === '/' || item.href === '/about' || item.href === '/contact') {
+                                                    if (item.href === '/' || item.href === '/about' || item.href === '/mission' || item.href === '/contact') {
                                                         e.preventDefault();
                                                         onNavigate(item.href);
                                                     }
                                                 }
                                                 setIsOpen(false);
                                             }}
-                                            className="group"
+                                            className="group relative block w-full md:w-[400px]"
                                         >
-                                            <span className="text-4xl md:text-5xl font-bold text-white tracking-wider group-hover:text-[#fbbf24] transition-colors font-sans">
-                                                {item.label}
-                                            </span>
+                                            {/* Desktop Hover Card: White Background, Icon Pops Up */}
+                                            <div className="
+                                                hidden md:flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300
+                                                text-white
+                                                md:hover:text-[#60d5fa]
+                                            ">
+                                                {/* Icon: Pops up ("Nyutto") on hover */}
+                                                <div className="h-0 overflow-hidden md:group-hover:h-auto md:group-hover:mb-4 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 md:group-hover:opacity-100 flex justify-center origin-bottom">
+                                                    <item.icon className="w-10 h-10" strokeWidth={1.5} />
+                                                </div>
+
+                                                {/* Label */}
+                                                <span className="text-4xl md:text-5xl font-bold tracking-wider font-sans md:group-hover:mb-2 transition-all duration-300">
+                                                    {item.label}
+                                                </span>
+
+                                                {/* Description: Hidden by default, appears on hover */}
+                                                <div className="h-0 overflow-hidden md:group-hover:h-auto transition-all duration-300 opacity-0 md:group-hover:opacity-100">
+                                                    <span className="text-sm font-bold tracking-wide">
+                                                        {item.description}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Mobile Styles (Visible on Mobile) */}
+                                            <div className="md:hidden text-center">
+                                                 <span className="text-4xl font-bold text-white tracking-wider font-sans">
+                                                    {item.label}
+                                                </span>
+                                            </div>
                                         </Link>
                                     </motion.div>
 								))}

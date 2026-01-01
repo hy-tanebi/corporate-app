@@ -6,6 +6,7 @@ import { SidebarMenu } from "@/components/ui/sidebar-menu";
 import { AudioControlButton } from "@/components/ui/audio-control-button";
 import MissionSection, { MissionSidebarHandle } from "./MissionSection";
 import ContactSection from "./ContactSection";
+import { useHeroState } from "@/contexts/HeroStateContext";
 
 export default function HomeClient() {
 	const [scrollProgress, setScrollProgress] = useState(0);
@@ -13,6 +14,7 @@ export default function HomeClient() {
 	const [missionSectionProgress, setMissionSectionProgress] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
 	const missionRef = useRef<MissionSidebarHandle>(null);
+    const { setShouldSnapAnimation } = useHeroState();
 
     useEffect(() => {
         const checkMobile = () => {
@@ -44,6 +46,35 @@ export default function HomeClient() {
             });
             // 遅延なしで即時実行（MissionSection側でフラグ制御による即時表示を行う）
             missionRef.current?.scrollToContact();
+        } else if (path === '/mission') {
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            // MissionSectionの定数と合わせる (Mobile: 0.85, Desktop: 0.94)
+            // 少し余裕を持たせて、アニメーションが開始した直後の状態(0.15付近)にするなら
+            // Start + (End - Start) * 0.15 くらいが適切だが、
+            // シンプルにセクション開始位置(Start)へ遷移させる
+            const SECTION_START = isMobile ? 0.85 : 0.94;
+            // 0.95進んだ位置を計算 (TECHNICAL PARTNERが完全に横に並んだ状態)
+            const SECTION_END = 0.999;
+            const targetScroll = docHeight * (SECTION_START + (SECTION_END - SECTION_START) * 0.95);
+
+            // ミッション表示に必要なフラグを強制的にONにする
+            setIsCircleFullyExpanded(true);
+
+            // ★アニメーションのスムージングを無効化（スナップ）
+            setShouldSnapAnimation(true);
+
+            window.scrollTo({
+                top: targetScroll,
+                behavior: 'auto'
+            });
+
+            // 即座に実行してグレー背景などの状態をリセット
+            missionRef.current?.scrollToMission();
+
+            // 少し遅れてスナップフラグを解除
+            setTimeout(() => {
+                setShouldSnapAnimation(false);
+            }, 100);
         } else if (path === '/') {
             window.scrollTo({
                 top: 0,

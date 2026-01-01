@@ -17,13 +17,6 @@ export const fallbackVideoSlides: VideoSlide[] = [
 		description: "技術検証を行っています",
 	},
 	{
-		id: "fallback-3",
-		title: "プロジェクト準備中 3",
-		mediaType: "image",
-		imageSrc: "/images/placeholder-project-3.jpg", // 後で画像を追加予定
-		description: "デザインを検討中です",
-	},
-	{
 		id: "fallback-4",
 		title: "プロジェクト準備中 4",
 		mediaType: "image",
