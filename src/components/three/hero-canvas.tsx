@@ -756,6 +756,8 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 	return (
 		<HeroStateContext.Provider value={{ setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress, shouldSnapAnimation, setShouldSnapAnimation }}>
 			<Canvas
+				role="img"
+				aria-label="Interactive 3D Space Background with floating video cards"
 				camera={{ position: [0, 0, CAMERA_Z], fov: 75 }}
 				dpr={[1, 1.5]}
 				style={{

@@ -129,7 +129,8 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
 
 
   return (
-    <div
+    <section
+      id="about"
       ref={sectionRef}
       className="w-full relative"
       style={{
@@ -175,6 +176,7 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
           style={{
             transform: `translateX(${titleTranslateX}vw)`,
           }}
+          aria-hidden="true"
         >
           {Array.from({ length: repeatCount }).map((_, i) => (
             <span
@@ -274,6 +276,6 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
 
 
 
-    </div>
+    </section>
   );
 }

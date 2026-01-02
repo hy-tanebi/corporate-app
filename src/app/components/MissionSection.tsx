@@ -549,7 +549,8 @@ function MissionSection({
   };
 
   return (
-    <div
+    <section
+      id="mission"
       ref={containerRef}
       className={`fixed inset-0 z-20 mission-scrollbar ${
         showDescription ? "overflow-y-auto" : "overflow-hidden"
@@ -675,7 +676,7 @@ function MissionSection({
           // ...maskStyle // 削除: 二重マスクの原因となるため
         }}
       />
-    </div>
+    </section>
   );
 }
 
