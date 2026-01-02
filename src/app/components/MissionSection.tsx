@@ -285,28 +285,8 @@ function MissionSection({
     setSpaceOpacity(1);
   }, [irisTransitionProgress, setSpaceOpacity, setTransitionProgress]);
 
-  // タイトル制御 (Mission, Contact)
-  useEffect(() => {
-    if (!showSection) return;
-
-    // Contactが表示されている場合
-    if (isContactInView) {
-      document.title = "CONTACT | TANEBI CREATIVE タネビ クリエイティブ";
-      return;
-    }
-
-    // Iris遷移が始まっている場合（Aboutへの移行中）
-    // AboutSection側で制御するため何もしない（またはAboutへ渡す）
-    if (irisTransitionProgress > 0) {
-       // AboutSection側で "ABOUT ME" になるはずだが、遷移中はMISSIONのままでも違和感はない
-       // ただし、完全にAboutになったらAboutSectionにお任せする
-       return;
-    }
-
-    // Mission表示中
-    document.title = "MISSION | TANEBI CREATIVE タネビ クリエイティブ";
-
-  }, [showSection, isContactInView, irisTransitionProgress]);
+  // タイトル制御 (Mission, Contact) -> Scroll Event側に統合しました。
+  // 古いuseEffectは削除済み。
 
   // スクロールイベント
   useEffect(() => {
@@ -400,6 +380,37 @@ function MissionSection({
                  contactTitleRef.current.style.transition = "opacity 0.5s ease-out, transform 0.5s ease-out";
              }
         }
+      }
+
+      // === Title Logic (Sync with Scroll) ===
+      if (document.title) {
+          // Contact判定
+          if (isContactInView) {
+              if (!document.title.startsWith("CONTACT")) {
+                   document.title = "CONTACT | TANEBI CREATIVE タネビ クリエイティブ";
+              }
+          } else if (aboutWrapperRef.current) {
+              const rect = aboutWrapperRef.current.getBoundingClientRect();
+              // Aboutセクションが画面の半分より上に来たら About Title
+              // = Missionエリアから出たとみなす
+              // 逆に戻ったときは Mission Title
+              if (rect.top < windowHeight * 0.5) {
+                   // AboutSection側で scrollProgress > 0 で設定されるが、
+                   // こちらでも明示的にAboutとしても良いし、任せても良い。
+                   // ただし「Missionに戻ったとき」即座に判定したいので、
+                   // 「Missionエリアである」判定をここで行う。
+
+                   // 何もしない（AboutSection任せ、または既にAboutになっている）
+              } else {
+                   // Missionエリアに戻ってきた
+                   // AboutへのTransition中でなければ Mission
+                   if (irisTransitionProgress <= 0) {
+                        if (!document.title.startsWith("MISSION")) {
+                            document.title = "MISSION | TANEBI CREATIVE タネビ クリエイティブ";
+                        }
+                   }
+              }
+          }
       }
     };
 

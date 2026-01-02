@@ -276,14 +276,30 @@ export default function VideoCard3D({
 			// 0.8以上なら不透明として扱う（よりアグレッシブに透過を切る）
 			const THRESHOLD = 0.8;
 			const isOpaque = drawOpacity >= THRESHOLD;
-
 			const finalOpacity = isOpaque ? 1.0 : drawOpacity;
 
-			material.opacity = finalOpacity;
-			material.transparent = !isOpaque; // 閾値以上ならfalse（不透明）
-			material.alphaMap = !isOpaque ? (alphaTexture as any) : null; // 不透明時はalphaMapも切る
-			material.depthWrite = true; // 常に深度バッファに書き込む
-			material.needsUpdate = true;
+			// 変更がある場合のみ更新 (パフォーマンス最適化)
+			if (Math.abs(material.opacity - finalOpacity) > 0.001) {
+				material.opacity = finalOpacity;
+				material.needsUpdate = true;
+			}
+
+			if (material.transparent === isOpaque) { // transparent should be !isOpaque
+				material.transparent = !isOpaque;
+				material.needsUpdate = true;
+			}
+
+			const targetAlphaMap = !isOpaque ? (alphaTexture as any) : null;
+			if (material.alphaMap !== targetAlphaMap) {
+				material.alphaMap = targetAlphaMap;
+				material.needsUpdate = true;
+			}
+
+			// depthWriteは常にtrueなので更新チェック不要だが、念のため
+			if (material.depthWrite !== true) {
+				material.depthWrite = true;
+				material.needsUpdate = true;
+			}
 
 			// デバッグ: 完全表示のカードを必ずログ出力
 			if (isOpaque && Math.random() < 0.01) { // ログ過多防止のため間引く
