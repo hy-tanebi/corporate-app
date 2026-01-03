@@ -246,7 +246,7 @@ export default function HomeClient() {
 						<span
 							className="font-extrabold"
 							style={{
-								color: "#fbbf24",
+								color: "#fcd34d",
 							}}
 						>
 							シンプル

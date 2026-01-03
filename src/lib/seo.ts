@@ -180,4 +180,8 @@ export const DEFAULT_METADATA: Metadata = {
 		follow: true,
 	},
 	metadataBase: new URL(SITE_CONFIG.url),
+    icons: {
+        icon: "/images/favicon.png",
+        apple: "/images/favicon.png", // Apple touch icon (optional, using same for now)
+    },
 };

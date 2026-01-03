@@ -1,7 +1,7 @@
 // src/components/three/HeroCanvasWithCMS.tsx
 import type { ReactNode } from "react";
 import { getBlogPosts, type BlogPost } from "../../lib/microcms";
-import HeroCanvas from "./hero-canvas";
+import HeroCanvasWrapper from "./HeroCanvasWrapper";
 
 // BlogPostをVideoCard用データに変換
 function blogPostToVideoSlide(post: BlogPost) {
@@ -56,8 +56,25 @@ export default async function HeroCanvasWithCMS({
 	}
 
 	return (
-		<HeroCanvas videoSlides={videoSlides.length > 0 ? videoSlides : undefined}>
+		<HeroCanvasWrapper videoSlides={videoSlides.length > 0 ? videoSlides : undefined}>
+			{/* AIO/SEO Fallback: 3Dコンテンツのテキスト情報を検索エンジン・AI用に隠しテキストとして出力 */}
+			<div className="sr-only">
+				<section aria-label="Featured Projects">
+					<h2>Featured Projects</h2>
+					{videoSlides.map((slide) => (
+						<article key={slide.id}>
+							<h3>{slide.title}</h3>
+							<p>{slide.description}</p>
+							{slide.publishedAt && (
+								<time dateTime={slide.publishedAt}>{slide.publishedAt}</time>
+							)}
+							{slide.category && <span>Category: {slide.category}</span>}
+							<a href={slide.liveUrl}>View Details</a>
+						</article>
+					))}
+				</section>
+			</div>
 			{children}
-		</HeroCanvas>
+		</HeroCanvasWrapper>
 	);
 }
