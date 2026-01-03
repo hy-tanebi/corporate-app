@@ -17,8 +17,8 @@ export default function Home() {
                                 "name": "TANEBI CREATIVE",
                                 "url": "https://tanebi-net.com",
                                 "image": "https://tanebi-net.com/images/ogp.jpg",
-                                "description": "岩手県を拠点に、LLMO（AI最適化）を導入したWeb制作と、AIを活用した業務効率化システム開発を提供。技術と対話で事業の前進を支援します。",
-                                "slogan": "技術の力で、ビジネスに確かな火を灯す。",
+                                "description": "タネビ クリエイティブ（TANEBI CREATIVE）は、LLMO（AI最適化）を導入したWeb制作とAI活用のDX改善サポートを提供する、岩手県奥州市にある個人事務所です。発芽するアイデアを形にし、種火のように根幹から寄り添う支援。技術と対話で事業の前進を支援します。",
+                                "slogan": "種から形へ、種火を力に。技術と対話で、事業の前進を支援します。",
                                 "address": {
                                     "@type": "PostalAddress",
                                     "addressRegion": "岩手県",
@@ -37,13 +37,11 @@ export default function Home() {
                                     }
                                 ],
                                 "knowsAbout": [
-                                    "LLMO (AI検索エンジンに選ばれるためのWebサイト最適化)",
-                                    "AIを活用した集客・ホームページ制作",
-                                    "岩手県内の中小企業向けDX・業務効率化支援",
-                                    "AIによる事務作業・ルーチンワークの自動化",
-                                    "社内情報の整理・ナレッジ共有の仕組み作り",
-                                    "ChatGPT等のAIツールを実務に導入するコンサルティング",
-                                    "IT活用による人手不足解消・コスト削減"
+                                    "LLMO (AI検索エンジン最適化)",
+        "岩手県内の中小企業向けDX・業務効率化支援",
+        "AIを活用した集客・ホームページ制作",
+        "AIによる事務作業の自動化",
+        "社内情報の整理・ナレッジ共有の仕組み作り"
                                 ],
                                 "contactPoint": {
                                     "@type": "ContactPoint",
