@@ -1,4 +1,3 @@
-// src/components/three/hero-canvas.tsx
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
@@ -712,7 +711,7 @@ function HeroScene({
 
 // ===== HeroCanvas =====
 interface HeroCanvasProps {
-	children: ReactNode;
+	children?: ReactNode;
 	videoSlides?: VideoSlide[];
 }
 
@@ -754,7 +753,7 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 	}, []);
 
 	return (
-		<HeroStateContext.Provider value={{ setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress, shouldSnapAnimation, setShouldSnapAnimation }}>
+		<HeroStateContext.Provider value={{ isContactVisible, setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress, shouldSnapAnimation, setShouldSnapAnimation }}>
 			<Canvas
 				role="img"
 				aria-label="Interactive 3D Space Background with floating video cards"

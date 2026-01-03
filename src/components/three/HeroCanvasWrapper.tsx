@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import type { VideoSlide } from "../../types/content";
+import type { ReactNode } from "react";
 
 // Use dynamic import with ssr: false inside this Client Component
 const HeroCanvas = dynamic(() => import('./hero-canvas'), {
@@ -10,6 +11,7 @@ const HeroCanvas = dynamic(() => import('./hero-canvas'), {
 });
 
 interface HeroCanvasWrapperProps {
+  children?: ReactNode;
   videoSlides?: VideoSlide[];
 }
 
