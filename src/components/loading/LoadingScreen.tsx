@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import LoadingScene from "./LoadingScene";
-import SoundToggle from "./SoundToggle";
-import { useAudio } from "@/contexts/audio-context";
+
 
 export default function LoadingScreen({
 	onLoadingComplete,
@@ -12,7 +11,7 @@ export default function LoadingScreen({
 	onLoadingComplete: () => void;
 }) {
 	const [progress, setProgress] = useState(0);
-	const [showSoundToggle, setShowSoundToggle] = useState(false);
+	// const [showSoundToggle, setShowSoundToggle] = useState(false); // Unused
 	const [hasStarted, setHasStarted] = useState(false);
 
 	// スクロール無効化
@@ -21,6 +20,7 @@ export default function LoadingScreen({
 		document.body.style.overflow = "hidden";
 	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: handleStart is internal
 	useEffect(() => {
 		// プログレスバーのアニメーション
 		const interval = setInterval(() => {
@@ -112,11 +112,12 @@ export default function LoadingScreen({
 					</div>
 
 					{/* サウンドトグルボタン */}
-					{showSoundToggle && (
+					{/* サウンドトグルボタン */}
+					{/* {showSoundToggle && (
 						<div className="pointer-events-auto animate-fade-in">
 							<SoundToggle onStart={handleStart} />
 						</div>
-					)}
+					)} */}
 				</div>
 			</div>
 		</div>

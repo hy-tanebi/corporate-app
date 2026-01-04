@@ -1,4 +1,3 @@
-// src/components/three/HtmlHoverPointer.tsx
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -50,10 +49,10 @@ export function HtmlHoverPointer({ isHovering }: HtmlHoverPointerProps) {
 				position: "fixed",
 				left: mousePos.x,
 				top: mousePos.y,
-				width: "80px",
-				height: "80px",
+				width: "160px",
+				height: "160px",
 				borderRadius: "50%",
-				backgroundColor: "rgba(255, 215, 0, 0.6)",
+				backgroundColor: "white",
 				transform: `translate(-50%, -50%) scale(${scale})`,
 				pointerEvents: "none",
 				zIndex: 9999,
@@ -61,12 +60,14 @@ export function HtmlHoverPointer({ isHovering }: HtmlHoverPointerProps) {
 				display: "flex",
 				alignItems: "center",
 				justifyContent: "center",
-				color: "white",
+				color: "black",
 				fontWeight: "bold",
-				fontSize: "14px",
+				fontSize: "24px",
+				letterSpacing: "0.1em",
+				mixBlendMode: "difference",
 			}}
 		>
-			click
+			CLICK
 		</div>
 	);
 }

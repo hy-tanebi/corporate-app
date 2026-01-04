@@ -191,6 +191,7 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
 									return (
 										<li key={heading.id} className="relative">
 											<button
+												type="button"
 												onClick={() => handleHeadingClick(heading.id)}
 												className={`
                         block w-full text-left py-3 pr-2 transition-all duration-200 ease-out hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-r-md

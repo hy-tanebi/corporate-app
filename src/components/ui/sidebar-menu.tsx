@@ -121,13 +121,16 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 		<>
              {/* Liquid Background Layer */}
              <div className="fixed inset-0 z-50 pointer-events-none" style={{ zIndex: 45 }}>
-                <svg className="w-full h-full" style={{ display: isOpen ? 'block' : 'none', overflow: 'visible' }}>
+                <svg className="w-full h-full" style={{ display: isOpen ? 'block' : 'none', overflow: 'visible' }} aria-hidden="true">
+                    <title>Menu Background</title>
                     <path ref={pathRef} fill="#1f1f1f" />
                 </svg>
              </div>
 
 			{/* Collapsed State: Responsive (Floating Button on Mobile, Sidebar Strip on Desktop) */}
-			<div
+			{/* Collapsed State: Responsive (Floating Button on Mobile, Sidebar Strip on Desktop) */}
+			<button
+                type="button"
                 className={`fixed z-40 bg-white/90 backdrop-blur-sm transition-colors duration-300 pointer-events-auto cursor-pointer hover:bg-gray-100 group flex flex-col items-center justify-center
                     /* Mobile Styles: Floating Button top-right */
                     top-8 right-2 w-[50px] h-[50px] rounded-full shadow-lg border border-gray-100
@@ -135,18 +138,17 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
                     md:top-0 md:right-0 md:h-screen md:w-[80px] md:rounded-none md:shadow-none md:border-l md:border-t-0 md:border-gray-200
                 `}
                 onClick={toggleMenu}
+                aria-label="Open menu"
             >
-				<button
+				<div
 					className="p-2 rounded-full group-hover:bg-gray-200 transition-colors focus:outline-none"
-					type="button"
-					aria-label="Open menu"
 				>
 					<Menu className="w-8 h-8 text-black" strokeWidth={1.5} />
-				</button>
+				</div>
 				<div className="hidden md:block writing-vertical-rl text-xs tracking-widest text-gray-500 mt-8 font-medium select-none group-hover:text-black transition-colors">
 					MENU
 				</div>
-			</div>
+			</button>
 
 			{/* Expanded Overlay & Menu Content */}
 			<AnimatePresence>

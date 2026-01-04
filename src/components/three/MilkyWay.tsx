@@ -29,6 +29,7 @@ extend({ MilkyWayShaderMaterial });
 declare global {
 	namespace JSX {
 		interface IntrinsicElements {
+			// biome-ignore lint/suspicious/noExplicitAny: Shader material
 			milkyWayShaderMaterial: any;
 		}
 	}
@@ -47,9 +48,10 @@ export function MilkyWay({
 	scale = 50,
 	rotation = [0, 0, 0],
 }: MilkyWayProps) {
+	// biome-ignore lint/suspicious/noExplicitAny: Shader material ref
 	const materialRef = useRef<any>(null);
 
-	useFrame((state, delta) => {
+	useFrame((_state, delta) => {
 		if (materialRef.current) {
 			materialRef.current.uniforms.uTime.value += delta;
 		}

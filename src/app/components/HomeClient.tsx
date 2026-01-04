@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { SidebarMenu } from "@/components/ui/sidebar-menu";
 import { AudioControlButton } from "@/components/ui/audio-control-button";
-import MissionSection, { MissionSidebarHandle } from "./MissionSection";
+import MissionSection, { type MissionSidebarHandle } from "./MissionSection";
 import ContactSection from "./ContactSection";
 import { useHeroState } from "@/contexts/HeroStateContext";
 
@@ -126,7 +126,7 @@ export default function HomeClient() {
 				console.log("Circle shrinking at scrollProgress:", scrollProgress);
 			}
 		}
-	}, [scrollProgress, CIRCLE_ACTUAL_END, isCircleFullyExpanded, CIRCLE_START]);
+	}, [scrollProgress, isCircleFullyExpanded]);
 
 	// 黒い円が拡大中はすべてのUI要素を非表示
 	const isCircleExpanded = scrollProgress >= CIRCLE_SCROLL_END;
@@ -142,7 +142,7 @@ export default function HomeClient() {
 	const text2Opacity = Math.min(text2FadeIn, text2FadeOut);
 
 	return (
-		<>
+		<main>
 			{/* 屋号とサウンドコントロールを左上に固定配置 */}
 			<div className="fixed top-8 left-8 z-10 flex items-center gap-4">
 				<h1 className="text-2xl md:text-3xl font-bold text-white pointer-events-none">
@@ -246,7 +246,7 @@ export default function HomeClient() {
 						<span
 							className="font-extrabold"
 							style={{
-								color: "#fbbf24",
+								color: "#fcd34d",
 							}}
 						>
 							シンプル
@@ -295,6 +295,6 @@ export default function HomeClient() {
 			<div className="w-full pointer-events-none" style={{ height: "1200vh" }}>
 				{/* 空のコンテンツでスクロールを可能にする */}
 			</div>
-		</>
+		</main>
 	);
 }

@@ -1,8 +1,7 @@
-// src/app/components/AboutSection.tsx
 "use client";
 
+
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 
 import AboutThreeImage from "./AboutThreeImage";
 
@@ -106,7 +105,7 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
   // タイトル制御 (About)
   useEffect(() => {
     if (contentOpacity > 0) {
-      document.title = "ABOUT ME | TANEBI CREATIVE タネビ クリエイティブ";
+      document.title = "ABOUT | TANEBI CREATIVE タネビ クリエイティブ";
     }
   }, [contentOpacity]);
 
@@ -129,7 +128,8 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
 
 
   return (
-    <div
+    <section
+      id="about"
       ref={sectionRef}
       className="w-full relative"
       style={{
@@ -137,7 +137,8 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
       }}
     >
         {/* SVGフィルター定義 (不可視) */}
-        <svg style={{ display: 'none' }}>
+        <svg style={{ display: 'none' }} aria-hidden="true">
+            <title>Distortion Filter</title>
             <defs>
                 <filter id="distortion">
                     <feTurbulence
@@ -175,14 +176,16 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
           style={{
             transform: `translateX(${titleTranslateX}vw)`,
           }}
+          aria-hidden="true"
         >
           {Array.from({ length: repeatCount }).map((_, i) => (
             <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: Static marquee text
               key={i}
               className="text-[8vw] md:text-[7vw] font-bold mx-2 md:mx-8"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              ABOUT ME
+              ABOUT
             </span>
           ))}
         </div>
@@ -274,6 +277,6 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
 
 
 
-    </div>
+    </section>
   );
 }

@@ -1,6 +1,9 @@
+"use client";
+
 import { createContext, useContext } from "react";
 
 interface HeroStateContextType {
+  isContactVisible: boolean;
   setIsContactVisible: (visible: boolean) => void;
   spaceOpacity: number;
   setSpaceOpacity: (opacity: number) => void;
@@ -11,6 +14,7 @@ interface HeroStateContextType {
 }
 
 export const HeroStateContext = createContext<HeroStateContextType>({
+  isContactVisible: false,
   setIsContactVisible: () => {},
   spaceOpacity: 1,
   setSpaceOpacity: () => {},

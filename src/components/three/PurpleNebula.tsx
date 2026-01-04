@@ -30,6 +30,7 @@ extend({ PurpleNebulaShaderMaterial });
 declare global {
 	namespace JSX {
 		interface IntrinsicElements {
+			// biome-ignore lint/suspicious/noExplicitAny: Shader material
 			purpleNebulaShaderMaterial: any;
 		}
 	}
@@ -56,9 +57,10 @@ export function PurpleNebula({
 	color2,
 	color3,
 }: PurpleNebulaProps) {
+	// biome-ignore lint/suspicious/noExplicitAny: Shader material ref
 	const materialRef = useRef<any>(null);
 
-	useFrame((state, delta) => {
+	useFrame((_state, delta) => {
 		if (materialRef.current) {
 			materialRef.current.uniforms.uTime.value += delta;
 		}

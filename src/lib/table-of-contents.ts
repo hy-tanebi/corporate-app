@@ -15,7 +15,7 @@ export function extractHeadingsAndAddAnchors(html: string): {
 	// 見出しタグを検索して抽出・ID付与（h1-h3のみ対象）
 	const modifiedHtml = html.replace(
 		/<(h[1-3])([^>]*)>(.*?)<\/h[1-3]>/gi,
-		(match, tag, attributes, content) => {
+		(_match, tag, attributes, content) => {
 			const level = parseInt(tag.replace("h", ""));
 			const text = content.replace(/<[^>]*>/g, ""); // HTMLタグを除去してテキストのみ抽出
 

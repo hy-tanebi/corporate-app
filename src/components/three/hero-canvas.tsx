@@ -1,13 +1,12 @@
 // src/components/three/hero-canvas.tsx
 "use client";
 
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useFBO, OrbitControls } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useFBO } from "@react-three/drei";
 import {
 	useRef,
 	useMemo,
 	Suspense,
-	type ReactNode,
 	useState,
 	useEffect,
 } from "react";
@@ -22,7 +21,6 @@ import { getSafeVideoSlides } from "../../data/fallback-content";
 import type { VideoSlide } from "../../types/content";
 import { CardDetailModal } from "../ui/card-detail-modal";
 import { HtmlHoverPointer } from "./HtmlHoverPointer";
-import { HeroStateContext } from "../../contexts/HeroStateContext";
 
 // ===== 全体スケール =====
 const SCENE_SCALE = 1.2;
@@ -118,6 +116,7 @@ function HeroScene({
     transitionProgress,
     shouldSnapAnimation,
 }: HeroSceneProps) {
+	// biome-ignore lint/suspicious/noExplicitAny: Custom shader material
 	const heroMatRef = useRef<any>(null);
 	const starGroupRef = useRef<THREE.Group>(null);
 	const triangleGroupRef = useRef<THREE.Group>(null);
@@ -149,6 +148,7 @@ function HeroScene({
 
 	// 黒円マテリアル
 	const featherMat = useMemo(() => {
+		// biome-ignore lint/suspicious/noExplicitAny: Custom shader material constructor
 		const m = new (FeatherCircleMaterial as any)();
 		m.transparent = true;
 		m.depthTest = false;
@@ -159,6 +159,7 @@ function HeroScene({
 
 	// 画面歪み（FBO合成）
 	const fluidRef = useRef<THREE.Mesh>(null);
+	// biome-ignore lint/suspicious/noExplicitAny: Custom shader material ref
 	const hoverMatRef = useRef<any>(null);
 	const fbo = useFBO({ samples: 0 });
 
@@ -201,7 +202,7 @@ function HeroScene({
 			return { index: i, angle, x, z, rank: i };
 		});
 		return { n, items, slotStep };
-	}, [orbitRadius, videoSlides.length]);
+	}, [orbitRadius, videoSlides.length, gateAngle]);
 
 	// third-phase 開始〜終了のマッピング
 	const thirdPhaseAtStart =
@@ -394,11 +395,11 @@ function HeroScene({
 			} else if (scrollProgress < RETURN_SCROLL_START) {
 				triangleGroupRef.current.scale.set(0.7, 0.7, 0.7);
 			} else if (scrollProgress <= RETURN_SCROLL_END) {
-				const tUp = sstep(
-					scrollProgress,
-					RETURN_SCROLL_START,
-					RETURN_SCROLL_END,
-				);
+				// const tUp = sstep(
+				// 	scrollProgress,
+				// 	RETURN_SCROLL_START,
+				// 	RETURN_SCROLL_END,
+				// );
 				// const s = THREE.MathUtils.lerp(0.7, 1.0, smooth01(tUp));
 				triangleGroupRef.current.scale.set(0.7, 0.7, 0.7);
 			} else {
@@ -447,8 +448,11 @@ function HeroScene({
 					if (!m) return;
 					const arr = Array.isArray(m) ? m : [m];
 					for (const mat of arr) {
+						// biome-ignore lint/suspicious/noExplicitAny: Three.js material types
 						(mat as any).depthTest = true;
+						// biome-ignore lint/suspicious/noExplicitAny: Three.js material types
 						(mat as any).depthWrite = true;
+						// biome-ignore lint/suspicious/noExplicitAny: Three.js material types
 						if ("alphaTest" in mat) (mat as any).alphaTest = 0.001;
 					}
 				});
@@ -526,6 +530,7 @@ function HeroScene({
                             starGroupRef.current.visible = true;
                             // マテリアルの透明度を更新（簡易的な実装）
                             starGroupRef.current.traverse((obj) => {
+                                // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
                                 const m = (obj as any).material;
                                 if (m) {
                                     m.transparent = true;
@@ -547,6 +552,7 @@ function HeroScene({
                         // 不透明度をリセット (1.0へ戻す)
                         if (shouldShow) {
                             starGroupRef.current.traverse((obj) => {
+                                // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
                                 const m = (obj as any).material;
                                 if (m && m.userData.originalOpacity !== undefined) {
                                     m.opacity = m.userData.originalOpacity;
@@ -566,6 +572,7 @@ function HeroScene({
                     starGroupRef.current.visible = true;
                     // Reset opacity
                     starGroupRef.current.traverse((obj) => {
+                        // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
                         const m = (obj as any).material;
                         if (m && m.userData.originalOpacity !== undefined) {
                             m.opacity = m.userData.originalOpacity;
@@ -600,6 +607,7 @@ function HeroScene({
 						{/* 紫色のガス状の雲（ランダム配置） */}
 						{nebulaPositions.map((pos, index) => (
 							<PurpleNebula
+								// biome-ignore lint/suspicious/noArrayIndexKey: Static background elements
 								key={index}
 								position={[pos.x, pos.y, pos.z]}
 								renderOrder={6}
@@ -695,6 +703,7 @@ function HeroScene({
 			>
 				<planeGeometry args={[2, 2, 1, 1]} />
 				<hoverFluidMaterial
+					// biome-ignore lint/suspicious/noExplicitAny: Ref assignment
 					ref={(m: any) => {
 						if (m) hoverMatRef.current = m;
 					}}
@@ -702,6 +711,7 @@ function HeroScene({
 					transparent={true}
 					depthTest={false}
 					depthWrite={false}
+					// biome-ignore lint/suspicious/noExplicitAny: Blending type
 					blending={THREE.NoBlending as any}
 					toneMapped={false}
 				/>
@@ -712,11 +722,21 @@ function HeroScene({
 
 // ===== HeroCanvas =====
 interface HeroCanvasProps {
-	children: ReactNode;
 	videoSlides?: VideoSlide[];
+    // 親からStateを受け取る形に変更
+    heroState: {
+        isContactVisible: boolean;
+        setIsContactVisible: (v: boolean) => void;
+        spaceOpacity: number;
+        setSpaceOpacity: (v: number) => void;
+        transitionProgress: number;
+        setTransitionProgress: (v: number) => void;
+        shouldSnapAnimation: boolean;
+        setShouldSnapAnimation: (v: boolean) => void;
+    };
 }
 
-const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
+const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 	// フォールバック機能付きで安全にvideoSlidesを取得
 	const safeVideoSlides = getSafeVideoSlides(videoSlides);
 
@@ -726,10 +746,14 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 		index: number;
 	} | null>(null);
 	const [isCardHovering, setIsCardHovering] = useState(false);
+
+    // Stateは親(Wrapper -> Provider)から受け取るため、ここでは定義しない
+    /*
 	const [isContactVisible, setIsContactVisible] = useState(false);
     const [spaceOpacity, setSpaceOpacity] = useState(1);
     const [transitionProgress, setTransitionProgress] = useState(0);
     const [shouldSnapAnimation, setShouldSnapAnimation] = useState(false);
+    */
 
 	const handleCardClick = (slide: VideoSlide, index: number) => {
 		setSelectedCard({ slide, index });
@@ -754,8 +778,21 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 	}, []);
 
 	return (
-		<HeroStateContext.Provider value={{ setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress, shouldSnapAnimation, setShouldSnapAnimation }}>
-			<Canvas
+        // Canvas内からContextにアクセスするのは難しいため、Props経由でSceneに渡す、
+        // もしくはCanvas内でuseContextするためのBridgeが必要だが、
+        // ここでは単純にPropsとしてSceneに渡す形をとる。
+        // Providerは親(HeroCanvasWithCMS -> HeroStateProvider)にある。
+        // ただし、もしCanvas内のコンポーネントがuseHeroState()を使っている場合は、
+        // Canvas内で再度Providerで包むか、dreiの<HttpContextBridge>等が必要。
+        // 現状、HeroSceneはPropsで全て受け取っているので問題ないはず。
+        // HeroScene内部でuseContext(HeroStateContext)しているか確認→してない(Props受け取り)。
+        // 念のため、HeroStateContext.Providerで包んでおくと安心（CardDetailModal等が使うかも？）
+        // CardDetailModalはCanvasの外(HTML)なので、親のProviderが有効。
+        // よってここでのProviderは不要、またはBridgeが必要。
+        // 今回はSceneへはPropsで渡す。Canvasの外の要素はそのまま。
+
+			<>
+            <Canvas
 				camera={{ position: [0, 0, CAMERA_Z], fov: 75 }}
 				dpr={[1, 1.5]}
 				style={{
@@ -774,25 +811,19 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 					videoSlides={safeVideoSlides}
 					onCardClick={handleCardClick}
 					onCardHover={setIsCardHovering}
-					isContactVisible={isContactVisible}
-                    spaceOpacity={spaceOpacity}
-                    transitionProgress={transitionProgress}
-                    shouldSnapAnimation={shouldSnapAnimation}
+                    // State Props
+					isContactVisible={heroState.isContactVisible}
+                    spaceOpacity={heroState.spaceOpacity}
+                    transitionProgress={heroState.transitionProgress}
+                    shouldSnapAnimation={heroState.shouldSnapAnimation}
 				/>
 			</Canvas>
 
-			<div
-				style={{
-					position: "relative",
-					zIndex: 10,
-					minHeight: "1000vh",
-					pointerEvents: "none",
-				}}
-			>
-				{children}
-			</div>
-
-			{/* カード詳細モーダル */}
+			{/* HTML Overlay Elements (Card Modal, etc) are now rendered by parent?
+                No, selectedCard state is local to this component.
+                So we must render CardDetailModal here.
+                It relies on standard DOM, so it will appear on top of Canvas.
+            */}
 			{selectedCard && (
 				<CardDetailModal
 					isOpen={!!selectedCard}
@@ -802,9 +833,8 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 				/>
 			)}
 
-			{/* HTMLホバーポインタ */}
 			<HtmlHoverPointer isHovering={isCardHovering} />
-		</HeroStateContext.Provider>
+            </>
 	);
 };
 

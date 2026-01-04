@@ -56,6 +56,7 @@ export function BlogCard({ post }: BlogCardProps) {
 	return (
 		<>
 			{/* デスクトップ版（lg以上）- フリップアニメーション */}
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: 3D tilt effect */}
 			<div
 				ref={cardRef}
 				className="perspective-1000 h-full hidden lg:block relative"
@@ -108,8 +109,8 @@ export function BlogCard({ post }: BlogCardProps) {
 							<CardHeader className="pb-3 border-l-2 border-t-2 border-r-2">
 								{post.category && post.category.length > 0 && (
 									<div className="mb-2 flex flex-wrap gap-1">
-										{post.category.map((cat, index) => (
-											<CategoryBadge key={index} category={cat} size="sm" />
+										{post.category.map((cat) => (
+											<CategoryBadge key={cat} category={cat} size="sm" />
 										))}
 									</div>
 								)}
@@ -175,8 +176,8 @@ export function BlogCard({ post }: BlogCardProps) {
 								<div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200 dark:border-gray-300 bg-white">
 									{post.category && post.category.length > 0 && (
 										<div className="flex flex-wrap gap-1">
-											{post.category.slice(0, 2).map((cat, index) => (
-												<CategoryBadge key={index} category={cat} size="sm" />
+											{post.category.slice(0, 2).map((cat) => (
+												<CategoryBadge key={cat} category={cat} size="sm" />
 											))}
 										</div>
 									)}
@@ -204,8 +205,9 @@ export function BlogCard({ post }: BlogCardProps) {
 						}}
 					>
 						{post.eyecatch && (
-							<div
-								className="relative aspect-video overflow-hidden cursor-pointer"
+							<button
+								type="button"
+								className="relative aspect-video overflow-hidden cursor-pointer w-full p-0 border-0"
 								onClick={handleMobileImageClick}
 							>
 								<Image
@@ -225,13 +227,13 @@ export function BlogCard({ post }: BlogCardProps) {
 										</div>
 									</div>
 								)}
-							</div>
+							</button>
 						)}
 						<CardHeader className="pb-3">
 							{post.category && post.category.length > 0 && (
 								<div className="mb-2 flex flex-wrap gap-1">
-									{post.category.map((cat, index) => (
-										<CategoryBadge key={index} category={cat} size="sm" />
+									{post.category.map((cat) => (
+										<CategoryBadge key={cat} category={cat} size="sm" />
 									))}
 								</div>
 							)}

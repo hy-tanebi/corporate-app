@@ -16,25 +16,25 @@ export function ShootingStars({
 	const [activeId, setActiveId] = useState<number | null>(null);
 	const timerRef = useRef<number | null>(null);
 
-	const clearTimer = () => {
+	const clearTimer = useCallback(() => {
 		if (timerRef.current) {
 			clearTimeout(timerRef.current);
 			timerRef.current = null;
 		}
-	};
+	}, []);
 
 	const scheduleNext = useCallback(() => {
 		clearTimer();
 		timerRef.current = window.setTimeout(() => {
 			setActiveId(Date.now()); // 1つだけ生成
 		}, interval);
-	}, [interval]);
+	}, [interval, clearTimer]);
 
 	useEffect(() => {
 		// 初回はすぐ1つ出す
 		setActiveId(Date.now());
 		return () => clearTimer();
-	}, []);
+	}, [clearTimer]);
 
 	const handleComplete = useCallback(() => {
 		setActiveId(null);
