@@ -23,8 +23,10 @@ function blogPostToVideoSlide(post: BlogPost) {
 			: "",
 		publishedAt: post.publishedAt,
 		category: Array.isArray(post.category)
-			? (post.category[0] as any)?.name || post.category[0]
-			: (post.category as any)?.name || post.category,
+			? // biome-ignore lint/suspicious/noExplicitAny: Data structure variation
+				(post.category[0] as any)?.name || post.category[0]
+			: // biome-ignore lint/suspicious/noExplicitAny: Data structure variation
+				(post.category as any)?.name || post.category,
 		liveUrl: `/blog/${post.id}`,
 	};
 }

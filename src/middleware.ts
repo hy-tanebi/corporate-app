@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
 export function middleware(req: NextRequest) {
   const basicAuth = req.headers.get("authorization")
@@ -32,7 +32,7 @@ export function middleware(req: NextRequest) {
     if (user === validUser && pwd === validPassword) {
       return NextResponse.next()
     }
-  } catch (error) {
+  } catch (_error) {
     return new NextResponse("Invalid authentication", {
       status: 401,
       headers: {

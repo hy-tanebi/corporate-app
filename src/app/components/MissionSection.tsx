@@ -27,8 +27,8 @@ export interface MissionSidebarHandle {
 // ユーティリティ
 const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
 const remap01 = (v: number, a: number, b: number) => clamp((v - a) / (b - a));
-const easeOutCubic = (t: number) => 1 - Math.pow(1 - clamp(t), 3);
-const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeOutCubic = (t: number) => 1 - (1 - clamp(t)) ** 3;
+const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 
 function MissionSection({
   scrollProgress,
@@ -65,7 +65,7 @@ function MissionSection({
   const rawTarget = useMemo(() => {
     if (!isCircleFullyExpanded) return 0;
     return remap01(scrollProgress, SECTION_START, SECTION_END);
-  }, [scrollProgress, isCircleFullyExpanded]);
+  }, [scrollProgress, isCircleFullyExpanded, SECTION_START]);
 
   // 前回のrawTargetを保存して、進む/戻るを判定
   const prevRawTargetRef = useRef(0);
@@ -82,7 +82,7 @@ function MissionSection({
 
   // ガンマで序盤減速（進む時のみ適用、戻る時は線形）
   const shapedTarget = isGoingForwardRef.current
-    ? Math.pow(rawTarget, GAMMA)
+    ? rawTarget ** GAMMA
     : rawTarget;
 
   // 速度上限＋慣性つきの追従進捗（実際に描画に使う）
@@ -146,7 +146,13 @@ function MissionSection({
 
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [onProgressChange, isMobile]);
+  }, [
+    onProgressChange,
+    isMobile,
+    PROGRESS_SPEED_FORWARD,
+    PROGRESS_SPEED_BACKWARD,
+    SMOOTH_ALPHA,
+  ]);
 
   // 表示フラグ
   const showSection = isCircleFullyExpanded;
@@ -265,7 +271,7 @@ function MissionSection({
       // メインカラー（進捗に応じて黒→グレー）
       // Iris遷移が進むにつれて黒（0）に近づける
       const irisFactor = Math.max(0, Math.min(1, irisProgress));
-      let colorValue = Math.round(clampedProgress1 * TARGET_GRAY * (1 - irisFactor));
+      const colorValue = Math.round(clampedProgress1 * TARGET_GRAY * (1 - irisFactor));
 
       // 不透明度（Iris遷移が進むにつれて透明にしていく）
       // irisProgress: 0 (Mission/About) -> 1 (Space/Contact)
@@ -470,7 +476,7 @@ function MissionSection({
         container.removeEventListener('touchmove', handleTouchMove);
         container.removeEventListener('wheel', handleWheel);
     };
-  }, [showSection, isMobile]);
+  }, [showSection]);
 
   // スクロールイベント
   useEffect(() => {
@@ -530,12 +536,12 @@ function MissionSection({
 
   // Math Helpers
   const shrinkPhase = Math.min(irisTransitionProgress / 0.4, 1);
-  const visibleRadius = Math.max(0, (1 - shrinkPhase) * 150);
+  const _visibleRadius = Math.max(0, (1 - shrinkPhase) * 150);
 
-  const maskStyle = {
-    maskImage: `radial-gradient(circle at 50% 50%, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
-    WebkitMaskImage: `radial-gradient(circle at 50% 50%, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
-  };
+  // const maskStyle = {
+  //   maskImage: `radial-gradient(circle at 50% 50%, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
+  //   WebkitMaskImage: `radial-gradient(circle at 50% 50%, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
+  // };
 
   return (
     <div

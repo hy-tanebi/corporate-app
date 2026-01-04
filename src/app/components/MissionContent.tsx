@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useRef } from 'react';
+import type React from 'react';
+import { useRef } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 
 // コンテンツデータ
@@ -191,6 +192,7 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
   );
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Animation props
 function ScrollOpacityItem({ data, index, phase, duration = 1.0 }: { data: any, index: number, phase: any, duration?: number }) {
   const opacity = useTransform(
     phase,

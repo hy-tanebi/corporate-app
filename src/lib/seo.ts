@@ -32,7 +32,7 @@ function extractDescription(content: string, limit = 120): string {
     const noLineBreaks = plainText.replace(/\r?\n/g, "");
     // 文字数制限
     return noLineBreaks.length > limit
-        ? noLineBreaks.substring(0, limit) + "..."
+        ? `${noLineBreaks.substring(0, limit)}...`
         : noLineBreaks;
 }
 
@@ -59,7 +59,7 @@ export function generateBlogMetadata(post: BlogPost): Metadata {
 			type: 'article',
 			publishedTime: publishedTime,
 			modifiedTime: modifiedTime,
-			authors: [post.author?.name || SITE_CONFIG.author],
+			authors: [SITE_CONFIG.author],
 			tags: post.category,
             images: [
                 {

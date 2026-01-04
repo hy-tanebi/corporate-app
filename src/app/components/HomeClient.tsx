@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { SidebarMenu } from "@/components/ui/sidebar-menu";
 import { AudioControlButton } from "@/components/ui/audio-control-button";
-import MissionSection, { MissionSidebarHandle } from "./MissionSection";
+import MissionSection, { type MissionSidebarHandle } from "./MissionSection";
 import ContactSection from "./ContactSection";
 import { useHeroState } from "@/contexts/HeroStateContext";
 
@@ -126,7 +126,7 @@ export default function HomeClient() {
 				console.log("Circle shrinking at scrollProgress:", scrollProgress);
 			}
 		}
-	}, [scrollProgress, CIRCLE_ACTUAL_END, isCircleFullyExpanded, CIRCLE_START]);
+	}, [scrollProgress, isCircleFullyExpanded]);
 
 	// 黒い円が拡大中はすべてのUI要素を非表示
 	const isCircleExpanded = scrollProgress >= CIRCLE_SCROLL_END;

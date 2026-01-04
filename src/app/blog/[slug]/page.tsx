@@ -116,8 +116,8 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 					<div className="flex items-center gap-4 flex-wrap">
 						{post.category && post.category.length > 0 && (
 							<div className="flex flex-wrap gap-2">
-								{post.category.map((cat, index) => (
-									<CategoryBadge key={index} category={cat} />
+								{post.category.map((cat, _index) => (
+									<CategoryBadge key={cat} category={cat} />
 								))}
 							</div>
 						)}

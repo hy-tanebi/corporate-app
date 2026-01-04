@@ -25,7 +25,7 @@ export type ContactState = {
   };
 };
 
-export async function sendContactEmail(prevState: ContactState, formData: FormData): Promise<ContactState> {
+export async function sendContactEmail(_prevState: ContactState, formData: FormData): Promise<ContactState> {
   const validatedFields = contactSchema.safeParse({
     name: formData.get('name'),
     email: formData.get('email'),

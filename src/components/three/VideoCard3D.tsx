@@ -58,6 +58,7 @@ export default function VideoCard3D({
 		const canvas = document.createElement("canvas");
 		canvas.width = w;
 		canvas.height = h;
+		// biome-ignore lint/style/noNonNullAssertion: Canvas context is reliable here
 		const ctx = canvas.getContext("2d")!;
 		ctx.clearRect(0, 0, w, h);
 		ctx.fillStyle = "white";
@@ -133,6 +134,7 @@ export default function VideoCard3D({
 			tex.magFilter = THREE.LinearFilter;
 			tex.generateMipmaps = false;
 			tex.flipY = false; // DoubleSide使用時は反転させない
+			// biome-ignore lint/suspicious/noExplicitAny: ColorSpace property exists in newer Three.js
 			(tex as any).colorSpace = THREE.SRGBColorSpace;
 			videoTexture.current = tex;
 		} else if (mediaType === "image" && imageSrc) {
@@ -143,6 +145,7 @@ export default function VideoCard3D({
 					tex.magFilter = THREE.LinearFilter;
 					tex.generateMipmaps = true;
 					tex.flipY = false; // DoubleSide使用時は反転させない
+					// biome-ignore lint/suspicious/noExplicitAny: ColorSpace property exists in newer Three.js
 					(tex as any).colorSpace = THREE.SRGBColorSpace;
 					imageTexture.current = tex;
 					setTextureLoaded(true);
@@ -151,13 +154,15 @@ export default function VideoCard3D({
 				(e) => console.error("画像読み込み失敗:", imageSrc, e),
 			);
 		}
-		return () => {
-			videoRef.current &&
-				(videoRef.current.pause(), (videoRef.current.src = ""));
+	return () => {
+			if (videoRef.current) {
+				videoRef.current.pause();
+				videoRef.current.src = "";
+			}
 			videoTexture.current?.dispose();
 			imageTexture.current?.dispose();
 		};
-	}, [videoSrc, imageSrc, mediaType]);
+	}, [videoSrc, imageSrc, mediaType, title]);
 
 	// === 再生制御 ===
 	useEffect(() => {
@@ -281,6 +286,7 @@ export default function VideoCard3D({
 
 			material.opacity = finalOpacity;
 			material.transparent = !isOpaque; // 閾値以上ならfalse（不透明）
+			// biome-ignore lint/suspicious/noExplicitAny: Alpha texture type mismatch with three.js types
 			material.alphaMap = !isOpaque ? (alphaTexture as any) : null; // 不透明時はalphaMapも切る
 			material.depthWrite = true; // 常に深度バッファに書き込む
 			material.needsUpdate = true;
@@ -313,6 +319,7 @@ export default function VideoCard3D({
 			<group ref={floatingGroupRef}>
 				<group ref={exitGroupRef}>
 					{textureLoaded && (shouldRender || opacity > 0.01) && (
+						// biome-ignore lint/a11y/noStaticElementInteractions: R3F mesh interaction
 						<mesh
 							ref={meshRef}
 							position={[0, 0, 0]}

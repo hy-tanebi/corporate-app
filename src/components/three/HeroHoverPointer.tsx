@@ -1,7 +1,7 @@
 // src/components/three/HeroHoverPointer.tsx
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -21,9 +21,9 @@ export function HeroHoverPointer({
 	const meshRef = useRef<THREE.Mesh>(null);
 	const targetPos = useRef(new THREE.Vector3(0, 0, 0));
 	const currentScale = useRef(0.1);
-	const { camera, size } = useThree();
+	const { camera } = useThree();
 
-	useFrame((state, delta) => {
+	useFrame(() => {
 		if (!meshRef.current) return;
 
 		// マウス位置をワールド座標に変換
