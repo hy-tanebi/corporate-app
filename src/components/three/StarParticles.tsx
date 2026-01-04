@@ -40,6 +40,7 @@ export function StarParticles({
 	renderOrder = 10,
 }: Props) {
 	const mesh = useRef<THREE.Points>(null);
+	// biome-ignore lint/suspicious/noExplicitAny: Shader material ref
 	const materialRef = useRef<any>(null); // materialRefを追加
 	const { pointer } = useThree();
 

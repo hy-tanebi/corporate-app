@@ -82,6 +82,7 @@ export function RecruitmentContent({ groupInfo }: RecruitmentContentProps) {
 						<CardContent>
 							<div
 								className="prose prose-lg max-w-none text-gray-700"
+								// biome-ignore lint/security/noDangerouslySetInnerHtml: Trusted content
 								dangerouslySetInnerHTML={{ __html: groupInfo.description }}
 							/>
 						</CardContent>
@@ -102,8 +103,8 @@ export function RecruitmentContent({ groupInfo }: RecruitmentContentProps) {
 						</CardHeader>
 						<CardContent>
 							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-								{groupInfo.instruments.map((instrument, index) => (
-									<div key={index} className="text-center">
+								{groupInfo.instruments.map((instrument) => (
+									<div key={instrument.instrumentName} className="text-center">
 										{instrument.instrumentImage && (
 											<div className="mb-4 flex justify-center">
 												<button

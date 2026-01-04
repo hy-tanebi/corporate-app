@@ -92,6 +92,7 @@ export function RecruitmentCalendar({ initialData }: RecruitmentCalendarProps) {
 								<div className="space-y-3">
 									{selectedPractices.map((practice, index) => (
 										<div
+											// biome-ignore lint/suspicious/noArrayIndexKey: Safe for simple display list
 											key={index}
 											className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800"
 										>
@@ -138,6 +139,7 @@ export function RecruitmentCalendar({ initialData }: RecruitmentCalendarProps) {
 								.slice(0, 6)
 								.map((practice, index) => (
 									<div
+										// biome-ignore lint/suspicious/noArrayIndexKey: Safe for simple display list
 										key={index}
 										className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
 									>

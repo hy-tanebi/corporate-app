@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { getBlogPosts, type BlogPost } from "../../lib/microcms";
 import HeroCanvasWrapper from "./HeroCanvasWrapper";
+import { HeroStateProvider } from "../../contexts/HeroStateProvider";
 
 // BlogPostをVideoCard用データに変換
 function blogPostToVideoSlide(post: BlogPost) {
@@ -22,8 +23,10 @@ function blogPostToVideoSlide(post: BlogPost) {
 			: "",
 		publishedAt: post.publishedAt,
 		category: Array.isArray(post.category)
-			? (post.category[0] as any)?.name || post.category[0]
-			: (post.category as any)?.name || post.category,
+			? // biome-ignore lint/suspicious/noExplicitAny: Data structure variation
+				(post.category[0] as any)?.name || post.category[0]
+			: // biome-ignore lint/suspicious/noExplicitAny: Data structure variation
+				(post.category as any)?.name || post.category,
 		liveUrl: `/blog/${post.id}`,
 	};
 }
@@ -56,25 +59,21 @@ export default async function HeroCanvasWithCMS({
 	}
 
 	return (
-		<HeroCanvasWrapper videoSlides={videoSlides.length > 0 ? videoSlides : undefined}>
-			{/* AIO/SEO Fallback: 3Dコンテンツのテキスト情報を検索エンジン・AI用に隠しテキストとして出力 */}
-			<div className="sr-only">
-				<section aria-label="Featured Projects">
-					<h2>Featured Projects</h2>
-					{videoSlides.map((slide) => (
-						<article key={slide.id}>
-							<h3>{slide.title}</h3>
-							<p>{slide.description}</p>
-							{slide.publishedAt && (
-								<time dateTime={slide.publishedAt}>{slide.publishedAt}</time>
-							)}
-							{slide.category && <span>Category: {slide.category}</span>}
-							<a href={slide.liveUrl}>View Details</a>
-						</article>
-					))}
-				</section>
-			</div>
-			{children}
-		</HeroCanvasWrapper>
+        <HeroStateProvider>
+            {/* 3D Scene (Client Side Only via Dynamic Import with ssr: false) */}
+		    <HeroCanvasWrapper videoSlides={videoSlides.length > 0 ? videoSlides : undefined} />
+
+            {/* Main Content (SSR Safe) - Rendered independently of 3D Canvas */}
+            <div
+				style={{
+					position: "relative",
+					zIndex: 10,
+					minHeight: "1000vh",
+					pointerEvents: "none",
+				}}
+			>
+			    {children}
+            </div>
+        </HeroStateProvider>
 	);
 }

@@ -143,6 +143,7 @@ declare module "@react-three/fiber" {
 
 const ImageMesh = ({ imageSrc }: { imageSrc: string }) => {
   const texture = useTexture(imageSrc);
+  // biome-ignore lint/suspicious/noExplicitAny: Shader material type
   const materialRef = useRef<any>(null);
   const { size } = useThree(); // Canvas size in pixels
 
@@ -156,7 +157,7 @@ const ImageMesh = ({ imageSrc }: { imageSrc: string }) => {
     }
   }, [texture]);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (materialRef.current) {
       materialRef.current.uTime += delta;
 
@@ -172,8 +173,10 @@ const ImageMesh = ({ imageSrc }: { imageSrc: string }) => {
   return (
     <mesh
       onPointerMove={(e) => {
-        mouse.current.set(e.uv!.x, e.uv!.y);
-        hoverStrength.current = 1;
+        if (e.uv) {
+          mouse.current.set(e.uv.x, e.uv.y);
+          hoverStrength.current = 1;
+        }
       }}
       onPointerLeave={() => {
         hoverStrength.current = 0;

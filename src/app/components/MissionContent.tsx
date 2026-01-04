@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useRef } from 'react';
+import type React from 'react';
+import { useRef } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 
 // コンテンツデータ
@@ -55,8 +56,8 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
     restDelta: 0.001
   });
 
-  // Unified Phase Logic: 0 to 4 (Item 3 gets double duration: 2-4)
-  const currentPhase = useTransform(smoothProgress, [0, 1], [0, 4]);
+  // Unified Phase Logic: 0 to 3 (All items get duration: 1.0)
+  const currentPhase = useTransform(smoothProgress, [0, 1], [0, 3]);
 
   // Shapes Transforms (Syncing perfectly with phase)
   // Shape 1: Square (Business) - Phase 0-1
@@ -69,13 +70,13 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
   const pairScale = useTransform(currentPhase, [1, 2], [0.95, 1.05]);
   const pairGap = useTransform(currentPhase, [1, 2], [-50, 50]);
 
-  // Shape 3: Sanpo-yoshi (Triangle/Circles) - Phase 2-4 (Extended)
-  const sanpoOpacity = useTransform(currentPhase, [2, 2.2, 3.8, 4.0], [0, 1, 1, 0]);
-  const sanpoScale = useTransform(currentPhase, [2, 4], [0.95, 1.05]);
-  const sanpoRotate = useTransform(currentPhase, [2, 4], [0, 0]);
+  // Shape 3: Sanpo-yoshi (Triangle/Circles) - Phase 2-3 (Standardized)
+  const sanpoOpacity = useTransform(currentPhase, [2, 2.2, 2.8, 3.0], [0, 1, 1, 0]);
+  const sanpoScale = useTransform(currentPhase, [2, 3], [0.95, 1.05]);
+  const sanpoRotate = useTransform(currentPhase, [2, 3], [0, 0]);
   // Move from outside (expanded) to inside (tight overlap) - Keep convergence speed punchy
-  const sanpoOffset = useTransform(currentPhase, [2, 2.8], [100, 0]);
-  const centerScale = useTransform(currentPhase, [2.5, 2.9], [0, 1]); // Center circle appears late
+  const sanpoOffset = useTransform(currentPhase, [2, 2.4], [100, 0]); // Adjusted for shorter duration
+  const centerScale = useTransform(currentPhase, [2.25, 2.45], [0, 1]); // Adjusted for shorter duration
 
   return (
     <div ref={containerRef} className="relative w-full max-w-[1600px] mx-auto" style={{ height: '700vh' }}>
@@ -181,7 +182,7 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
                   data={item}
                   index={index}
                   phase={currentPhase}
-                  duration={index === 2 ? 2.0 : 1.0}
+                  duration={1.0}
                 />
              ))}
            </div>
@@ -191,6 +192,7 @@ function MissionContentDesktop({ scrollContainerRef }: { scrollContainerRef?: Re
   );
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Animation props
 function ScrollOpacityItem({ data, index, phase, duration = 1.0 }: { data: any, index: number, phase: any, duration?: number }) {
   const opacity = useTransform(
     phase,

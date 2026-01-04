@@ -1,4 +1,3 @@
-// src/components/three/HtmlHoverPointer.tsx
 "use client";
 
 import { useEffect, useState, useRef } from "react";

@@ -85,8 +85,11 @@ extend({
 declare global {
 	namespace JSX {
 		interface IntrinsicElements {
+			// biome-ignore lint/suspicious/noExplicitAny: Shader material
 			heroShaderMaterial: any;
+			// biome-ignore lint/suspicious/noExplicitAny: Shader material
 			hoverFluidMaterial: any;
+			// biome-ignore lint/suspicious/noExplicitAny: Shader material
 			featherCircleMaterial: any;
 		}
 	}

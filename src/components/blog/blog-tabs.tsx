@@ -59,6 +59,7 @@ export function BlogTabs({ initialPosts, groupInfo }: BlogTabsProps) {
 				<div className="container mx-auto px-4">
 					<nav className="flex space-x-0">
 						<button
+							type="button"
 							onClick={() => handleTabChange("blog")}
 							className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
 								activeTab === "blog"
@@ -69,6 +70,7 @@ export function BlogTabs({ initialPosts, groupInfo }: BlogTabsProps) {
 							ブログ
 						</button>
 						<button
+							type="button"
 							onClick={() => handleTabChange("recruitment")}
 							className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
 								activeTab === "recruitment"

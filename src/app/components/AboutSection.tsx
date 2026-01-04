@@ -1,8 +1,7 @@
-// src/app/components/AboutSection.tsx
 "use client";
 
+
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 
 import AboutThreeImage from "./AboutThreeImage";
 
@@ -138,7 +137,8 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
       }}
     >
         {/* SVGフィルター定義 (不可視) */}
-        <svg style={{ display: 'none' }}>
+        <svg style={{ display: 'none' }} aria-hidden="true">
+            <title>Distortion Filter</title>
             <defs>
                 <filter id="distortion">
                     <feTurbulence
@@ -180,6 +180,7 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
         >
           {Array.from({ length: repeatCount }).map((_, i) => (
             <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: Static marquee text
               key={i}
               className="text-[8vw] md:text-[7vw] font-bold mx-2 md:mx-8"
               style={{ fontFamily: "'Inter', sans-serif" }}

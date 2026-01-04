@@ -95,6 +95,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
 						{headings.map((heading) => (
 							<li key={heading.id}>
 								<button
+									type="button"
 									onClick={() => handleHeadingClick(heading.id)}
 									className={`
                     block w-full text-left py-1 px-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-800

@@ -41,7 +41,8 @@ yarn-error.log*
 next-env.d.ts
 
 # Claude settings
-.claude/settings.local.json
+# Claude settings
+/.claude/
 
 # 大きな3Dモデルファイル（Vercel Blobで管理）
 public/models/*.glb

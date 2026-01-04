@@ -1,20 +1,24 @@
 "use client";
 
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
+import { useHeroState } from "../../contexts/HeroStateContext";
 import type { VideoSlide } from "../../types/content";
-import type { ReactNode } from "react";
 
-// Use dynamic import with ssr: false inside this Client Component
-const HeroCanvas = dynamic(() => import('./hero-canvas'), {
+// Dynamically import HeroCanvas with SSR disabled
+const HeroCanvas = dynamic(() => import("./hero-canvas"), {
   ssr: false,
-  loading: () => <div className="fixed inset-0 bg-black -z-10" />
 });
 
 interface HeroCanvasWrapperProps {
-  children?: ReactNode;
+  // children removed from here as they are now rendered by HeroCanvasWithCMS
   videoSlides?: VideoSlide[];
 }
 
-export default function HeroCanvasWrapper(props: HeroCanvasWrapperProps) {
-  return <HeroCanvas {...props} />;
+export default function HeroCanvasWrapper({
+  videoSlides,
+}: HeroCanvasWrapperProps) {
+  // Get state from the Provider (which must be higher up in the tree)
+  const heroState = useHeroState();
+
+  return <HeroCanvas videoSlides={videoSlides} heroState={heroState} />;
 }

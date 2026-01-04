@@ -106,6 +106,7 @@ export function getFallbackVideoSlides(): VideoSlide[] {
 }
 
 // フォールバックデータのバリデーション
+// biome-ignore lint/suspicious/noExplicitAny: Intentional loose checking for type guard
 export function validateVideoSlide(slide: any): slide is VideoSlide {
 	return (
 		typeof slide?.id === "string" &&
