@@ -105,7 +105,7 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
   // タイトル制御 (About)
   useEffect(() => {
     if (contentOpacity > 0) {
-      document.title = "ABOUT ME | TANEBI CREATIVE タネビ クリエイティブ";
+      document.title = "ABOUT | TANEBI CREATIVE タネビ クリエイティブ";
     }
   }, [contentOpacity]);
 
@@ -128,7 +128,8 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
 
 
   return (
-    <div
+    <section
+      id="about"
       ref={sectionRef}
       className="w-full relative"
       style={{
@@ -175,6 +176,7 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
           style={{
             transform: `translateX(${titleTranslateX}vw)`,
           }}
+          aria-hidden="true"
         >
           {Array.from({ length: repeatCount }).map((_, i) => (
             <span
@@ -183,7 +185,7 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
               className="text-[8vw] md:text-[7vw] font-bold mx-2 md:mx-8"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              ABOUT ME
+              ABOUT
             </span>
           ))}
         </div>
@@ -275,6 +277,6 @@ export default function AboutSection({ transitionProgress = 0 }: AboutSectionPro
 
 
 
-    </div>
+    </section>
   );
 }

@@ -3,6 +3,13 @@ import type { VideoSlide, FallbackConfig } from "../types/content";
 // フォールバック用のコンテンツデータ
 export const fallbackVideoSlides: VideoSlide[] = [
 	{
+		id: "fallback-hero-simplify",
+		title: "デジタルの悩みをシンプルに",
+		mediaType: "image",
+		imageSrc: "/images/hero-simplify-digital.png",
+		description: "AIと技術で、複雑なデジタル課題をシンプルに解決します",
+	},
+	{
 		id: "fallback-1",
 		title: "プロジェクト準備中 1",
 		mediaType: "image",
@@ -34,6 +41,17 @@ export const fallbackConfig: FallbackConfig = {
 
 // 環境別フォールバック（開発時のみ外部動画を使用可能）
 export const developmentFallbackSlides: VideoSlide[] = [
+	{
+		id: "dev-fallback-hero-simplify",
+		title: "デジタルの悩みをシンプルに",
+		mediaType: "image",
+		imageSrc: "/images/hero-simplify-digital.png",
+		description: "AIと技術で、複雑なデジタル課題をシンプルに解決します",
+		publishedAt: "2024-01-20",
+		category: "Mission",
+		techStack: ["AI", "DX", "Consulting"],
+		liveUrl: "https://tanebi-net.com",
+	},
 	{
 		id: "dev-fallback-1",
 		title: "テスト3",

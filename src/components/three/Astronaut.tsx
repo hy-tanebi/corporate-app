@@ -83,3 +83,5 @@ export function Astronaut({ position = [0, 0, 0], scale = 2, isMobile = false }:
 		</group>
 	);
 }
+
+useGLTF.preload("https://mb9hgkfxcmjgkuip.public.blob.vercel-storage.com/artro_perfect.glb");
