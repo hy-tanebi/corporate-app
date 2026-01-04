@@ -426,7 +426,7 @@ function MissionSection({
     return () => {
       container.removeEventListener("scroll", handleScroll);
     };
-  }, [showDescription, isContactInView, setIsContactVisible]);
+  }, [showDescription, isContactInView, setIsContactVisible, irisTransitionProgress]);
   // オーバーレイでのスクロールをメインウィンドウに伝播させる処理（スマホでの「戻る」を安定させる）
   useEffect(() => {
     const container = containerRef.current;
