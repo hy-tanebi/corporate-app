@@ -712,11 +712,21 @@ function HeroScene({
 
 // ===== HeroCanvas =====
 interface HeroCanvasProps {
-	children: ReactNode;
 	videoSlides?: VideoSlide[];
+    // 親からStateを受け取る形に変更
+    heroState: {
+        isContactVisible: boolean;
+        setIsContactVisible: (v: boolean) => void;
+        spaceOpacity: number;
+        setSpaceOpacity: (v: number) => void;
+        transitionProgress: number;
+        setTransitionProgress: (v: number) => void;
+        shouldSnapAnimation: boolean;
+        setShouldSnapAnimation: (v: boolean) => void;
+    };
 }
 
-const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
+const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 	// フォールバック機能付きで安全にvideoSlidesを取得
 	const safeVideoSlides = getSafeVideoSlides(videoSlides);
 
@@ -726,10 +736,14 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 		index: number;
 	} | null>(null);
 	const [isCardHovering, setIsCardHovering] = useState(false);
+
+    // Stateは親(Wrapper -> Provider)から受け取るため、ここでは定義しない
+    /*
 	const [isContactVisible, setIsContactVisible] = useState(false);
     const [spaceOpacity, setSpaceOpacity] = useState(1);
     const [transitionProgress, setTransitionProgress] = useState(0);
     const [shouldSnapAnimation, setShouldSnapAnimation] = useState(false);
+    */
 
 	const handleCardClick = (slide: VideoSlide, index: number) => {
 		setSelectedCard({ slide, index });
@@ -754,8 +768,21 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 	}, []);
 
 	return (
-		<HeroStateContext.Provider value={{ setIsContactVisible, spaceOpacity, setSpaceOpacity, transitionProgress, setTransitionProgress, shouldSnapAnimation, setShouldSnapAnimation }}>
-			<Canvas
+        // Canvas内からContextにアクセスするのは難しいため、Props経由でSceneに渡す、
+        // もしくはCanvas内でuseContextするためのBridgeが必要だが、
+        // ここでは単純にPropsとしてSceneに渡す形をとる。
+        // Providerは親(HeroCanvasWithCMS -> HeroStateProvider)にある。
+        // ただし、もしCanvas内のコンポーネントがuseHeroState()を使っている場合は、
+        // Canvas内で再度Providerで包むか、dreiの<HttpContextBridge>等が必要。
+        // 現状、HeroSceneはPropsで全て受け取っているので問題ないはず。
+        // HeroScene内部でuseContext(HeroStateContext)しているか確認→してない(Props受け取り)。
+        // 念のため、HeroStateContext.Providerで包んでおくと安心（CardDetailModal等が使うかも？）
+        // CardDetailModalはCanvasの外(HTML)なので、親のProviderが有効。
+        // よってここでのProviderは不要、またはBridgeが必要。
+        // 今回はSceneへはPropsで渡す。Canvasの外の要素はそのまま。
+
+			<>
+            <Canvas
 				camera={{ position: [0, 0, CAMERA_Z], fov: 75 }}
 				dpr={[1, 1.5]}
 				style={{
@@ -774,25 +801,19 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 					videoSlides={safeVideoSlides}
 					onCardClick={handleCardClick}
 					onCardHover={setIsCardHovering}
-					isContactVisible={isContactVisible}
-                    spaceOpacity={spaceOpacity}
-                    transitionProgress={transitionProgress}
-                    shouldSnapAnimation={shouldSnapAnimation}
+                    // State Props
+					isContactVisible={heroState.isContactVisible}
+                    spaceOpacity={heroState.spaceOpacity}
+                    transitionProgress={heroState.transitionProgress}
+                    shouldSnapAnimation={heroState.shouldSnapAnimation}
 				/>
 			</Canvas>
 
-			<div
-				style={{
-					position: "relative",
-					zIndex: 10,
-					minHeight: "1000vh",
-					pointerEvents: "none",
-				}}
-			>
-				{children}
-			</div>
-
-			{/* カード詳細モーダル */}
+			{/* HTML Overlay Elements (Card Modal, etc) are now rendered by parent?
+                No, selectedCard state is local to this component.
+                So we must render CardDetailModal here.
+                It relies on standard DOM, so it will appear on top of Canvas.
+            */}
 			{selectedCard && (
 				<CardDetailModal
 					isOpen={!!selectedCard}
@@ -802,9 +823,8 @@ const HeroCanvas = ({ children, videoSlides }: HeroCanvasProps) => {
 				/>
 			)}
 
-			{/* HTMLホバーポインタ */}
 			<HtmlHoverPointer isHovering={isCardHovering} />
-		</HeroStateContext.Provider>
+            </>
 	);
 };
 

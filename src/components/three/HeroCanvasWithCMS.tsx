@@ -1,7 +1,8 @@
 // src/components/three/HeroCanvasWithCMS.tsx
 import type { ReactNode } from "react";
 import { getBlogPosts, type BlogPost } from "../../lib/microcms";
-import HeroCanvas from "./hero-canvas";
+import HeroCanvasWrapper from "./HeroCanvasWrapper";
+import { HeroStateProvider } from "../../contexts/HeroStateProvider";
 
 // BlogPostをVideoCard用データに変換
 function blogPostToVideoSlide(post: BlogPost) {
@@ -56,8 +57,21 @@ export default async function HeroCanvasWithCMS({
 	}
 
 	return (
-		<HeroCanvas videoSlides={videoSlides.length > 0 ? videoSlides : undefined}>
-			{children}
-		</HeroCanvas>
+        <HeroStateProvider>
+            {/* 3D Scene (Client Side Only via Dynamic Import with ssr: false) */}
+		    <HeroCanvasWrapper videoSlides={videoSlides.length > 0 ? videoSlides : undefined} />
+
+            {/* Main Content (SSR Safe) - Rendered independently of 3D Canvas */}
+            <div
+				style={{
+					position: "relative",
+					zIndex: 10,
+					minHeight: "1000vh",
+					pointerEvents: "none",
+				}}
+			>
+			    {children}
+            </div>
+        </HeroStateProvider>
 	);
 }
