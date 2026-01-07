@@ -45,7 +45,7 @@ export default async function HeroCanvasWithCMS({
 		const response = await getBlogPosts(20, 0);
 		// isShowcaseフィールドが存在する場合はフィルタリング、存在しない場合は全記事を表示
 		const showcasePosts = response.contents.filter((post) =>
-			post.isShowcase !== undefined ? post.isShowcase : true
+			post.isShowcase !== undefined ? post.isShowcase : true,
 		);
 
 		if (showcasePosts.length > 0) {
@@ -59,12 +59,14 @@ export default async function HeroCanvasWithCMS({
 	}
 
 	return (
-        <HeroStateProvider>
-            {/* 3D Scene (Client Side Only via Dynamic Import with ssr: false) */}
-		    <HeroCanvasWrapper videoSlides={videoSlides.length > 0 ? videoSlides : undefined} />
+		<HeroStateProvider>
+			{/* 3D Scene (Client Side Only via Dynamic Import with ssr: false) */}
+			<HeroCanvasWrapper
+				videoSlides={videoSlides.length > 0 ? videoSlides : undefined}
+			/>
 
-            {/* Main Content (SSR Safe) - Rendered independently of 3D Canvas */}
-            <div
+			{/* Main Content (SSR Safe) - Rendered independently of 3D Canvas */}
+			<div
 				style={{
 					position: "relative",
 					zIndex: 10,
@@ -72,8 +74,8 @@ export default async function HeroCanvasWithCMS({
 					pointerEvents: "none",
 				}}
 			>
-			    {children}
-            </div>
-        </HeroStateProvider>
+				{children}
+			</div>
+		</HeroStateProvider>
 	);
 }

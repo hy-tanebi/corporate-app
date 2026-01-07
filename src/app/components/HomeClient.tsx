@@ -12,76 +12,80 @@ export default function HomeClient() {
 	const [scrollProgress, setScrollProgress] = useState(0);
 	const [isCircleFullyExpanded, setIsCircleFullyExpanded] = useState(false);
 	const [missionSectionProgress, setMissionSectionProgress] = useState(0);
-    const [isMobile, setIsMobile] = useState(false);
+	const [isMobile, setIsMobile] = useState(false);
 	const missionRef = useRef<MissionSidebarHandle>(null);
-    const { setShouldSnapAnimation } = useHeroState();
+	const { setShouldSnapAnimation } = useHeroState();
 
-    useEffect(() => {
-        const checkMobile = () => {
-             setIsMobile(window.innerWidth < 768);
-        };
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
+	useEffect(() => {
+		const checkMobile = () => {
+			setIsMobile(window.innerWidth < 768);
+		};
+		checkMobile();
+		window.addEventListener("resize", checkMobile);
+		return () => window.removeEventListener("resize", checkMobile);
+	}, []);
 
-    const handleNavigate = (path: string) => {
-        if (path === '/about') {
-            // AboutセクションはMissionSectionの中にあるため、
-            // まずはメインのスクロールをMissionSectionが表示される位置（＝一番下）まで持っていく
-            window.scrollTo({
-                top: document.documentElement.scrollHeight,
-                behavior: 'smooth'
-            });
+	const handleNavigate = (path: string) => {
+		if (path === "/about") {
+			// AboutセクションはMissionSectionの中にあるため、
+			// まずはメインのスクロールをMissionSectionが表示される位置（＝一番下）まで持っていく
+			window.scrollTo({
+				top: document.documentElement.scrollHeight,
+				behavior: "smooth",
+			});
 
-            // その後、MissionSection内部でAboutまでスクロール
-            // 少し遅延させて、メインスクロールが始まった後に実行（あるいは完了後が良いが、並行でも動くはず）
-            setTimeout(() => {
-                missionRef.current?.scrollToAbout();
-            }, 500);
-        } else if (path === '/contact') {
-             window.scrollTo({
-                top: document.documentElement.scrollHeight,
-                behavior: 'smooth'
-            });
-            // 遅延なしで即時実行（MissionSection側でフラグ制御による即時表示を行う）
-            missionRef.current?.scrollToContact();
-        } else if (path === '/mission') {
-            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-            // MissionSectionの定数と合わせる (Mobile: 0.85, Desktop: 0.94)
-            // 少し余裕を持たせて、アニメーションが開始した直後の状態(0.15付近)にするなら
-            // Start + (End - Start) * 0.15 くらいが適切だが、
-            // シンプルにセクション開始位置(Start)へ遷移させる
-            const SECTION_START = isMobile ? 0.85 : 0.94;
-            // 0.95進んだ位置を計算 (TECHNICAL PARTNERが完全に横に並んだ状態)
-            const SECTION_END = 0.999;
-            const targetScroll = docHeight * (SECTION_START + (SECTION_END - SECTION_START) * 0.95);
+			// その後、MissionSection内部でAboutまでスクロール
+			// 少し遅延させて、メインスクロールが始まった後に実行（あるいは完了後が良いが、並行でも動くはず）
+			setTimeout(() => {
+				missionRef.current?.scrollToAbout();
+			}, 500);
+		} else if (path === "/contact") {
+			window.scrollTo({
+				top: document.documentElement.scrollHeight,
+				behavior: "smooth",
+			});
+			// 遅延なしで即時実行（MissionSection側でフラグ制御による即時表示を行う）
+			missionRef.current?.scrollToContact();
+		} else if (path === "/mission") {
+			const docHeight =
+				document.documentElement.scrollHeight - window.innerHeight;
+			// MissionSectionの定数と合わせる (Mobile: 0.85, Desktop: 0.94)
+			// 少し余裕を持たせて、アニメーションが開始した直後の状態(0.15付近)にするなら
+			// Start + (End - Start) * 0.15 くらいが適切だが、
+			// シンプルにセクション開始位置(Start)へ遷移させる
+			const SECTION_START = isMobile ? 0.85 : 0.94;
+			// 0.95進んだ位置を計算 (TECHNICAL PARTNERが完全に横に並んだ状態)
+			const SECTION_END = 0.999;
+			// New mapping adjustment:
+			// The video section is now much longer, pushing the Mission/About transition to the very end.
+			// Target near the end of the scroll range.
+			const targetScroll = docHeight * SECTION_END;
 
-            // ミッション表示に必要なフラグを強制的にONにする
-            setIsCircleFullyExpanded(true);
+			// ミッション表示に必要なフラグを強制的にONにする
+			setIsCircleFullyExpanded(true);
 
-            // ★アニメーションのスムージングを無効化（スナップ）
-            setShouldSnapAnimation(true);
+			// ★アニメーションのスムージングを無効化（スナップ）
+			setShouldSnapAnimation(true);
 
-            window.scrollTo({
-                top: targetScroll,
-                behavior: 'auto'
-            });
+			window.scrollTo({
+				top: targetScroll,
+				behavior: "auto",
+			});
 
-            // 即座に実行してグレー背景などの状態をリセット
-            missionRef.current?.scrollToMission();
+			// 即座に実行してグレー背景などの状態をリセット
+			missionRef.current?.scrollToMission();
 
-            // 少し遅れてスナップフラグを解除
-            setTimeout(() => {
-                setShouldSnapAnimation(false);
-            }, 100);
-        } else if (path === '/') {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        }
-    };
+			// 少し遅れてスナップフラグを解除
+			setTimeout(() => {
+				setShouldSnapAnimation(false);
+			}, 100);
+		} else if (path === "/") {
+			window.scrollTo({
+				top: 0,
+				behavior: "smooth",
+			});
+		}
+	};
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -96,21 +100,22 @@ export default function HomeClient() {
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
 
-    // タイトル制御 (Top)
-    useEffect(() => {
-        // スクロールが浅い場合（Missionセクションに入る前）、タイトルをデフォルトに戻す
-        // かつ、ミッションセクション側で制御されていないタイミング
-        if (scrollProgress < 0.8 && !isMobile) {
-             document.title = "TANEBI CREATIVE タネビ クリエイティブ";
-        } else if (scrollProgress < 0.8 && isMobile) {
-             document.title = "TANEBI CREATIVE タネビ クリエイティブ";
-        }
-    }, [scrollProgress, isMobile]);
+	// タイトル制御 (Top)
+	useEffect(() => {
+		// スクロールが浅い場合（Missionセクションに入る前）、タイトルをデフォルトに戻す
+		// かつ、ミッションセクション側で制御されていないタイミング
+		if (scrollProgress < 0.8 && !isMobile) {
+			document.title = "TANEBI CREATIVE タネビ クリエイティブ";
+		} else if (scrollProgress < 0.8 && isMobile) {
+			document.title = "TANEBI CREATIVE タネビ クリエイティブ";
+		}
+	}, [scrollProgress, isMobile]);
 
 	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
-	const CIRCLE_START = 0.86;
-	const CIRCLE_SCROLL_END = 0.95; // hero-canvas.tsxのCIRCLE_SCROLL_END
-	const CIRCLE_ACTUAL_END = 0.98; // 慣性を考慮した実際の完全拡大タイミング（CIRCLE_SMOOTH_EXPAND = 0.25を考慮）
+	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
+	const CIRCLE_START = 0.92;
+	const CIRCLE_SCROLL_END = 0.97; // hero-canvas.tsxのCIRCLE_SCROLL_END
+	const CIRCLE_ACTUAL_END = 0.97; // 完全に拡大したタイミング (0.99 -> 0.97)
 
 	// 黒い円が完全に拡大したらフラグを立てる（戻る時はfalseに戻す）
 	useEffect(() => {
@@ -132,13 +137,16 @@ export default function HomeClient() {
 	const isCircleExpanded = scrollProgress >= CIRCLE_SCROLL_END;
 
 	// 第1テキストの表示タイミング（0-30%でフェードイン、30-45%で表示、45-55%でフェードアウト）
-	const text1FadeIn = Math.max(0, Math.min(1, scrollProgress * 3.333)); // 0-30%
-	const text1FadeOut = Math.max(0, Math.min(1, (0.55 - scrollProgress) * 10)); // 45-55%
+	// 第1テキストの表示タイミング（0-18%でフェードイン、18-27%で表示、27-33%でフェードアウト）
+	// Original: 0-30% -> New: 0-18% (approx factor 1.66 -> 0.6 scale)
+	const text1FadeIn = Math.max(0, Math.min(1, scrollProgress * 5.5)); // 0-18%
+	const text1FadeOut = Math.max(0, Math.min(1, (0.33 - scrollProgress) * 16)); // 27-33%
 	const text1Opacity = Math.min(text1FadeIn, text1FadeOut);
 
-	// 第2テキストの表示タイミング（60-65%でフェードイン、65-82%で表示、82-86%でフェードアウト）
-	const text2FadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.6) * 20)); // 60-65%
-	const text2FadeOut = Math.max(0, Math.min(1, (0.86 - scrollProgress) * 25)); // 82-86%
+	// 第2テキストの表示タイミング（36-40%でフェードイン、40-89%で表示、89-91%でフェードアウト）
+	// Starts earlier (after Text 1) and lasts longer (through the video phase)
+	const text2FadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.36) * 20)); // 36-41%
+	const text2FadeOut = Math.max(0, Math.min(1, (0.915 - scrollProgress) * 40)); // 89-91.5%
 	const text2Opacity = Math.min(text2FadeIn, text2FadeOut);
 
 	return (
@@ -156,25 +164,31 @@ export default function HomeClient() {
 			{/* 第1テキスト: 最初のキャッチコピー */}
 			<div
 				className={`fixed z-10 transition-all duration-1000 ease-out md:max-w-4xl ${
-                    isMobile
-                        ? 'left-0 top-0 w-full h-[100dvh] pointer-events-none'
-                        : 'left-8 md:left-16 top-1/2 pointer-events-none'
-                }`}
+					isMobile
+						? "left-0 top-0 w-full h-[100dvh] pointer-events-none"
+						: "left-8 md:left-16 top-1/2 pointer-events-none"
+				}`}
 				style={{
 					opacity: isCircleExpanded ? 0 : text1Opacity,
 					// Mobile: Just slide X. Desktop: Center Y + Slide X.
 					transform: isMobile
-                        ? `translateX(${(1 - text1Opacity) * -20}px)`
-                        : `translateY(-50%) translateX(${(1 - text1Opacity) * -20}px)`,
+						? `translateX(${(1 - text1Opacity) * -20}px)`
+						: `translateY(-50%) translateX(${(1 - text1Opacity) * -20}px)`,
 				}}
 			>
 				<div
-                    className={isMobile ? "w-full h-full flex flex-col justify-between px-6" : ""}
-                    style={{
-                        paddingTop: isMobile ? 'calc(env(safe-area-inset-top) + 8rem)' : undefined,
-                        paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom) + 2rem)' : undefined
-                    }}
-                >
+					className={
+						isMobile ? "w-full h-full flex flex-col justify-between px-6" : ""
+					}
+					style={{
+						paddingTop: isMobile
+							? "calc(env(safe-area-inset-top) + 8rem)"
+							: undefined,
+						paddingBottom: isMobile
+							? "calc(env(safe-area-inset-bottom) + 2rem)"
+							: undefined,
+					}}
+				>
 					<h2
 						className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
 						style={{
@@ -204,7 +218,7 @@ export default function HomeClient() {
 					>
 						<span className="block">ホームページ制作 / ECサイト制作</span>
 						<span className="block">アプリ制作 / AI業務効率化 /</span>
-						<span className="block">時代はSEOからLLMOへ</span>
+						<span className="block">時代はSEOからAIOへ</span>
 						<span className="block">課題解決に向けてAI時代の最適な制作を</span>
 					</p>
 				</div>
@@ -213,24 +227,30 @@ export default function HomeClient() {
 			{/* 第2テキスト: 詳細メッセージ */}
 			<div
 				className={`fixed z-10 transition-all duration-1000 ease-out md:max-w-4xl ${
-                    isMobile
-                        ? 'left-0 top-0 w-full h-[100dvh] pointer-events-none'
-                        : 'left-8 md:left-16 top-1/2 pointer-events-none'
-                }`}
+					isMobile
+						? "left-0 top-0 w-full h-[100dvh] pointer-events-none"
+						: "left-8 md:left-16 top-1/2 pointer-events-none"
+				}`}
 				style={{
 					opacity: isCircleExpanded ? 0 : text2Opacity,
 					transform: isMobile
-                        ? `translateX(${(1 - text2Opacity) * -20}px)`
-                        : `translateY(-50%) translateX(${(1 - text2Opacity) * -20}px)`,
+						? `translateX(${(1 - text2Opacity) * -20}px)`
+						: `translateY(-50%) translateX(${(1 - text2Opacity) * -20}px)`,
 				}}
 			>
 				<div
-                    className={isMobile ? "w-full h-full flex flex-col justify-between px-6" : ""}
-                    style={{
-    					paddingTop: isMobile ? 'calc(env(safe-area-inset-top) + 8rem)' : undefined,
-	    				paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom) + 2rem)' : undefined
-                    }}
-                >
+					className={
+						isMobile ? "w-full h-full flex flex-col justify-between px-6" : ""
+					}
+					style={{
+						paddingTop: isMobile
+							? "calc(env(safe-area-inset-top) + 8rem)"
+							: undefined,
+						paddingBottom: isMobile
+							? "calc(env(safe-area-inset-bottom) + 2rem)"
+							: undefined,
+					}}
+				>
 					<h2
 						className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
 						style={{
@@ -279,7 +299,7 @@ export default function HomeClient() {
 
 			{/* MISSIONセクション */}
 			<MissionSection
-                ref={missionRef}
+				ref={missionRef}
 				scrollProgress={scrollProgress}
 				isCircleFullyExpanded={isCircleFullyExpanded}
 				onProgressChange={setMissionSectionProgress}
@@ -292,7 +312,10 @@ export default function HomeClient() {
 			/>
 
 			{/* スクロール可能なコンテンツエリア（透明） */}
-			<div className="w-full pointer-events-none" style={{ height: "1200vh" }}>
+			<div
+				className="w-full pointer-events-none"
+				style={{ height: isMobile ? "800vh" : "2000vh" }}
+			>
 				{/* 空のコンテンツでスクロールを可能にする */}
 			</div>
 		</main>

@@ -3,13 +3,7 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useFBO } from "@react-three/drei";
-import {
-	useRef,
-	useMemo,
-	Suspense,
-	useState,
-	useEffect,
-} from "react";
+import { useRef, useMemo, Suspense, useState, useEffect } from "react";
 import * as THREE from "three";
 import { StarParticles } from "./StarParticles";
 import { ShootingStars } from "./ShootingStars";
@@ -34,21 +28,23 @@ const FADE_FRAC = 0.7;
 const TAU = Math.PI * 2;
 
 // ===== 動画フェーズ =====
-const THIRD_PHASE_START = 0.5;
-const THIRD_PHASE_END = 0.88;
-const VIDEO_START_PROGRESS = 0.57;
+// ===== 動画フェーズ =====
+const THIRD_PHASE_START = 0.3;
+const THIRD_PHASE_END = 0.93;
+const VIDEO_START_PROGRESS = 0.35;
 
 // ===== イージング・慣性 =====
+// ===== イージング・慣性 =====
 const VIDEO_EASE = 5.0;
-const CARD_DWELL_FRAC = 0.95;
-const VIDEO_ROT_INERTIA = 2.0;
+const CARD_DWELL_FRAC = 0.95; // 滑らかな回転に戻す (0.7 -> 0.95)
+const VIDEO_ROT_INERTIA = 2.0; // 慣性を戻す (4.0 -> 2.0)
 
 // ===== 黒円/リターン =====
-const RETURN_SCROLL_START = 0.82;
-const RETURN_SCROLL_END = 0.86;
+const RETURN_SCROLL_START = 0.89;
+const RETURN_SCROLL_END = 0.915;
 const CIRCLE_SCROLL_START = RETURN_SCROLL_END + 0.005;
-const CIRCLE_SCROLL_END = 0.95; // 黒い円の拡大終了
-const CIRCLE_SMOOTH_EXPAND = 0.25;
+const CIRCLE_SCROLL_END = 0.97; // 黒い円の拡大終了
+const CIRCLE_SMOOTH_EXPAND = 0.8;
 const CIRCLE_SMOOTH_SHRINK = 3.5; // 縮小は拡大よりかなり速く
 const CIRCLE_EASE = 1.0;
 
@@ -101,9 +97,10 @@ interface HeroSceneProps {
 	onCardClick?: (slide: VideoSlide, index: number) => void;
 	onCardHover?: (isHovering: boolean) => void;
 	isContactVisible: boolean;
-    spaceOpacity: number;
-    transitionProgress: number;
-    shouldSnapAnimation: boolean;
+	spaceOpacity: number;
+	transitionProgress: number;
+	shouldSnapAnimation: boolean;
+	isCardHovering: boolean; // Add prop
 }
 
 function HeroScene({
@@ -112,9 +109,10 @@ function HeroScene({
 	onCardClick,
 	onCardHover,
 	isContactVisible,
-    spaceOpacity,
-    transitionProgress,
-    shouldSnapAnimation,
+	spaceOpacity,
+	transitionProgress,
+	shouldSnapAnimation,
+	isCardHovering, // Destructure prop
 }: HeroSceneProps) {
 	// biome-ignore lint/suspicious/noExplicitAny: Custom shader material
 	const heroMatRef = useRef<any>(null);
@@ -175,13 +173,29 @@ function HeroScene({
 	const velSmoothed = useRef(new THREE.Vector2(0, 0));
 	const hoverStrength = useRef(0);
 
+	// Refs for event listener access
+	const isCardHoveringRef = useRef(isCardHovering);
+	const scrollProgressRef = useRef(scrollProgress);
+
+	useEffect(() => {
+		isCardHoveringRef.current = isCardHovering;
+	}, [isCardHovering]);
+
+	useEffect(() => {
+		scrollProgressRef.current = scrollProgress;
+	}, [scrollProgress]);
+
 	useEffect(() => {
 		const onMove = (e: PointerEvent) => {
 			mouseRaw.current.set(
 				e.clientX / window.innerWidth,
 				1 - e.clientY / window.innerHeight,
 			);
-			hoverStrength.current = 1;
+
+			// Only activate fluid effect if hovering a card AND in Hero section (scroll < 0.8)
+			if (isCardHoveringRef.current && scrollProgressRef.current < 0.8) {
+				hoverStrength.current = 1;
+			}
 		};
 		window.addEventListener("pointermove", onMove, { passive: true });
 		return () => window.removeEventListener("pointermove", onMove);
@@ -260,8 +274,24 @@ function HeroScene({
 
 	// ===== 毎フレーム =====
 	useFrame((state, delta) => {
+		// ★パフォーマンス最適化: Missionセクション表示中（スクロール完了後）で、かつContactが表示されていない時は、
+		// 3Dシーンの更新・描画をスキップして負荷を下げる。
+		// ただし、Contactセクション（isContactVisible）では宇宙に戻るのでスキップしない。
+		// transitionProgress > 0 (About終わり際) は宇宙に戻ろうとしているのでスキップしない。
+		// scrollProgress >= 1.0 はMissionセクションが完全に表示された状態。
+		const shouldSkipFrame =
+			scrollProgress >= 0.99 && !isContactVisible && transitionProgress === 0;
+
+		if (shouldSkipFrame) {
+			// スキップ中も最低限のクリーンアップなどが必要ならここに記述。
+			// 基本的に何もしないでreturnすることでCPU/GPU負荷をカットする。
+			return;
+		}
+
 		// 1) FBO描画（液体メッシュは一時非表示）
-		if (fluidRef.current) {
+		// ★モバイル最適化: モバイルではFBO処理をスキップして負荷軽減
+		const isMobileFrame = state.size.width < 768;
+		if (fluidRef.current && !isMobileFrame) {
 			const wasVisible = fluidRef.current.visible;
 			fluidRef.current.visible = false;
 			state.gl.setRenderTarget(fbo);
@@ -269,6 +299,9 @@ function HeroScene({
 			state.gl.render(state.scene, state.camera);
 			state.gl.setRenderTarget(null);
 			fluidRef.current.visible = wasVisible;
+		} else if (fluidRef.current && isMobileFrame) {
+			// モバイルではFluidを非表示にする
+			fluidRef.current.visible = false;
 		}
 
 		// ポインタ・速度の指数平滑
@@ -364,9 +397,9 @@ function HeroScene({
 			];
 		}
 		if (rootRef.current) {
-            // モバイルの場合はスケールを小さくする
-            const isMobile = state.size.width < 768;
-            const currentScale = isMobile ? 0.75 : SCENE_SCALE;
+			// モバイルの場合はスケールを小さくする
+			const isMobile = state.size.width < 768;
+			const currentScale = isMobile ? 0.75 : SCENE_SCALE;
 
 			rootRef.current.scale.set(currentScale, currentScale, currentScale);
 			// Parallax Zoom Effect
@@ -437,6 +470,7 @@ function HeroScene({
 				smoothedTheta.current += (thetaDwell - smoothedTheta.current) * kRot;
 
 				videoCardsRef.current.rotation.y = smoothedTheta.current;
+				videoCardsRef.current.scale.setScalar(1.0);
 				videoCardsRef.current.visible = true;
 
 				// マテリアルの深度状態を正規化
@@ -465,9 +499,9 @@ function HeroScene({
 		if (circleRef.current) {
 			const isMobile = state.size.width < 768;
 
-            // モバイル用設定：
-            // 1. 範囲を広げる (0.85 ~ 0.99) - 長いスクロールが必要
-            // 2. スムージングをほぼなくす (speed 8.0) - 指に追従
+			// モバイル用設定：
+			// 1. 範囲を広げる (0.85 ~ 0.99) - 長いスクロールが必要
+			// 2. スムージングをほぼなくす (speed 8.0) - 指に追従
 			const currentStart = isMobile ? 0.85 : CIRCLE_SCROLL_START;
 			const currentEnd = isMobile ? 0.99 : CIRCLE_SCROLL_END;
 			const currentSmoothExpand = isMobile ? 8.0 : CIRCLE_SMOOTH_EXPAND;
@@ -478,19 +512,19 @@ function HeroScene({
 			);
 			const tTarget = sstep(scrollProgress, currentStart, endClamped);
 
-            // モバイルなら完全同期、そうでなければスムージング
-            // ★修正: shouldSnapAnimationがtrueの場合はスムージングを無効化（即時同期）
-            if (isMobile || shouldSnapAnimation) {
-                circleTRef.current = tTarget;
-            } else {
-                const speed =
-                    tTarget >= circleTRef.current
-                        ? currentSmoothExpand
-                        : CIRCLE_SMOOTH_SHRINK;
+			// モバイルなら完全同期、そうでなければスムージング
+			// ★修正: shouldSnapAnimationがtrueの場合はスムージングを無効化（即時同期）
+			if (isMobile || shouldSnapAnimation) {
+				circleTRef.current = tTarget;
+			} else {
+				const speed =
+					tTarget >= circleTRef.current
+						? currentSmoothExpand
+						: CIRCLE_SMOOTH_SHRINK;
 
-                const k = 1 - Math.exp(-delta * speed);
-                circleTRef.current += (tTarget - circleTRef.current) * k;
-            }
+				const k = 1 - Math.exp(-delta * speed);
+				circleTRef.current += (tTarget - circleTRef.current) * k;
+			}
 
 			const growT = smooth01(circleTRef.current) ** CIRCLE_EASE;
 
@@ -510,57 +544,61 @@ function HeroScene({
 				circleRef.current.scale.set(s, s, 1);
 
 				// Contactセクションが表示されている時は黒い円を非表示にして宇宙空間を表示
-                // ★修正: transitionProgress > 0 の時も黒い円を非表示にする
-				circleRef.current.visible = !isContactVisible && transitionProgress === 0;
+				// ★修正: transitionProgress > 0 の時も黒い円を非表示にする
+				circleRef.current.visible =
+					!isContactVisible && transitionProgress === 0;
 
 				const hideTri = s >= HIDE_TRI_AT_RADIUS;
 				// Contactセクションが表示されている時はテトラを隠す（背景のみ表示）
 				if (triangleVisibleMeshRef.current)
-					triangleVisibleMeshRef.current.visible = !hideTri && !isContactVisible;
-				if (lineSegmentsRef.current) lineSegmentsRef.current.visible = !hideTri && !isContactVisible;
-				if (videoCardsRef.current) videoCardsRef.current.visible = !hideTri && !isContactVisible;
+					triangleVisibleMeshRef.current.visible =
+						!hideTri && !isContactVisible;
+				if (lineSegmentsRef.current)
+					lineSegmentsRef.current.visible = !hideTri && !isContactVisible;
+				if (videoCardsRef.current)
+					videoCardsRef.current.visible = !hideTri && !isContactVisible;
 
 				if (starGroupRef.current) {
-                    // ★追加: 宇宙空間の透明度制御
-                    if (isContactVisible || transitionProgress > 0) {
-                        // Contact表示中は spaceOpacity で透明度/可視性を制御
-                        if (spaceOpacity < 0.05) {
-                            starGroupRef.current.visible = false;
-                        } else {
-                            starGroupRef.current.visible = true;
-                            // マテリアルの透明度を更新（簡易的な実装）
-                            starGroupRef.current.traverse((obj) => {
-                                // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
-                                const m = (obj as any).material;
-                                if (m) {
-                                    m.transparent = true;
-                                    // userDataに元のopacityを保存していなければ保存
-                                    if (m.userData.originalOpacity === undefined) {
-                                        m.userData.originalOpacity = m.opacity || 1;
-                                    }
-                                    m.opacity = m.userData.originalOpacity * spaceOpacity;
-                                    // depthWriteをoffにすると後ろが透けるが、星は加算合成などが多いのでOK
-                                    // ただしPurpleNebulaなどは重なり順に注意
-                                }
-                            });
-                        }
-                    } else {
-                        // 通常時（Top/Mission）: growTによるフェードアウト
-                        const shouldShow = growT < HIDE_BG_AT_T;
-                        starGroupRef.current.visible = shouldShow;
+					// ★追加: 宇宙空間の透明度制御
+					if (isContactVisible || transitionProgress > 0) {
+						// Contact表示中は spaceOpacity で透明度/可視性を制御
+						if (spaceOpacity < 0.05) {
+							starGroupRef.current.visible = false;
+						} else {
+							starGroupRef.current.visible = true;
+							// マテリアルの透明度を更新（簡易的な実装）
+							starGroupRef.current.traverse((obj) => {
+								// biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+								const m = (obj as any).material;
+								if (m) {
+									m.transparent = true;
+									// userDataに元のopacityを保存していなければ保存
+									if (m.userData.originalOpacity === undefined) {
+										m.userData.originalOpacity = m.opacity || 1;
+									}
+									m.opacity = m.userData.originalOpacity * spaceOpacity;
+									// depthWriteをoffにすると後ろが透けるが、星は加算合成などが多いのでOK
+									// ただしPurpleNebulaなどは重なり順に注意
+								}
+							});
+						}
+					} else {
+						// 通常時（Top/Mission）: growTによるフェードアウト
+						const shouldShow = growT < HIDE_BG_AT_T;
+						starGroupRef.current.visible = shouldShow;
 
-                        // 不透明度をリセット (1.0へ戻す)
-                        if (shouldShow) {
-                            starGroupRef.current.traverse((obj) => {
-                                // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
-                                const m = (obj as any).material;
-                                if (m && m.userData.originalOpacity !== undefined) {
-                                    m.opacity = m.userData.originalOpacity;
-                                }
-                            });
-                        }
-                    }
-                }
+						// 不透明度をリセット (1.0へ戻す)
+						if (shouldShow) {
+							starGroupRef.current.traverse((obj) => {
+								// biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+								const m = (obj as any).material;
+								if (m && m.userData.originalOpacity !== undefined) {
+									m.opacity = m.userData.originalOpacity;
+								}
+							});
+						}
+					}
+				}
 			} else {
 				circleRef.current.visible = false;
 				circleRef.current.scale.set(0.001, 0.001, 1);
@@ -569,16 +607,16 @@ function HeroScene({
 					triangleVisibleMeshRef.current.visible = true;
 				if (lineSegmentsRef.current) lineSegmentsRef.current.visible = true;
 				if (starGroupRef.current) {
-                    starGroupRef.current.visible = true;
-                    // Reset opacity
-                    starGroupRef.current.traverse((obj) => {
-                        // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
-                        const m = (obj as any).material;
-                        if (m && m.userData.originalOpacity !== undefined) {
-                            m.opacity = m.userData.originalOpacity;
-                        }
-                    });
-                }
+					starGroupRef.current.visible = true;
+					// Reset opacity
+					starGroupRef.current.traverse((obj) => {
+						// biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+						const m = (obj as any).material;
+						if (m && m.userData.originalOpacity !== undefined) {
+							m.opacity = m.userData.originalOpacity;
+						}
+					});
+				}
 			}
 		}
 
@@ -592,7 +630,7 @@ function HeroScene({
 		<>
 			<color attach="background" args={["black"]} />
 
-            {/* 照明設定 (Astronaut表示用) */}
+			{/* 照明設定 (Astronaut表示用) */}
 			<ambientLight intensity={2} />
 			<directionalLight position={[0, 5, 10]} intensity={3} />
 			<directionalLight position={[-5, 0, -5]} intensity={1.5} />
@@ -601,9 +639,14 @@ function HeroScene({
 			{/* ===== 通常シーン ===== */}
 			<group ref={rootRef} position={[0, 0, ROOT_Z_OFFSET]}>
 				<group ref={starGroupRef}>
+					{/* 1. 背景（即座に表示されるべきもの: 軽量） */}
 					<Suspense fallback={null}>
 						<StarParticles selfRotate={false} position={[0, 0, -10]} />
 						<ShootingStars interval={3500} duration={4000} />
+					</Suspense>
+
+					{/* 2. メインモデル（読み込みに時間がかかるもの: 重量） */}
+					<Suspense fallback={null}>
 						{/* 紫色のガス状の雲（ランダム配置） */}
 						{nebulaPositions.map((pos, index) => (
 							<PurpleNebula
@@ -616,12 +659,14 @@ function HeroScene({
 								rotation={[0, 0, pos.rotation]}
 							/>
 						))}
-                        {/* 宇宙飛行士 (Topページ & 最後の宇宙エリアで表示) */}
-                        <Astronaut
-                            position={[0, 0, -5]}
-                            scale={2}
-                            isMobile={typeof window !== 'undefined' && window.innerWidth < 768}
-                        />
+						{/* 宇宙飛行士 (Topページ & 最後の宇宙エリアで表示) */}
+						<Astronaut
+							position={[0, 0, -5]}
+							scale={2}
+							isMobile={
+								typeof window !== "undefined" && window.innerWidth < 768
+							}
+						/>
 					</Suspense>
 				</group>
 
@@ -723,17 +768,17 @@ function HeroScene({
 // ===== HeroCanvas =====
 interface HeroCanvasProps {
 	videoSlides?: VideoSlide[];
-    // 親からStateを受け取る形に変更
-    heroState: {
-        isContactVisible: boolean;
-        setIsContactVisible: (v: boolean) => void;
-        spaceOpacity: number;
-        setSpaceOpacity: (v: number) => void;
-        transitionProgress: number;
-        setTransitionProgress: (v: number) => void;
-        shouldSnapAnimation: boolean;
-        setShouldSnapAnimation: (v: boolean) => void;
-    };
+	// 親からStateを受け取る形に変更
+	heroState: {
+		isContactVisible: boolean;
+		setIsContactVisible: (v: boolean) => void;
+		spaceOpacity: number;
+		setSpaceOpacity: (v: number) => void;
+		transitionProgress: number;
+		setTransitionProgress: (v: number) => void;
+		shouldSnapAnimation: boolean;
+		setShouldSnapAnimation: (v: boolean) => void;
+	};
 }
 
 const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
@@ -747,8 +792,8 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 	} | null>(null);
 	const [isCardHovering, setIsCardHovering] = useState(false);
 
-    // Stateは親(Wrapper -> Provider)から受け取るため、ここでは定義しない
-    /*
+	// Stateは親(Wrapper -> Provider)から受け取るため、ここでは定義しない
+	/*
 	const [isContactVisible, setIsContactVisible] = useState(false);
     const [spaceOpacity, setSpaceOpacity] = useState(1);
     const [transitionProgress, setTransitionProgress] = useState(0);
@@ -778,23 +823,27 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 	}, []);
 
 	return (
-        // Canvas内からContextにアクセスするのは難しいため、Props経由でSceneに渡す、
-        // もしくはCanvas内でuseContextするためのBridgeが必要だが、
-        // ここでは単純にPropsとしてSceneに渡す形をとる。
-        // Providerは親(HeroCanvasWithCMS -> HeroStateProvider)にある。
-        // ただし、もしCanvas内のコンポーネントがuseHeroState()を使っている場合は、
-        // Canvas内で再度Providerで包むか、dreiの<HttpContextBridge>等が必要。
-        // 現状、HeroSceneはPropsで全て受け取っているので問題ないはず。
-        // HeroScene内部でuseContext(HeroStateContext)しているか確認→してない(Props受け取り)。
-        // 念のため、HeroStateContext.Providerで包んでおくと安心（CardDetailModal等が使うかも？）
-        // CardDetailModalはCanvasの外(HTML)なので、親のProviderが有効。
-        // よってここでのProviderは不要、またはBridgeが必要。
-        // 今回はSceneへはPropsで渡す。Canvasの外の要素はそのまま。
+		// Canvas内からContextにアクセスするのは難しいため、Props経由でSceneに渡す、
+		// もしくはCanvas内でuseContextするためのBridgeが必要だが、
+		// ここでは単純にPropsとしてSceneに渡す形をとる。
+		// Providerは親(HeroCanvasWithCMS -> HeroStateProvider)にある。
+		// ただし、もしCanvas内のコンポーネントがuseHeroState()を使っている場合は、
+		// Canvas内で再度Providerで包むか、dreiの<HttpContextBridge>等が必要。
+		// 現状、HeroSceneはPropsで全て受け取っているので問題ないはず。
+		// HeroScene内部でuseContext(HeroStateContext)しているか確認→してない(Props受け取り)。
+		// 念のため、HeroStateContext.Providerで包んでおくと安心（CardDetailModal等が使うかも？）
+		// CardDetailModalはCanvasの外(HTML)なので、親のProviderが有効。
+		// よってここでのProviderは不要、またはBridgeが必要。
+		// 今回はSceneへはPropsで渡す。Canvasの外の要素はそのまま。
 
-			<>
-            <Canvas
+		<>
+			<Canvas
 				camera={{ position: [0, 0, CAMERA_Z], fov: 75 }}
-				dpr={[1, 1.5]}
+				dpr={
+					typeof window !== "undefined" && window.innerWidth < 768
+						? [1, 1]
+						: [1, 1.5]
+				}
 				style={{
 					position: "fixed",
 					top: 0,
@@ -811,11 +860,12 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 					videoSlides={safeVideoSlides}
 					onCardClick={handleCardClick}
 					onCardHover={setIsCardHovering}
-                    // State Props
+					// State Props
 					isContactVisible={heroState.isContactVisible}
-                    spaceOpacity={heroState.spaceOpacity}
-                    transitionProgress={heroState.transitionProgress}
-                    shouldSnapAnimation={heroState.shouldSnapAnimation}
+					spaceOpacity={heroState.spaceOpacity}
+					transitionProgress={heroState.transitionProgress}
+					shouldSnapAnimation={heroState.shouldSnapAnimation}
+					isCardHovering={isCardHovering} // Pass prop
 				/>
 			</Canvas>
 
@@ -834,7 +884,7 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 			)}
 
 			<HtmlHoverPointer isHovering={isCardHovering} />
-            </>
+		</>
 	);
 };
 

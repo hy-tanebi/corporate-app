@@ -11,7 +11,7 @@ function AstronautFallback() {
 
 // 宇宙飛行士のラッパーコンポーネント
 function AstronautModel({ position }: { position: [number, number, number] }) {
-    // モバイル判定
+	// モバイル判定
 	const isMobileRef = useRef(false);
 
 	useEffect(() => {
@@ -25,7 +25,11 @@ function AstronautModel({ position }: { position: [number, number, number] }) {
 
 	return (
 		<Suspense fallback={<AstronautFallback />}>
-			<Astronaut position={position} isMobile={isMobileRef.current} scale={isMobileRef.current ? 1.3 : 2} />
+			<Astronaut
+				position={position}
+				isMobile={isMobileRef.current}
+				scale={isMobileRef.current ? 1.3 : 2}
+			/>
 		</Suspense>
 	);
 }
