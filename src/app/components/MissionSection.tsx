@@ -177,8 +177,8 @@ function MissionSection(
 	// Desktopも0.97だと遅すぎるため、0.85まで早める
 	const showDescription = sectionProgress >= (isMobile ? 0.75 : 0.85);
 
-	// グラデーション遷移セクションのスクロール進捗を追跡
-	const [gradientProgress, setGradientProgress] = useState(0);
+	// グラデーション遷移セクションのスクロール進捗を追跡 (Ref化して再レンダリング防止)
+	const gradientProgressRef = useRef(0);
 	// Aboutセクションの終わり際でトリガーするTransition進捗
 	const [irisTransitionProgress, setIrisTransitionProgress] = useState(0);
 	const [isContactInView, setIsContactInView] = useState(false);
@@ -189,6 +189,7 @@ function MissionSection(
 	const contactTitleRef = useRef<HTMLHeadingElement>(null);
 	const contactFormRef = useRef<HTMLDivElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
+	const backgroundRef = useRef<HTMLDivElement>(null); // 背景要素へのRef
 	const scrollPositionRef = useRef(0);
 	// 自動スクロール中かどうかを判定するフラグ
 	const isAutoScrollingToContact = useRef(false);
@@ -227,8 +228,9 @@ function MissionSection(
 				setIsContactVisible(false);
 				setIsContactInView(false);
 
-				// 背景状態を強制リセット (グレー画面を防ぐ)
-				setGradientProgress(0);
+				// 背景状態を強制リセット
+				gradientProgressRef.current = 0;
+				updateBackgroundColor(0, 0, false); // 即座に更新
 				setIrisTransitionProgress(0);
 				setSpaceOpacity(1);
 				setTransitionProgress(0);
@@ -271,11 +273,16 @@ function MissionSection(
 		},
 	}));
 
-	// 最終的な背景色を計算（黒→薄いグレー→透明）
-	const calculateFinalBackgroundColor = useCallback(
+	// 背景色更新関数 (Direct DOM update)
+	const updateBackgroundColor = useCallback(
 		(progress1: number, irisProgress: number, contactInView: boolean) => {
+			if (!backgroundRef.current) return;
+
 			// Contactが表示されている、またはIris遷移が完了している場合は完全に透明（宇宙を表示）
-			if (contactInView || irisProgress >= 1) return "rgba(0, 0, 0, 0)";
+			if (contactInView || irisProgress >= 1) {
+				backgroundRef.current.style.backgroundColor = "rgba(0, 0, 0, 0)";
+				return;
+			}
 
 			const clampedProgress1 = Math.max(0, Math.min(1, progress1));
 			// User request: About section (text flow) needs white background.
@@ -294,7 +301,7 @@ function MissionSection(
 			// alpha: 1 -> 0
 			const alpha = 1 - irisFactor;
 
-			return `rgba(${colorValue}, ${colorValue}, ${colorValue}, ${alpha})`;
+			backgroundRef.current.style.backgroundColor = `rgba(${colorValue}, ${colorValue}, ${colorValue}, ${alpha})`;
 		},
 		[],
 	);
@@ -306,9 +313,6 @@ function MissionSection(
 		// Space Opacityは常に1 (マスクで隠したり見せたりする)
 		setSpaceOpacity(1);
 	}, [irisTransitionProgress, setSpaceOpacity, setTransitionProgress]);
-
-	// タイトル制御 (Mission, Contact) -> Scroll Event側に統合しました。
-	// 古いuseEffectは削除済み。
 
 	// スクロールイベント
 	useEffect(() => {
@@ -330,56 +334,51 @@ function MissionSection(
 			lastScrollTopRef.current = currentScrollTop;
 
 			// Gradient 1 (黒→白)
+			let newGradientProgress = gradientProgressRef.current;
 			if (gradientRef.current) {
+				// 高速化のため getBoundingClientRect を最小限に... したいが位置判定に必須
 				const rect = gradientRef.current.getBoundingClientRect();
 				if (rect.top <= windowHeight && rect.bottom >= 0) {
 					const sectionHeight = rect.height;
 					const scrolled = windowHeight - rect.top;
-					// 0~1 の線形進行
 					const rawProgress = Math.max(
 						0,
 						Math.min(1, scrolled / (sectionHeight + windowHeight)),
 					);
-
-					// User request: Mission content remaining Black, About becoming White.
-					// Delay the fade so it stays black longer, then fades to white near the end (About).
-					// 0.0 -> 0.5: Black
-					// 0.5 -> 1.0: Fade to White
 					const delayedProgress = Math.max(0, (rawProgress - 0.5) * 2);
-
-					setGradientProgress(delayedProgress);
+					newGradientProgress = delayedProgress;
 				} else if (rect.top > windowHeight) {
-					// 画面より下にある場合は 0 にリセット
-					setGradientProgress(0);
+					newGradientProgress = 0;
 				} else {
-					// 画面より上にある場合（通り過ぎた後）は 1 を維持
-					setGradientProgress(1);
+					newGradientProgress = 1;
 				}
+				gradientProgressRef.current = newGradientProgress;
 			}
+
 			// === Iris Transition Logic ===
 			// About Wrapperがある場合、その「最後尾」に近づいたらIrisを閉じる
+			let newIrisProgress = irisTransitionProgress;
 			if (aboutWrapperRef.current) {
 				const rect = aboutWrapperRef.current.getBoundingClientRect();
-				// User feedback: "Closing was better before (slower)".
-				// Reverting to 10.0 (slow) but relied on AboutSection's updated shrinkPhase to ensure darkness is seen.
 				const TRANSITION_ZONE = windowHeight * (isMobile ? 2.5 : 10.0);
-
 				const distFromBottom = rect.bottom - windowHeight;
 
 				if (distFromBottom <= TRANSITION_ZONE && distFromBottom >= 0) {
-					// Zone内: 0 -> 1 (Easing applied for smoother space movement)
 					const linearP = 1 - distFromBottom / TRANSITION_ZONE;
-					// Use Ease-in-out for smooth start and smooth end
-					const p = easeInOutCubic(linearP);
-					setIrisTransitionProgress(p);
+					newIrisProgress = easeInOutCubic(linearP);
 				} else if (distFromBottom < 0) {
-					setIrisTransitionProgress(1);
+					newIrisProgress = 1;
 				} else {
-					setIrisTransitionProgress(0);
+					newIrisProgress = 0;
+				}
+				// State update only if changed significantly
+				if (Math.abs(newIrisProgress - irisTransitionProgress) > 0.001) {
+					setIrisTransitionProgress(newIrisProgress);
 				}
 			}
 
 			// Contact Section Visibility Check & Title Animation
+			let newIsContactInView = isContactInView;
 			if (contactRef.current) {
 				const rect = contactRef.current.getBoundingClientRect();
 				const isVisible = rect.top < windowHeight * 0.8;
@@ -391,51 +390,46 @@ function MissionSection(
 				if (effectiveIsVisible !== isContactInView) {
 					setIsContactInView(effectiveIsVisible);
 					setIsContactVisible(effectiveIsVisible);
+					newIsContactInView = effectiveIsVisible;
 				}
 
-				// Title Animation: Triggered (CSS transition) instead of Scroll-Linked (JS)
-				// "ふわっと" 表示させるため、ある地点を超えたら opacity 1, translate 0 にする
 				if (contactTitleRef.current) {
-					const startOffset = windowHeight * 0.85; // 画面内に15%入ったら開始
-
+					const startOffset = windowHeight * 0.85;
 					if (rect.top < startOffset) {
-						// Trigger Animation - Long duration (1.5s) and large distance for "fuwatto" (floating) feel
 						contactTitleRef.current.style.opacity = "1";
 						contactTitleRef.current.style.transform = "translateY(0)";
 						contactTitleRef.current.style.transition =
 							"opacity 1.5s ease-out, transform 1.5s ease-out";
 					} else {
-						// Reset
 						contactTitleRef.current.style.opacity = "0";
-						contactTitleRef.current.style.transform = "translateY(100px)"; // Increased to 100px
+						contactTitleRef.current.style.transform = "translateY(100px)";
 						contactTitleRef.current.style.transition =
 							"opacity 0.5s ease-out, transform 0.5s ease-out";
 					}
 				}
 			}
 
+			// Update Background Color Directly
+			// ここで最新の値を渡して更新。State更新を待たない。
+			// irisProgressはState更新と同時にローカル変数も使う
+			updateBackgroundColor(
+				newGradientProgress,
+				newIrisProgress,
+				newIsContactInView,
+			);
+
 			// === Title Logic (Sync with Scroll) ===
 			if (document.title) {
-				// Contact判定
-				if (isContactInView) {
+				if (newIsContactInView) {
 					if (!document.title.startsWith("CONTACT")) {
 						document.title = "CONTACT | TANEBI CREATIVE タネビ クリエイティブ";
 					}
 				} else if (aboutWrapperRef.current) {
 					const rect = aboutWrapperRef.current.getBoundingClientRect();
-					// Aboutセクションが画面の半分より上に来たら About Title
-					// = Missionエリアから出たとみなす
-					// 逆に戻ったときは Mission Title
 					if (rect.top < windowHeight * 0.5) {
-						// AboutSection側で scrollProgress > 0 で設定されるが、
-						// こちらでも明示的にAboutとしても良いし、任せても良い。
-						// ただし「Missionに戻ったとき」即座に判定したいので、
-						// 「Missionエリアである」判定をここで行う。
-						// 何もしない（AboutSection任せ、または既にAboutになっている）
+						// About
 					} else {
-						// Missionエリアに戻ってきた
-						// AboutへのTransition中でなければ Mission
-						if (irisTransitionProgress <= 0) {
+						if (newIrisProgress <= 0) {
 							if (!document.title.startsWith("MISSION")) {
 								document.title =
 									"MISSION | TANEBI CREATIVE タネビ クリエイティブ";
@@ -458,43 +452,35 @@ function MissionSection(
 		setIsContactVisible,
 		irisTransitionProgress,
 		isMobile,
+		updateBackgroundColor,
 	]);
-	// オーバーレイでのスクロールをメインウィンドウに伝播させる処理（スマホでの「戻る」を安定させる）
+
+	// オーバーレイでのスクロールをメインウィンドウに伝播させる処理
 	useEffect(() => {
 		const container = containerRef.current;
 		if (!container || !showSection) return;
 
 		let touchStartY = 0;
-
 		const handleTouchStart = (e: TouchEvent) => {
 			touchStartY = e.touches[0].clientY;
 		};
 
-		// RAFを使ったスロットリング用フラグ
 		let isScrolling = false;
-
 		const handleTouchMove = (e: TouchEvent) => {
 			if (isScrolling) return;
-
 			const touchY = e.touches[0].clientY;
 			const deltaY = touchY - touchStartY;
-
-			// 上端にいて、さらに下に引っ張ろうとしている（＝上に戻ろうとしている）場合
 			if (container.scrollTop <= 0 && deltaY > 0) {
 				isScrolling = true;
 				requestAnimationFrame(() => {
-					// メインウィンドウをスクロール（動きを少し滑らかにするために係数を調整）
 					window.scrollBy(0, -deltaY * 1.5);
 					isScrolling = false;
 				});
-
-				// デフォルト動作を防ぐ（オーバースクロールエフェクト防止等）
 				if (e.cancelable) e.preventDefault();
 			}
 			touchStartY = touchY;
 		};
 
-		// PC/トラックパッド対応
 		const handleWheel = (e: WheelEvent) => {
 			if (isScrolling) return;
 			if (container.scrollTop <= 0 && e.deltaY < 0) {
@@ -512,10 +498,6 @@ function MissionSection(
 		container.addEventListener("touchmove", handleTouchMove, {
 			passive: false,
 		});
-		// wheelイベントはpassive: falseでないとpreventDefaultできないが、
-		// ここでは単純なscrollBy呼び出しのみ行うため、passive: trueでも動作はするが
-		// トラックパッドの「戻る」ジェスチャ等が暴発しないよう注意が必要。
-		// 安全のため passive: false を維持。
 		container.addEventListener("wheel", handleWheel, { passive: false });
 
 		return () => {
@@ -538,25 +520,26 @@ function MissionSection(
 			container.scrollTop = 0;
 			scrollPositionRef.current = 0;
 
-			// 内部物理演算の状態もリセット
 			currentRef.current = 0;
 			targetRef.current = 0;
 			setSectionProgress(0);
 			prevRawTargetRef.current = 0;
 			isGoingForwardRef.current = true;
 
-			setGradientProgress(0);
+			gradientProgressRef.current = 0; // Ref Reset
 			setIrisTransitionProgress(0);
 			setIsContactInView(false);
 			setIsContactVisible(false);
 			setSpaceOpacity(1);
 			setTransitionProgress(0);
+			updateBackgroundColor(0, 0, false); // Direct Update
 		}
 	}, [
 		showSection,
 		setIsContactVisible,
 		setSpaceOpacity,
 		setTransitionProgress,
+		updateBackgroundColor,
 	]);
 
 	// 段階マッピング
@@ -567,12 +550,7 @@ function MissionSection(
 	const scale = 1 + (1 - zAxisProgress) * 4;
 
 	// スマホ(768px未満)、PC共にMISSIONの幅（text-6xl/text-8xl）に合わせるよう調整
-	// Mobile: 60 (微調整: 70から短縮), Desktop: 90 (微調整: 120から短縮)
-	// この `baseTx` の値を変更することで、TECHNICALとPARTNERの間隔を調整できます。
 	const baseTx = isMobile ? 65 : 104;
-
-	// 全体を右（または左）にずらすためのオフセット値（正の値で右へ、負の値で左へ）
-	// Mobile: 10, Desktop: 0 (必要に応じて変更してください)
 	const centerOffsetX = isMobile ? 5 : 10;
 
 	const leftTx = -baseTx * horizontalProgress + centerOffsetX;
@@ -581,17 +559,8 @@ function MissionSection(
 	const dnTy = +25 * (1 - horizontalProgress);
 
 	// === Mask (Spaceship Transition) ===
-	// 1. Shrink Phase (0 -> 0.4): 150% -> 0% (Completely closed)
-	// 2. Fly Phase: Handled in AboutSection with the image itself (0.45+)
-
-	// Math Helpers
 	const shrinkPhase = Math.min(irisTransitionProgress / 0.4, 1);
 	const _visibleRadius = Math.max(0, (1 - shrinkPhase) * 150);
-
-	// const maskStyle = {
-	//   maskImage: `radial-gradient(circle at 50% 50%, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
-	//   WebkitMaskImage: `radial-gradient(circle at 50% 50%, black ${visibleRadius}%, transparent ${visibleRadius + 0.1}%)`,
-	// };
 
 	return (
 		<section
@@ -661,7 +630,7 @@ function MissionSection(
 			>
 				<div className="max-w-4xl mx-auto px-0 md:px-4 w-full">
 					<div className="flex flex-col gap-6">
-						{/* MissionContentコンポーネント (Desktop: 2カラムSticky / Mobile: 1カラムStatic) */}
+						{/* MissionContentコンポーネント */}
 						<div
 							style={{
 								opacity: showDescription ? 1 : 0,
@@ -678,10 +647,6 @@ function MissionSection(
 
 			<div ref={gradientRef} className="w-full h-[50vh] md:h-[100vh]" />
 
-			{/*
-         Wrapper tracking the About Section area.
-         DO NOT apply mask here anymore. Mask is inside.
-      */}
 			<div ref={aboutWrapperRef} className="relative w-full">
 				<AboutSection transitionProgress={irisTransitionProgress} />
 			</div>
@@ -694,8 +659,8 @@ function MissionSection(
 			>
 				<h2
 					ref={contactTitleRef}
-					className="text-6xl md:text-8xl font-bold text-white will-change-transform" // optimizations
-					style={{ opacity: 0, transform: "translateY(100px)" }} // Initial state
+					className="text-6xl md:text-8xl font-bold text-white will-change-transform"
+					style={{ opacity: 0, transform: "translateY(100px)" }}
 				>
 					CONTACT
 				</h2>
@@ -707,18 +672,13 @@ function MissionSection(
 				</div>
 			</div>
 
-			{/* Fixed Background - Masked (Correctly, since it's fixed 100vh) */}
+			{/* Fixed Background - Direct Ref based manipulation */}
 			<div
+				ref={backgroundRef}
 				className="fixed inset-0 -z-10 pointer-events-none"
 				style={{
-					backgroundColor: calculateFinalBackgroundColor(
-						gradientProgress,
-						irisTransitionProgress,
-						isContactInView,
-					),
+					backgroundColor: "rgba(0,0,0,1)", // Initial black
 					transition: "background-color 0.6s ease-out",
-					// Removed opacity toggle to fix whitening issue
-					// ...maskStyle // 削除: 二重マスクの原因となるため
 				}}
 			/>
 		</section>

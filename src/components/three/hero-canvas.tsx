@@ -176,6 +176,8 @@ function HeroScene({
 	// Refs for event listener access
 	const isCardHoveringRef = useRef(isCardHovering);
 	const scrollProgressRef = useRef(scrollProgress);
+	const transitionProgressRef = useRef(transitionProgress);
+	const isContactVisibleRef = useRef(isContactVisible);
 
 	useEffect(() => {
 		isCardHoveringRef.current = isCardHovering;
@@ -186,14 +188,38 @@ function HeroScene({
 	}, [scrollProgress]);
 
 	useEffect(() => {
+		transitionProgressRef.current = transitionProgress;
+	}, [transitionProgress]);
+
+	useEffect(() => {
+		isContactVisibleRef.current = isContactVisible;
+	}, [isContactVisible]);
+
+	useEffect(() => {
 		const onMove = (e: PointerEvent) => {
 			mouseRaw.current.set(
 				e.clientX / window.innerWidth,
 				1 - e.clientY / window.innerHeight,
 			);
 
-			// Only activate fluid effect if hovering a card AND in Hero section (scroll < 0.8)
-			if (isCardHoveringRef.current && scrollProgressRef.current < 0.8) {
+			// Effect Activation Logic (Strict Scope)
+			const scroll = scrollProgressRef.current;
+			const transition = transitionProgressRef.current;
+			const contact = isContactVisibleRef.current;
+			// 1. Top Page: Scroll is near start (e.g. < 0.3 to cover full header interaction, but stop before Mission)
+			// 2. Space: Transition has started OR Contact is open
+			const isTop = scroll < 0.97; // "Top" area (Extended to cover full card visibility)
+			const isSpace = transition > 0.01 || contact;
+
+			// Combined check: Must be hovering card (for interaction feel) OR simply active in space
+			// User requested "Effect applies", assuming interaction-based wobbly effect.
+			// Ideally interaction-based:
+            /*
+             Revert note: The user wants "wobbly effect".
+             Original logic was: if (isCardHoveringRef.current && scrollProgressRef.current < 0.8)
+             New logic: Keep interaction requirement but extend valid zones.
+            */
+			if (isTop || isSpace || isCardHoveringRef.current) {
 				hoverStrength.current = 1;
 			}
 		};
