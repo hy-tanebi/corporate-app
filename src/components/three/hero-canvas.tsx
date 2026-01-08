@@ -100,7 +100,8 @@ interface HeroSceneProps {
 	spaceOpacity: number;
 	transitionProgress: number;
 	shouldSnapAnimation: boolean;
-	isCardHovering: boolean; // Add prop
+	isCardHovering: boolean;
+    isMobile: boolean;
 }
 
 function HeroScene({
@@ -112,7 +113,8 @@ function HeroScene({
 	spaceOpacity,
 	transitionProgress,
 	shouldSnapAnimation,
-	isCardHovering, // Destructure prop
+	isCardHovering,
+    isMobile,
 }: HeroSceneProps) {
 	// biome-ignore lint/suspicious/noExplicitAny: Custom shader material
 	const heroMatRef = useRef<any>(null);
@@ -686,12 +688,11 @@ function HeroScene({
 							/>
 						))}
 						{/* 宇宙飛行士 (Topページ & 最後の宇宙エリアで表示) */}
+						{/* 宇宙飛行士 (Topページ & 最後の宇宙エリアで表示) */}
 						<Astronaut
 							position={[0, 0, -5]}
 							scale={2}
-							isMobile={
-								typeof window !== "undefined" && window.innerWidth < 768
-							}
+							isMobile={isMobile}
 						/>
 					</Suspense>
 				</group>
@@ -766,6 +767,8 @@ function HeroScene({
 			</group>
 
 			{/* ===== 画面の液体屈折（ヒーロー内のみ作用） ===== */}
+            {/* Mobile: Disable fluid effect for performance */}
+            {!isMobile && (
 			<mesh
 				ref={fluidRef}
 				renderOrder={10000}
@@ -774,10 +777,7 @@ function HeroScene({
 			>
 				<planeGeometry args={[2, 2, 1, 1]} />
 				<hoverFluidMaterial
-					// biome-ignore lint/suspicious/noExplicitAny: Ref assignment
-					ref={(m: any) => {
-						if (m) hoverMatRef.current = m;
-					}}
+					ref={hoverMatRef}
 					attach="material"
 					transparent={true}
 					depthTest={false}
@@ -785,8 +785,12 @@ function HeroScene({
 					// biome-ignore lint/suspicious/noExplicitAny: Blending type
 					blending={THREE.NoBlending as any}
 					toneMapped={false}
+					uTexture={fbo.texture}
+					uMouse={mouseFiltered.current}
+					uStrength={0} // 初期値
 				/>
 			</mesh>
+            )}
 		</>
 	);
 }
@@ -826,6 +830,17 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
     const [shouldSnapAnimation, setShouldSnapAnimation] = useState(false);
     */
 
+    // Mobile check for performance optimization
+    // HeroCanvas is client-side only (ssr: false), so we can check window immediately
+    const [isMobile, setIsMobile] = useState(() =>
+        typeof window !== "undefined" ? window.innerWidth < 768 : false
+    );
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener("resize", checkMobile);
+        return () => window.removeEventListener("resize", checkMobile);
+    }, []);
+
 	const handleCardClick = (slide: VideoSlide, index: number) => {
 		setSelectedCard({ slide, index });
 	};
@@ -847,6 +862,7 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 		handleScroll();
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
+
 
 	return (
 		// Canvas内からContextにアクセスするのは難しいため、Props経由でSceneに渡す、
@@ -892,6 +908,7 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 					transitionProgress={heroState.transitionProgress}
 					shouldSnapAnimation={heroState.shouldSnapAnimation}
 					isCardHovering={isCardHovering} // Pass prop
+                    isMobile={isMobile}
 				/>
 			</Canvas>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, Suspense, useEffect } from "react";
+import { useRef, Suspense, useEffect, useState } from "react";
 import { Stars } from "@react-three/drei";
 import { Astronaut } from "../three/Astronaut";
 
@@ -11,25 +11,48 @@ function AstronautFallback() {
 
 // 宇宙飛行士のラッパーコンポーネント
 function AstronautModel({ position }: { position: [number, number, number] }) {
-	// モバイル判定
-	const isMobileRef = useRef(false);
+	// モバイル判定 (初期値はfalseで統一しハイドレーションエラー回避)
+    // 安全な状態（Safe State）に戻る
+	const [isMobile, setIsMobile] = useState(false);
+
+    // ランダム位置 (初期値は安全な中央位置 [0, 0, -5])
+    const [randomPos, setRandomPos] = useState<[number, number, number]>([0, 0, -5]);
 
 	useEffect(() => {
-		const checkMobile = () => {
-			isMobileRef.current = window.innerWidth < 768;
+		const updateState = () => {
+            const isM = window.innerWidth < 768;
+			setIsMobile(isM);
+
+            if (isM) {
+                // Mobile Random: Safe bounds [X:±0.8, Y:±1.0, Z:-5]
+                setRandomPos([
+                    (Math.random() - 0.5) * 1.6,
+                    (Math.random() - 0.5) * 2.0,
+                    -5
+                ]);
+            } else {
+                 // Desktop Random
+                 setRandomPos([
+                    (Math.random() - 0.5) * 4,
+                    (Math.random() - 0.5) * 2.5,
+                    0
+                ]);
+            }
 		};
-		checkMobile();
-		window.addEventListener("resize", checkMobile);
-		return () => window.removeEventListener("resize", checkMobile);
+
+        // Run immediately on mount (Client side only)
+        updateState();
+		window.addEventListener("resize", updateState);
+		return () => window.removeEventListener("resize", updateState);
 	}, []);
 
 	return (
 		<Suspense fallback={<AstronautFallback />}>
-			<Astronaut
-				position={position}
-				isMobile={isMobileRef.current}
-				scale={isMobileRef.current ? 1.3 : 2}
-			/>
+            <Astronaut
+                position={randomPos}
+                isMobile={isMobile}
+                scale={isMobile ? 1.3 : 2}
+            />
 		</Suspense>
 	);
 }
