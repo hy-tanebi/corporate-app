@@ -106,3 +106,5 @@ export function StarParticles({
 		</points>
 	);
 }
+// テクスチャのプリロード
+useLoader.preload(THREE.TextureLoader, "/textures/star_particle2.png");

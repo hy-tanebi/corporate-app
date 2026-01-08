@@ -76,7 +76,7 @@ export function ContactForm() {
 			const result = await sendContactEmail(
 				// @ts-ignore: prevState unused
 				{ success: false, message: "" },
-				submitData
+				submitData,
 			);
 
 			if (result.success) {
@@ -89,10 +89,14 @@ export function ContactForm() {
 				// エラー時はモーダルを閉じてフォームで修正させる
 				setIsConfirmOpen(false);
 				if (result.errors) {
-					if (result.errors.name) form.setError("name", { message: result.errors.name[0] });
-					if (result.errors.email) form.setError("email", { message: result.errors.email[0] });
-					if (result.errors.subject) form.setError("subject", { message: result.errors.subject[0] });
-					if (result.errors.message) form.setError("message", { message: result.errors.message[0] });
+					if (result.errors.name)
+						form.setError("name", { message: result.errors.name[0] });
+					if (result.errors.email)
+						form.setError("email", { message: result.errors.email[0] });
+					if (result.errors.subject)
+						form.setError("subject", { message: result.errors.subject[0] });
+					if (result.errors.message)
+						form.setError("message", { message: result.errors.message[0] });
 				}
 			}
 		});
@@ -127,7 +131,12 @@ export function ContactForm() {
 											お名前 *
 										</FormLabel>
 										<FormControl>
-											<Input placeholder="山田太郎" {...field} className="bg-white/10 border-white/20 text-white placeholder:text-gray-400" disabled={isPending} />
+											<Input
+												placeholder="山田太郎"
+												{...field}
+												className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+												disabled={isPending}
+											/>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -169,7 +178,12 @@ export function ContactForm() {
 											会社名・団体名（任意）
 										</FormLabel>
 										<FormControl>
-											<Input placeholder="株式会社〇〇" {...field} className="bg-white/10 border-white/20 text-white placeholder:text-gray-400" disabled={isPending} />
+											<Input
+												placeholder="株式会社〇〇"
+												{...field}
+												className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+												disabled={isPending}
+											/>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -187,7 +201,12 @@ export function ContactForm() {
 											件名 *
 										</FormLabel>
 										<FormControl>
-											<Input placeholder="お問い合わせ内容の件名" {...field} className="bg-white/10 border-white/20 text-white placeholder:text-gray-400" disabled={isPending} />
+											<Input
+												placeholder="お問い合わせ内容の件名"
+												{...field}
+												className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+												disabled={isPending}
+											/>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -235,30 +254,50 @@ export function ContactForm() {
 
 							<div className="space-y-4 text-sm max-h-[60vh] overflow-y-auto pr-2">
 								<div className="grid grid-cols-[100px_1fr] gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-									<span className="font-bold text-gray-500 dark:text-gray-400">お名前</span>
-									<span className="text-gray-900 dark:text-gray-100">{formData?.name}</span>
+									<span className="font-bold text-gray-500 dark:text-gray-400">
+										お名前
+									</span>
+									<span className="text-gray-900 dark:text-gray-100">
+										{formData?.name}
+									</span>
 								</div>
 
 								<div className="grid grid-cols-[100px_1fr] gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-									<span className="font-bold text-gray-500 dark:text-gray-400">メール</span>
-									<span className="text-gray-900 dark:text-gray-100 break-all">{formData?.email}</span>
+									<span className="font-bold text-gray-500 dark:text-gray-400">
+										メール
+									</span>
+									<span className="text-gray-900 dark:text-gray-100 break-all">
+										{formData?.email}
+									</span>
 								</div>
 
 								{formData?.company && (
 									<div className="grid grid-cols-[100px_1fr] gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-										<span className="font-bold text-gray-500 dark:text-gray-400">会社名</span>
-										<span className="text-gray-900 dark:text-gray-100">{formData?.company}</span>
+										<span className="font-bold text-gray-500 dark:text-gray-400">
+											会社名
+										</span>
+										<span className="text-gray-900 dark:text-gray-100">
+											{formData?.company}
+										</span>
 									</div>
 								)}
 
 								<div className="grid grid-cols-[100px_1fr] gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-									<span className="font-bold text-gray-500 dark:text-gray-400">件名</span>
-									<span className="text-gray-900 dark:text-gray-100">{formData?.subject}</span>
+									<span className="font-bold text-gray-500 dark:text-gray-400">
+										件名
+									</span>
+									<span className="text-gray-900 dark:text-gray-100">
+										{formData?.subject}
+									</span>
 								</div>
 
 								<div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg space-y-2">
-									<span className="font-bold text-gray-500 dark:text-gray-400 block border-b border-gray-200 dark:border-gray-700 pb-1 mb-2">メッセージ</span>
-									<p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap leading-relaxed">{formData?.message}</p>
+									<span className="font-bold text-gray-500 dark:text-gray-400 block border-b border-gray-200 dark:border-gray-700 pb-1 mb-2">
+										メッセージ
+									</span>
+									<p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap leading-relaxed">
+										{formData?.message}
+									</p>
 								</div>
 							</div>
 

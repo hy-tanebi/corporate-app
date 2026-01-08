@@ -6,6 +6,66 @@ import { useFrame } from "@react-three/fiber";
 import { TextureLoader, VideoTexture } from "three";
 import * as THREE from "three";
 
+// === アルファテクスチャのキャッシュ (Global Cache) ===
+// 複数のカードで同じマスクを使い回すためにキャッシュする
+let cachedAlphaTexture: THREE.CanvasTexture | null = null;
+let cachedKey = "";
+
+function getSharedAlphaTexture(
+	cornerRadiusPx: number,
+	displayHeightPx: number,
+) {
+	const key = `${cornerRadiusPx}_${displayHeightPx}`;
+	if (cachedAlphaTexture && cachedKey === key) {
+		return cachedAlphaTexture;
+	}
+
+	// キャッシュミス時は生成
+	const w = 1024; // 2048から1024に解像度を下げてメモリ節約（見た目には十分）
+	const h = 682; // アスペクト比 3:2 を維持
+	const canvas = document.createElement("canvas");
+	canvas.width = w;
+	canvas.height = h;
+	const ctx = canvas.getContext("2d");
+	if (!ctx) return null;
+
+	ctx.clearRect(0, 0, w, h);
+	ctx.fillStyle = "white";
+
+	// 比率に合わせて半径を計算
+	const r = Math.max(
+		1,
+		Math.round((cornerRadiusPx * h) / (displayHeightPx || 400)),
+	);
+
+	const p = new Path2D();
+	p.moveTo(r, 0);
+	p.lineTo(w - r, 0);
+	p.quadraticCurveTo(w, 0, w, r);
+	p.lineTo(w, h - r);
+	p.quadraticCurveTo(w, h, w - r, h);
+	p.lineTo(r, h);
+	p.quadraticCurveTo(0, h, 0, h - r);
+	p.lineTo(0, r);
+	p.quadraticCurveTo(0, 0, r, 0);
+	p.closePath();
+	ctx.fill(p);
+
+	const tex = new THREE.CanvasTexture(canvas);
+	// メモリ最適化設定
+	tex.generateMipmaps = false; // Mipmap不要（どうせマスクなので）
+	tex.minFilter = THREE.LinearFilter;
+	tex.magFilter = THREE.LinearFilter;
+	tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+	tex.anisotropy = 1; // 異方性フィルタリングも不要
+	tex.needsUpdate = true;
+
+	cachedAlphaTexture = tex;
+	cachedKey = key;
+
+	return tex;
+}
+
 interface VideoCard3DProps {
 	videoSrc?: string;
 	imageSrc?: string;
@@ -51,140 +111,136 @@ export default function VideoCard3D({
 	const [textureLoaded, setTextureLoaded] = useState(false);
 	const isHoveringRef = useRef(false);
 
-	// === 角丸アルファ ===
+	// === 角丸アルファ (Shared) ===
 	const alphaTexture = useMemo(() => {
-		const w = 2048,
-			h = 1365;
-		const canvas = document.createElement("canvas");
-		canvas.width = w;
-		canvas.height = h;
-		// biome-ignore lint/style/noNonNullAssertion: Canvas context is reliable here
-		const ctx = canvas.getContext("2d")!;
-		ctx.clearRect(0, 0, w, h);
-		ctx.fillStyle = "white";
-		const r = Math.max(
-			1,
-			Math.round((cornerRadiusPx * h) / (displayHeightPx || 400)),
-		);
-		const p = new Path2D();
-		p.moveTo(r, 0);
-		p.lineTo(w - r, 0);
-		p.quadraticCurveTo(w, 0, w, r);
-		p.lineTo(w, h - r);
-		p.quadraticCurveTo(w, h, w - r, h);
-		p.lineTo(r, h);
-		p.quadraticCurveTo(0, h, 0, h - r);
-		p.lineTo(0, r);
-		p.quadraticCurveTo(0, 0, r, 0);
-		p.closePath();
-		ctx.fill(p);
-		const tex = new THREE.CanvasTexture(canvas);
-		tex.generateMipmaps = true;
-		tex.minFilter = THREE.LinearMipmapLinearFilter;
-		tex.magFilter = THREE.LinearFilter;
-		tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-		tex.anisotropy = 8;
-		tex.needsUpdate = true;
-		return tex;
+		// キャッシュされたテクスチャを取得
+		return getSharedAlphaTexture(cornerRadiusPx, displayHeightPx);
 	}, [cornerRadiusPx, displayHeightPx]);
 
 	// === メディアテクスチャ ===
 	useEffect(() => {
+		// リセット
 		if (videoRef.current) {
 			videoRef.current.pause();
 			videoRef.current.src = "";
 			videoRef.current = null;
 		}
-		videoTexture.current?.dispose();
-		videoTexture.current = null;
-		imageTexture.current?.dispose();
-		imageTexture.current = null;
+		// TextureのdisposeはComponentのアンマウント時のみにするか、慎重に制御
+		// ここでは切り替え時に以前のリソースをクリーンアップ
+		if (videoTexture.current) {
+			videoTexture.current.dispose();
+			videoTexture.current = null;
+		}
+		if (imageTexture.current) {
+			imageTexture.current.dispose();
+			imageTexture.current = null;
+		}
 		setTextureLoaded(false);
+
+		// ★最適化: opacityがほぼ0の場合は読み込み処理自体をスキップ（遅延読み込み）
+		// ただし、完全に非表示でもpreloadしたい場合は条件を緩める
+		if (opacity < 0.01 && !isActive) return;
 
 		if (mediaType === "video" && videoSrc) {
 			const v = document.createElement("video");
 			v.src = videoSrc;
 			v.crossOrigin = "anonymous";
-			v.loop = false;
+			v.loop = true; // ループ再生有効
 			v.muted = true;
 			v.playsInline = true;
-			v.preload = "auto"; // metadataからautoに変更して確実に読み込む
+			// ★最適化: preloadをnoneにし、表示が必要になってから読み込む手もあるが、
+			// ユーザー体験のために metadata までは読み込む
+			v.preload = "metadata";
 			videoRef.current = v;
 
-			// 動画が十分に読み込まれたらtextureLoadedをtrueに
-			v.oncanplay = () => {
-				console.log(`✅ [${title}] 動画再生可能:`, videoSrc);
+			const onCanPlay = () => {
+				// console.log(`✅ [${title}] 動画再生可能`);
 				setTextureLoaded(true);
 			};
+			v.addEventListener("canplay", onCanPlay, { once: true });
 
-			v.onloadedmetadata = () => {
-				console.log(`📊 [${title}] メタデータ読み込み完了`);
-			};
-
-			v.onerror = (e) => {
-				console.error(`❌ [${title}] 動画読み込みエラー:`, videoSrc);
-				console.error("Error details:", e);
-				console.error("Video element:", v);
-				console.error("NetworkState:", v.networkState);
-				console.error("ReadyState:", v.readyState);
+			// エラーハンドリング
+			v.onerror = () => {
+				console.error(`❌ [${title}] 動画読み込みエラー`, videoSrc);
 			};
 
 			const tex = new VideoTexture(v);
 			tex.minFilter = THREE.LinearFilter;
 			tex.magFilter = THREE.LinearFilter;
 			tex.generateMipmaps = false;
-			tex.flipY = false; // DoubleSide使用時は反転させない
-			// biome-ignore lint/suspicious/noExplicitAny: ColorSpace property exists in newer Three.js
+			tex.flipY = false;
+			// biome-ignore lint/suspicious/noExplicitAny: ColorSpace
 			(tex as any).colorSpace = THREE.SRGBColorSpace;
 			videoTexture.current = tex;
+
+			// すぐに読み込み開始 (metadataのみ)
+			v.load();
 		} else if (mediaType === "image" && imageSrc) {
 			new TextureLoader().load(
 				imageSrc,
 				(tex) => {
 					tex.minFilter = THREE.LinearFilter;
 					tex.magFilter = THREE.LinearFilter;
-					tex.generateMipmaps = true;
-					tex.flipY = false; // DoubleSide使用時は反転させない
-					// biome-ignore lint/suspicious/noExplicitAny: ColorSpace property exists in newer Three.js
+					tex.generateMipmaps = true; // 画像はMipmap有効で綺麗に
+					tex.flipY = false;
+					// biome-ignore lint/suspicious/noExplicitAny: ColorSpace
 					(tex as any).colorSpace = THREE.SRGBColorSpace;
 					imageTexture.current = tex;
 					setTextureLoaded(true);
 				},
 				undefined,
-				(e) => console.error("画像読み込み失敗:", imageSrc, e),
+				(_e) => {
+					// 失敗時はサイレントに無視するかログ出力
+					// console.error("画像読み込み失敗:", imageSrc, e)
+				},
 			);
 		}
-	return () => {
+
+		return () => {
 			if (videoRef.current) {
 				videoRef.current.pause();
-				videoRef.current.src = "";
+				videoRef.current.removeAttribute("src"); // src削除
+				videoRef.current.load(); // リソース解放
+				videoRef.current = null;
 			}
+			// アンマウント時にテクスチャ破棄
 			videoTexture.current?.dispose();
 			imageTexture.current?.dispose();
-		};
-	}, [videoSrc, imageSrc, mediaType, title]);
 
-	// === 再生制御 ===
+            // Hover状態のクリーンアップ (重要: カードが消える時にカーソルが残り続けるのを防ぐ)
+            if (isHoveringRef.current) {
+                isHoveringRef.current = false;
+                document.body.style.cursor = "default";
+                onHoverChange?.(false);
+            }
+		};
+	}, [videoSrc, imageSrc, mediaType, title, opacity, isActive]); // opacity依存を追加: 表示されたらロード開始
+
+	// === 再生制御 (Active時のみ再生) ===
 	useEffect(() => {
 		if (mediaType !== "video") return;
 		const v = videoRef.current;
 		if (!v) return;
-		if (isActive && progress > 0) {
-			const duration = v.duration || 10;
-			const t = progress * duration * 0.7;
-			if (Math.abs(v.currentTime - t) > 0.25) v.currentTime = t;
-			if (v.paused) v.play().catch(() => {});
+
+		// Active かつ 十分に表示されている場合のみ再生
+		if (isActive && progress > 0 && opacity > 0.1) {
+			if (v.paused) {
+				v.play().catch(() => {});
+			}
 		} else {
-			if (!v.paused) v.pause();
+			if (!v.paused) {
+				v.pause();
+			}
 		}
-	}, [isActive, progress, mediaType]);
+	}, [isActive, progress, mediaType, opacity]);
 
 	// === 湾曲（カメラ側にふくらむ = 凸） ===
 	const CARD_W = 3,
 		CARD_H = 2;
 	const curvedPlaneGeometry = useMemo(() => {
-		const segX = 64,
-			segY = 42,
+		// セグメント数も少し削減 (64x42 -> 32x21)
+		const segX = 32,
+			segY = 21,
 			curveAmt = 0.06,
 			sign = 1;
 		const g = new THREE.PlaneGeometry(CARD_W, CARD_H, segX, segY);
@@ -205,21 +261,26 @@ export default function VideoCard3D({
 	// === 退出アニメ & 浮遊 ===
 	const [drawOpacity, setDrawOpacity] = useState(opacity);
 	const [shouldRender, setShouldRender] = useState(true);
-	const EXIT_MS = 500,
-		EXIT_ROT = Math.PI * 0.5;
+
+	// アニメーション定数等はuseMemo/Refにする必要はない（軽量）
+	const EXIT_MS = 500;
+	const EXIT_ROT = Math.PI * 0.5;
 	const exitingRef = useRef(false);
 	const exitStartRef = useRef<number | null>(null);
 	const exitStartOpacityRef = useRef(1);
 	const prevOpacityRef = useRef(opacity);
 
-	useEffect(() => {
+	// Opacity変更検知
+	if (prevOpacityRef.current !== opacity) {
 		const prev = prevOpacityRef.current;
+		// 表示 -> 非表示
 		if (!exitingRef.current && prev > 0.01 && opacity <= 0.01) {
 			exitingRef.current = true;
 			exitStartRef.current = performance.now();
 			exitStartOpacityRef.current = Math.max(0.01, prev);
 			setShouldRender(true);
 		}
+		// 非表示 -> 表示
 		if (prev <= 0.01 && opacity > 0.01) {
 			exitingRef.current = false;
 			exitStartRef.current = null;
@@ -228,129 +289,116 @@ export default function VideoCard3D({
 			if (exitGroupRef.current) exitGroupRef.current.rotation.y = 0;
 		}
 		prevOpacityRef.current = opacity;
-	}, [opacity]);
+	}
 
-	useFrame((state, dt) => {
+	useFrame((state, _dt) => {
+		// ★最適化: 完全に非表示ならフレーム処理をスキップ
+		if (!shouldRender && opacity < 0.001) return;
+
+		const t = state.clock.elapsedTime;
+		const phase = (position[0] + position[2]) * 0.5;
+
 		// 浮遊
 		if (floatingGroupRef.current) {
-			const t = state.clock.elapsedTime;
-			const phase = (position[0] + position[2]) * 0.5;
 			const y = Math.sin(t * 1.0 + phase) * 0.2;
 			const x = Math.sin(t * 0.7 + phase * 1.3) * 0.08;
 			const z = Math.cos(t * 0.5 + phase * 0.7) * 0.1;
 			floatingGroupRef.current.position.set(x, y, z);
 		}
-		// 微回転（Yは退出アニメ用）
-		if (exitGroupRef.current) {
-			const t = state.clock.elapsedTime;
-			const phase = (position[0] + position[2]) * 0.5;
-			const rotZ = rotation[2] + Math.sin(t * 0.6 + phase) * 0.05;
-			const rotX = Math.sin(t * 0.4 + phase * 1.1) * 0.03;
-			exitGroupRef.current.rotation.x = rotX;
-			exitGroupRef.current.rotation.z = rotZ;
-		}
-		// 退出
+
+		// 退出アニメーション処理
 		if (exitingRef.current && exitStartRef.current !== null) {
-			const t = Math.min(
-				1,
-				(performance.now() - exitStartRef.current) / EXIT_MS,
-			);
-			const e = 1 - (1 - t) ** 3;
+			const elapsed = performance.now() - exitStartRef.current;
+			const progressT = Math.min(1, elapsed / EXIT_MS);
+			const e = 1 - (1 - progressT) ** 3;
+
 			if (exitGroupRef.current) {
 				const curY = exitGroupRef.current.rotation.y;
-				exitGroupRef.current.rotation.y = curY + (EXIT_ROT - curY) * 0.25;
+				// 線形補間だとカクつく場合があるのでスムーズに
+				exitGroupRef.current.rotation.y = curY + (EXIT_ROT - curY) * 0.1;
 			}
-			setDrawOpacity(exitStartOpacityRef.current * (1 - e));
-			if (t >= 1) {
+
+			const nextOpacity = exitStartOpacityRef.current * (1 - e);
+			setDrawOpacity(nextOpacity);
+
+			if (progressT >= 1) {
 				exitingRef.current = false;
 				exitStartRef.current = null;
-				setShouldRender(false);
+				setShouldRender(false); // レンダリング停止
 			}
 		} else {
+			// 通常時
 			setDrawOpacity(opacity);
 			if (exitGroupRef.current) {
 				const curY = exitGroupRef.current.rotation.y;
-				exitGroupRef.current.rotation.y =
-					curY + (0 - curY) * Math.min(1, dt * 8);
+				if (Math.abs(curY) > 0.001) {
+					exitGroupRef.current.rotation.y = curY * 0.9; // 減衰
+				} else {
+					exitGroupRef.current.rotation.y = 0;
+				}
+			}
+
+			// 微回転
+			if (exitGroupRef.current) {
+				const rotZ = rotation[2] + Math.sin(t * 0.6 + phase) * 0.05;
+				const rotX = Math.sin(t * 0.4 + phase * 1.1) * 0.03;
+				// exitアニメーションと干渉しないよう加算合成等は避ける
+				if (!exitingRef.current) {
+					exitGroupRef.current.rotation.x = rotX;
+					exitGroupRef.current.rotation.z = rotZ;
+				}
 			}
 		}
-		// マテリアルのopacity、transparent、alphaMapを設定
-		// 完全表示時(0.98以上)は不透明でalphaMapも無効化
+
+		// マテリアル更新
 		if (meshRef.current) {
 			const material = meshRef.current.material as THREE.MeshBasicMaterial;
-			// 0.8以上なら不透明として扱う（よりアグレッシブに透過を切る）
 			const THRESHOLD = 0.8;
 			const isOpaque = drawOpacity >= THRESHOLD;
-
 			const finalOpacity = isOpaque ? 1.0 : drawOpacity;
 
+			// 値が変わった時だけ更新するのがベストだが、React-three-fiberのuseFrame内では頻繁に呼ばれる
 			material.opacity = finalOpacity;
-			material.transparent = !isOpaque; // 閾値以上ならfalse（不透明）
-			// biome-ignore lint/suspicious/noExplicitAny: Alpha texture type mismatch with three.js types
-			material.alphaMap = !isOpaque ? (alphaTexture as any) : null; // 不透明時はalphaMapも切る
-			material.depthWrite = true; // 常に深度バッファに書き込む
+			material.transparent = !isOpaque;
+			// biome-ignore lint/suspicious/noExplicitAny: Alpha texture type mismatch
+			material.alphaMap = !isOpaque ? (alphaTexture as any) : null;
 			material.needsUpdate = true;
-
-			// デバッグ: 完全表示のカードを必ずログ出力
-			if (isOpaque && Math.random() < 0.01) { // ログ過多防止のため間引く
-				console.log('[VideoCard3D - 完全表示] drawOpacity:', drawOpacity.toFixed(4), {
-					finalOpacity,
-					'material.opacity': material.opacity,
-					'material.transparent': material.transparent,
-					'material.alphaMap': material.alphaMap ? 'exists' : 'null'
-				});
-			}
-		}
-
-		// hover状態の自動リセット: opacityが低い時にhoverしていたら強制的にfalseにする
-		// またはisInteractiveがfalseの場合もリセット
-		if (isHoveringRef.current && (drawOpacity <= 0.5 || !isInteractive)) {
-			isHoveringRef.current = false;
-			document.body.style.cursor = "default";
-			if (onHoverChange) {
-				onHoverChange(false);
-			}
 		}
 	});
 
-	// === 描画（単一メッシュ / DoubleSide） ===
+	// 可視性が無い場合は描画しない (React NodeレベルでのCulling)
+	if (!shouldRender && opacity < 0.01) return null;
+
 	return (
 		<group position={position} rotation={rotation} scale={scale}>
 			<group ref={floatingGroupRef}>
 				<group ref={exitGroupRef}>
-					{textureLoaded && (shouldRender || opacity > 0.01) && (
+					{textureLoaded && (
 						// biome-ignore lint/a11y/noStaticElementInteractions: R3F mesh interaction
 						<mesh
 							ref={meshRef}
-							position={[0, 0, 0]}
+							// position等はずっと0
 							rotation={[Math.PI, Math.PI, 0]}
 							renderOrder={1001}
 							onClick={(e) => {
 								e.stopPropagation();
-								// カードが十分に表示されている時、かつインタラクティブな時だけクリックイベントを発火
 								if (onClick && drawOpacity > 0.5 && isInteractive) {
 									onClick();
 								}
 							}}
 							onPointerOver={(e) => {
 								e.stopPropagation();
-								// カードが十分に表示されている時、かつインタラクティブな時だけhoverイベントを発火
 								if (drawOpacity > 0.5 && isInteractive) {
 									isHoveringRef.current = true;
 									document.body.style.cursor = "pointer";
-									if (onHoverChange) {
-										onHoverChange(true);
-									}
+									onHoverChange?.(true);
 								}
 							}}
 							onPointerOut={(e) => {
 								e.stopPropagation();
-								// onPointerOutは常に実行してhover状態をリセット
 								isHoveringRef.current = false;
 								document.body.style.cursor = "default";
-								if (onHoverChange) {
-									onHoverChange(false);
-								}
+								onHoverChange?.(false);
 							}}
 						>
 							<primitive object={curvedPlaneGeometry} attach="geometry" />
@@ -361,7 +409,7 @@ export default function VideoCard3D({
 										: imageTexture.current) || null
 								}
 								color="white"
-								alphaTest={0.001}
+								alphaTest={0.001} // アルファ抜きのための閾値
 								depthTest={true}
 								depthWrite={true}
 								side={THREE.DoubleSide}
