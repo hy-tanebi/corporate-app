@@ -26,7 +26,7 @@ export default function Providers({ children }: { children: ReactNode }) {
 		<AudioProvider>
 			{isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}
 			{children}
-            <Toaster richColors position="top-center" />
+			<Toaster richColors position="top-center" />
 		</AudioProvider>
 	);
 }

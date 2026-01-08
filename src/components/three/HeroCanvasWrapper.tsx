@@ -6,19 +6,19 @@ import type { VideoSlide } from "../../types/content";
 
 // Dynamically import HeroCanvas with SSR disabled
 const HeroCanvas = dynamic(() => import("./hero-canvas"), {
-  ssr: false,
+	ssr: false,
 });
 
 interface HeroCanvasWrapperProps {
-  // children removed from here as they are now rendered by HeroCanvasWithCMS
-  videoSlides?: VideoSlide[];
+	// children removed from here as they are now rendered by HeroCanvasWithCMS
+	videoSlides?: VideoSlide[];
 }
 
 export default function HeroCanvasWrapper({
-  videoSlides,
+	videoSlides,
 }: HeroCanvasWrapperProps) {
-  // Get state from the Provider (which must be higher up in the tree)
-  const heroState = useHeroState();
+	// Get state from the Provider (which must be higher up in the tree)
+	const heroState = useHeroState();
 
-  return <HeroCanvas videoSlides={videoSlides} heroState={heroState} />;
+	return <HeroCanvas videoSlides={videoSlides} heroState={heroState} />;
 }

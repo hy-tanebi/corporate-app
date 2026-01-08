@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import LoadingScene from "./LoadingScene";
 
-
 export default function LoadingScreen({
 	onLoadingComplete,
 }: {
