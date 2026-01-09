@@ -29,20 +29,20 @@ const TAU = Math.PI * 2;
 
 // ===== 動画フェーズ =====
 // ===== 動画フェーズ =====
-const THIRD_PHASE_START = 0.3;
-const THIRD_PHASE_END = 0.93;
-const VIDEO_START_PROGRESS = 0.35;
+const THIRD_PHASE_START = 0.15;
+const THIRD_PHASE_END = 0.85;
+const VIDEO_START_PROGRESS = 0.18;
 
 // ===== イージング・慣性 =====
 // ===== イージング・慣性 =====
-const VIDEO_EASE = 5.0;
+const VIDEO_EASE = 1.5;
 const CARD_DWELL_FRAC = 0.95; // 滑らかな回転に戻す (0.7 -> 0.95)
 const VIDEO_ROT_INERTIA = 2.0; // 慣性を戻す (4.0 -> 2.0)
 
 // ===== 黒円/リターン =====
-const RETURN_SCROLL_START = 0.89;
-const RETURN_SCROLL_END = 0.915;
-const CIRCLE_SCROLL_START = RETURN_SCROLL_END + 0.005;
+const RETURN_SCROLL_START = 0.80;
+const RETURN_SCROLL_END = 0.85;
+const CIRCLE_SCROLL_START = 0.86;
 const CIRCLE_SCROLL_END = 0.97; // 黒い円の拡大終了
 const CIRCLE_SMOOTH_EXPAND = 0.8;
 const CIRCLE_SMOOTH_SHRINK = 3.5; // 縮小は拡大よりかなり速く
@@ -448,9 +448,9 @@ function HeroScene({
 
 			if (scrollProgress < THIRD_PHASE_START) {
 				triangleGroupRef.current.scale.set(1, 1, 1);
-			} else if (scrollProgress <= 0.55) {
+			} else if (scrollProgress <= 0.35) {
 				const t =
-					(scrollProgress - THIRD_PHASE_START) / (0.55 - THIRD_PHASE_START);
+					(scrollProgress - THIRD_PHASE_START) / (0.35 - THIRD_PHASE_START);
 				const s = THREE.MathUtils.lerp(1.0, 0.7, smooth01(t));
 				triangleGroupRef.current.scale.set(s, s, s);
 			} else if (scrollProgress < RETURN_SCROLL_START) {

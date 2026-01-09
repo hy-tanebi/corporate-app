@@ -138,15 +138,16 @@ export default function HomeClient() {
 
 	// 第1テキストの表示タイミング（0-30%でフェードイン、30-45%で表示、45-55%でフェードアウト）
 	// 第1テキストの表示タイミング（0-18%でフェードイン、18-27%で表示、27-33%でフェードアウト）
-	// Original: 0-30% -> New: 0-18% (approx factor 1.66 -> 0.6 scale)
-	const text1FadeIn = Math.max(0, Math.min(1, scrollProgress * 5.5)); // 0-18%
-	const text1FadeOut = Math.max(0, Math.min(1, (0.33 - scrollProgress) * 16)); // 27-33%
+	// Text 1: Intro (0-18%)
+	// Fade in 0-5%, Visible 5-13%, Fade out 13-18%
+	const text1FadeIn = Math.max(0, Math.min(1, scrollProgress * 20)); // 0-5% in
+	const text1FadeOut = Math.max(0, Math.min(1, (0.18 - scrollProgress) * 20)); // 13-18% out
 	const text1Opacity = Math.min(text1FadeIn, text1FadeOut);
 
-	// 第2テキストの表示タイミング（36-40%でフェードイン、40-89%で表示、89-91%でフェードアウト）
-	// Starts earlier (after Text 1) and lasts longer (through the video phase)
-	const text2FadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.36) * 20)); // 36-41%
-	const text2FadeOut = Math.max(0, Math.min(1, (0.915 - scrollProgress) * 40)); // 89-91.5%
+	// Text 2: Video (18-80%)
+	// Fade in 18-23% (Sync with Video Start 0.18)
+	const text2FadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.18) * 20)); // 18-23% in
+	const text2FadeOut = Math.max(0, Math.min(1, (0.80 - scrollProgress) * 25)); // 76-80% out
 	const text2Opacity = Math.min(text2FadeIn, text2FadeOut);
 
 	return (
@@ -314,7 +315,7 @@ export default function HomeClient() {
 			{/* スクロール可能なコンテンツエリア（透明） */}
 			<div
 				className="w-full pointer-events-none"
-				style={{ height: isMobile ? "800vh" : "2000vh" }}
+				style={{ height: isMobile ? "800vh" : "1000vh" }}
 			>
 				{/* 空のコンテンツでスクロールを可能にする */}
 			</div>
