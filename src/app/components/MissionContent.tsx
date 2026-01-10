@@ -114,7 +114,7 @@ function MissionContentDesktop({
 		<div
 			ref={containerRef}
 			className="relative w-full max-w-[1600px] mx-auto"
-			style={{ height: isMobile ? "500vh" : "700vh" }}
+			style={{ height: isMobile ? "500vh" : "450vh" }}
 		>
 			<div className="sticky top-0 h-screen w-full flex flex-row overflow-hidden">
 				{/* Left Column: Visuals (50%) - Centered */}

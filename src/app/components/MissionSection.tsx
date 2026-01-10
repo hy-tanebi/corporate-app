@@ -360,7 +360,7 @@ function MissionSection(
 			let newIrisProgress = irisTransitionProgress;
 			if (aboutWrapperRef.current) {
 				const rect = aboutWrapperRef.current.getBoundingClientRect();
-				const TRANSITION_ZONE = windowHeight * (isMobile ? 2.5 : 10.0);
+				const TRANSITION_ZONE = windowHeight * (isMobile ? 2.5 : 4.0);
 				const distFromBottom = rect.bottom - windowHeight;
 
 				if (distFromBottom <= TRANSITION_ZONE && distFromBottom >= 0) {
@@ -645,7 +645,7 @@ function MissionSection(
 				</div>
 			</div>
 
-			<div ref={gradientRef} className="w-full h-[50vh] md:h-[100vh]" />
+			<div ref={gradientRef} className="w-full h-[30vh] md:h-[30vh]" />
 
 			<div ref={aboutWrapperRef} className="relative w-full">
 				<AboutSection transitionProgress={irisTransitionProgress} />
@@ -654,7 +654,7 @@ function MissionSection(
 			<div
 				ref={contactRef}
 				className={`w-full flex items-center justify-center relative z-30 ${
-					isMobile ? "h-[50vh]" : "h-screen"
+					isMobile ? "h-[50vh]" : "h-[50vh]"
 				}`}
 			>
 				<h2

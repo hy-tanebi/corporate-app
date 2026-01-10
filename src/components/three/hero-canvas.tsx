@@ -119,6 +119,8 @@ function HeroScene({
 	// biome-ignore lint/suspicious/noExplicitAny: Custom shader material
 	const heroMatRef = useRef<any>(null);
 	const starGroupRef = useRef<THREE.Group>(null);
+    const nebulaGroupRef = useRef<THREE.Group>(null); // Nebula also uses separate group to avoid rotation on mobile
+    const astronautGroupRef = useRef<THREE.Group>(null); // Astronaut uses separate group to avoid background rotation
 	const triangleGroupRef = useRef<THREE.Group>(null);
 	const triangleVisibleMeshRef = useRef<THREE.Mesh>(null);
 	const lineSegmentsRef = useRef<THREE.LineSegments>(null);
@@ -132,19 +134,50 @@ function HeroScene({
 	const triangleRotation = useRef({ x: 0, y: 0 });
 
 	// 紫色のガスのランダム配置（リロード時に1回だけ生成）
+	// 紫色のガスのランダム配置（リロード時に1回だけ生成）
 	const nebulaPositions = useMemo(() => {
 		const positions = [];
-		for (let i = 0; i < 2; i++) {
-			const x = Math.random() * 80 - 40; // -40 ~ 40
-			const y = Math.random() * 80 - 40; // -40 ~ 40
-			const z = Math.random() * 20 - 50; // -50 ~ -30
-			const scale = Math.random() * 40 + 50; // 50 ~ 90
-			const opacity = Math.random() * 0.15 + 0.15; // 0.15 ~ 0.3
+        // Mobile: More clouds (4) for better coverage. Desktop: 2 is enough.
+        const count = isMobile ? 4 : 2;
+
+		for (let i = 0; i < count; i++) {
+            let x, y, z, opacity, scale;
+            if (isMobile) {
+                // Mobile: "Partial" but "Overall" Look
+                // Increased X range to -20~20 to cover full width (avoids left bias).
+                x = Math.random() * 40 - 20;
+                y = Math.random() * 80 - 40;
+                z = Math.random() * 25 - 30;  // -30 ~ -5
+                opacity = Math.random() * 0.3 + 0.4;
+                scale = Math.random() * 25 + 25;
+            } else {
+                 // Desktop: Wide Spread & Subtle
+			    x = Math.random() * 80 - 40;
+			    y = Math.random() * 80 - 40;
+                z = Math.random() * 20 - 50;
+                opacity = Math.random() * 0.15 + 0.15;
+                scale = Math.random() * 40 + 50; // 50 ~ 90 (Large)
+            }
 			const rotation = Math.random() * Math.PI * 2; // 0 ~ 2π
 			positions.push({ x, y, z, scale, opacity, rotation });
 		}
 		return positions;
-	}, []);
+	}, [isMobile]);
+
+    // 宇宙飛行士の初期位置（モバイルの場合は右上に寄せる）
+    const astronautInitialPos = useMemo(() => {
+        if (isMobile) {
+             // Mobile: Strong Top-Right Bias
+             // X: 1.2 to 1.8 (Strong Right) -> Bounded motion will ensure safety.
+             // Y: 2.0 to 3.5 (Up - Unchanged)
+            return [
+                Math.random() * 0.6 + 1.2,    // 1.2 ~ 1.8 (Right)
+                Math.random() * 1.5 + 2.0,    // 2.0 ~ 3.5 (Up)
+                -5
+            ] as [number, number, number];
+        }
+        return [0, 0, -5] as [number, number, number];
+    }, [isMobile]);
 
 	// 黒円マテリアル
 	const featherMat = useMemo(() => {
@@ -572,7 +605,6 @@ function HeroScene({
 				circleRef.current.scale.set(s, s, 1);
 
 				// Contactセクションが表示されている時は黒い円を非表示にして宇宙空間を表示
-				// ★修正: transitionProgress > 0 の時も黒い円を非表示にする
 				circleRef.current.visible =
 					!isContactVisible && transitionProgress === 0;
 
@@ -586,47 +618,74 @@ function HeroScene({
 				if (videoCardsRef.current)
 					videoCardsRef.current.visible = !hideTri && !isContactVisible;
 
-				if (starGroupRef.current) {
-					// ★追加: 宇宙空間の透明度制御
-					if (isContactVisible || transitionProgress > 0) {
-						// Contact表示中は spaceOpacity で透明度/可視性を制御
-						if (spaceOpacity < 0.05) {
-							starGroupRef.current.visible = false;
-						} else {
-							starGroupRef.current.visible = true;
-							// マテリアルの透明度を更新（簡易的な実装）
-							starGroupRef.current.traverse((obj) => {
-								// biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
-								const m = (obj as any).material;
-								if (m) {
-									m.transparent = true;
-									// userDataに元のopacityを保存していなければ保存
-									if (m.userData.originalOpacity === undefined) {
-										m.userData.originalOpacity = m.opacity || 1;
-									}
-									m.opacity = m.userData.originalOpacity * spaceOpacity;
-									// depthWriteをoffにすると後ろが透けるが、星は加算合成などが多いのでOK
-									// ただしPurpleNebulaなどは重なり順に注意
-								}
-							});
-						}
-					} else {
-						// 通常時（Top/Mission）: growTによるフェードアウト
-						const shouldShow = growT < HIDE_BG_AT_T;
-						starGroupRef.current.visible = shouldShow;
+                // Sync Background Opacity (Star & Astronaut)
+                let targetOpacity = 1.0;
+                let shouldShowBg = true;
 
-						// 不透明度をリセット (1.0へ戻す)
-						if (shouldShow) {
-							starGroupRef.current.traverse((obj) => {
-								// biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
-								const m = (obj as any).material;
-								if (m && m.userData.originalOpacity !== undefined) {
-									m.opacity = m.userData.originalOpacity;
-								}
-							});
-						}
-					}
-				}
+                if (isContactVisible || transitionProgress > 0) {
+                     targetOpacity = spaceOpacity;
+                     if (targetOpacity < 0.05) shouldShowBg = false;
+                } else {
+                     if (growT >= HIDE_BG_AT_T) shouldShowBg = false;
+                }
+
+                // Star Group
+				if (starGroupRef.current) {
+                    starGroupRef.current.visible = shouldShowBg;
+                    if (shouldShowBg) {
+                        starGroupRef.current.traverse((obj) => {
+                            // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+                            const m = (obj as any).material;
+                            if (m && m.userData.originalOpacity !== undefined) {
+                                m.opacity = m.userData.originalOpacity;
+                            }
+                        });
+                    }
+                }
+
+                // Sync Astronaut Group Opacity (Fade Effect)
+                if (astronautGroupRef.current) {
+                    if (isContactVisible || transitionProgress > 0) {
+                        if (spaceOpacity < 0.05) {
+                            astronautGroupRef.current.visible = false;
+                        } else {
+                            astronautGroupRef.current.visible = true;
+                            astronautGroupRef.current.traverse((obj) => {
+                                // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+                                const m = (obj as any).material;
+                                if (m) {
+                                    m.transparent = true;
+                                    if (m.userData.originalOpacity === undefined) {
+                                        m.userData.originalOpacity = m.opacity || 1;
+                                    }
+                                    m.opacity = m.userData.originalOpacity * spaceOpacity;
+                                }
+                            });
+                        }
+                    }
+                }
+
+                // Sync Nebula Group Opacity (Fade Effect)
+                if (nebulaGroupRef.current) {
+                    if (isContactVisible || transitionProgress > 0) {
+                        if (spaceOpacity < 0.05) {
+                            nebulaGroupRef.current.visible = false;
+                        } else {
+                            nebulaGroupRef.current.visible = true;
+                            nebulaGroupRef.current.traverse((obj) => {
+                                // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+                                const m = (obj as any).material;
+                                if (m) {
+                                    m.transparent = true;
+                                    if (m.userData.originalOpacity === undefined) {
+                                        m.userData.originalOpacity = m.opacity || 1;
+                                    }
+                                    m.opacity = m.userData.originalOpacity * spaceOpacity;
+                                }
+                            });
+                        }
+                    }
+                }
 			} else {
 				circleRef.current.visible = false;
 				circleRef.current.scale.set(0.001, 0.001, 1);
@@ -645,6 +704,26 @@ function HeroScene({
 						}
 					});
 				}
+                if (astronautGroupRef.current) {
+                    astronautGroupRef.current.visible = true;
+                    astronautGroupRef.current.traverse((obj) => {
+                        // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+                        const m = (obj as any).material;
+                        if (m && m.userData.originalOpacity !== undefined) {
+                            m.opacity = m.userData.originalOpacity;
+                        }
+                    });
+                }
+                if (nebulaGroupRef.current) {
+                    nebulaGroupRef.current.visible = true;
+                    nebulaGroupRef.current.traverse((obj) => {
+                        // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+                        const m = (obj as any).material;
+                        if (m && m.userData.originalOpacity !== undefined) {
+                            m.opacity = m.userData.originalOpacity;
+                        }
+                    });
+                }
 			}
 		}
 
@@ -672,9 +751,11 @@ function HeroScene({
 						<StarParticles selfRotate={false} position={[0, 0, -10]} />
 						<ShootingStars interval={3500} duration={4000} />
 					</Suspense>
+				</group>
 
-					{/* 2. メインモデル（読み込みに時間がかかるもの: 重量） */}
-					<Suspense fallback={null}>
+                {/* Nebula Group (Detached from rotation for partial/random feel) */}
+                <group ref={nebulaGroupRef}>
+                    <Suspense fallback={null}>
 						{/* 紫色のガス状の雲（ランダム配置） */}
 						{nebulaPositions.map((pos, index) => (
 							<PurpleNebula
@@ -687,15 +768,20 @@ function HeroScene({
 								rotation={[0, 0, pos.rotation]}
 							/>
 						))}
-						{/* 宇宙飛行士 (Topページ & 最後の宇宙エリアで表示) */}
+                    </Suspense>
+                </group>
+
+                {/* 宇宙飛行士 (独立したグループに入れることで背景回転の影響を受けないようにする) */}
+                <group ref={astronautGroupRef}>
+                    <Suspense fallback={null}>
 						{/* 宇宙飛行士 (Topページ & 最後の宇宙エリアで表示) */}
 						<Astronaut
-							position={[0, 0, -5]}
+							position={astronautInitialPos}
 							scale={2}
 							isMobile={isMobile}
 						/>
-					</Suspense>
-				</group>
+                    </Suspense>
+                </group>
 
 				{/* テトラ */}
 				<group ref={triangleGroupRef} position={[0, 0, 0]}>
