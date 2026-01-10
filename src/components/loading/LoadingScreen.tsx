@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
+import { useProgress } from "@react-three/drei";
 import LoadingScene from "./LoadingScene";
 
 export default function LoadingScreen({
@@ -9,56 +10,27 @@ export default function LoadingScreen({
 }: {
 	onLoadingComplete: () => void;
 }) {
-	const [progress, setProgress] = useState(0);
-	// const [showSoundToggle, setShowSoundToggle] = useState(false); // Unused
+	// Real Progress from Three.js DefaultLoadingManager
+	const { progress, active } = useProgress();
 	const [hasStarted, setHasStarted] = useState(false);
 
 	// スクロール無効化
 	useEffect(() => {
-		// ローディング中はスクロールを無効化
 		document.body.style.overflow = "hidden";
 	}, []);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: handleStart is internal
+	// Loading Completion Logic
 	useEffect(() => {
-		// プログレスバーのアニメーション
-		const interval = setInterval(() => {
-			setProgress((prev) => {
-				if (prev >= 100) {
-					clearInterval(interval);
-
-					console.log("Loading complete, checking session storage...");
-					const savedState = sessionStorage.getItem("sound_enabled");
-					console.log("Saved sound state:", savedState);
-
-					/*
-					// 一時的に機能を無効化（ユーザー要望）
-					if (savedState) {
-						// 設定がある場合は自動遷移
-						// 念のため少し待機してから遷移
-						setTimeout(() => {
-							handleStart(true); // 即時実行
-						}, 500);
-					} else {
-						setShowSoundToggle(true);
-					}
-					*/
-
-					// 常に自動遷移（デフォルトON扱い）
-					setTimeout(() => {
-						handleStart(true);
-					}, 500);
-
-					return 100;
-				}
-				// ランダムに進行速度を変える（リアルなローディング感）
-				const increment = Math.random() * 15 + 5;
-				return Math.min(prev + increment, 100);
-			});
-		}, 300);
-
-		return () => clearInterval(interval);
-	}, []);
+		// When progress hits 100 (and technically active becomes false, but 100 is good visual indicator)
+		if (progress === 100) {
+			console.log("Real Loading complete.");
+			// Small delay to let the user see "100%"
+			const timer = setTimeout(() => {
+				handleStart(true);
+			}, 500);
+			return () => clearTimeout(timer);
+		}
+	}, [progress]);
 
 	const handleStart = (immediate = false) => {
 		setHasStarted(true);

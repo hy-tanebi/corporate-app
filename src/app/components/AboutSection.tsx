@@ -136,7 +136,7 @@ export default function AboutSection({
 			ref={sectionRef}
 			className="w-full relative"
 			style={{
-				height: isMobile ? "500vh" : "2400vh", // Extended height for time earning (Aggressively reduced for mobile)
+				height: isMobile ? "500vh" : "800vh", // Extended height for time earning (Aggressively reduced for mobile)
 			}}
 		>
 			{/* SVGフィルター定義 (不可視) */}
