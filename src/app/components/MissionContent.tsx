@@ -39,7 +39,7 @@ export default function MissionContent({
 				<MissionContentDesktop scrollContainerRef={scrollContainerRef} />
 			</div>
 			<div className="block md:hidden">
-				<MissionContentMobile />
+				<MissionContentMobile scrollContainerRef={scrollContainerRef} />
 			</div>
 		</>
 	);
@@ -294,74 +294,276 @@ function ScrollOpacityItem({
 	);
 }
 
-// === Mobile Implementation (Static Column) ===
-function MissionContentMobile() {
-	return (
-		<div className="w-full py-10 px-2 flex flex-col gap-24">
-			{CONTENT_ITEMS.map((item, index) => (
-				<div key={item.id} className="flex flex-col gap-8">
-					{/* Visual Area */}
-					<div className="flex justify-center items-center h-[240px]">
-						{index === 0 && (
-							/* Square */
-							<div className="relative w-[160px] h-[160px] bg-[#50B070] rounded-3xl rotate-[10deg]" />
-						)}
-						{index === 1 && (
-							/* Pair */
-							<div className="relative w-[160px] h-[160px] flex items-center justify-center">
-								<div className="absolute w-[100px] h-[100px] bg-[#E6C844] rounded-full mix-blend-multiply opacity-90 -translate-x-8" />
-								<div className="absolute w-[100px] h-[100px] bg-[#205090] rounded-full mix-blend-multiply opacity-90 translate-x-8" />
-							</div>
-						)}
-						{index === 2 && (
-							/* Sanpo (Pyramid Layout for Mobile) */
-							<div className="relative w-[200px] h-[200px]">
-								<div className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[100px] h-[100px] rounded-full bg-[#50B070] mix-blend-multiply opacity-90" />
-								<div className="absolute bottom-[20px] left-[15px] w-[100px] h-[100px] rounded-full bg-[#E6C844] mix-blend-multiply opacity-90" />
-								<div className="absolute bottom-[20px] right-[15px] w-[100px] h-[100px] rounded-full bg-[#205090] mix-blend-multiply opacity-90" />
-								<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70px] h-[70px] flex items-center justify-center scale-90">
-									{[0, 60, 120, 180, 240, 300].map((deg) => (
-										<div
-											key={deg}
-											className="absolute w-[35px] h-[35px] bg-white rounded-full shadow-sm"
-											style={{ transform: `rotate(${deg}deg) translate(15px)` }}
-										/>
-									))}
-									<div className="absolute w-[40px] h-[40px] bg-[#FFF5E5] rounded-full shadow-inner flex items-center justify-center">
-										<div className="w-[18px] h-[18px] bg-[#FF8C00] rounded-full opacity-90 shadow-sm" />
-									</div>
-								</div>
-							</div>
-						)}
-					</div>
+// === Mobile Implementation (Sticky Scroll - Single Column) ===
+function MissionContentMobile({
+	scrollContainerRef,
+}: {
+	scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
+}) {
+	const containerRef = useRef<HTMLDivElement>(null);
+	const { scrollYProgress } = useScroll({
+		target: containerRef,
+		container: scrollContainerRef as React.RefObject<HTMLElement>,
+		offset: ["start start", "end end"],
+	});
 
-					{/* Text Area */}
-					<div className="flex flex-col gap-4 px-6">
-						{index === 0 && (
-							<span className="text-[#50B070] font-bold text-xl">01.</span>
-						)}
-						{index === 1 && (
-							<span className="font-bold text-xl">
-								<span className="text-[#E6C844]">02</span>
-								<span className="text-[#205090]">.</span>
-							</span>
-						)}
-						{index === 2 && (
-							<span className="font-bold text-xl">
-								<span className="text-[#50B070]">0</span>
-								<span className="text-[#E6C844]">3</span>
-								<span className="text-[#205090]">.</span>
-							</span>
-						)}
-						<h3 className="text-[1.6rem] md:text-[2rem] font-black text-white leading-[1.3]">
-							{item.title}
-						</h3>
-						<p className="text-base text-gray-300 leading-relaxed">
-							{item.description}
-						</p>
-					</div>
+	// Same optimized spring as desktop for stability
+	const smoothProgress = useSpring(scrollYProgress, {
+		stiffness: 60,
+		damping: 30,
+		mass: 0.8,
+		restDelta: 0.001,
+	});
+
+	// Unified Phase Logic: 0 to 3
+	const currentPhase = useTransform(smoothProgress, [0, 1], [0, 3]);
+
+	// Shape 1: Square - Phase 0-1
+	const squareOpacity = useTransform(
+		currentPhase,
+		[0, 0.2, 0.8, 1],
+		[0, 1, 1, 0],
+	);
+	const squareScale = useTransform(currentPhase, [0, 1], [0.95, 1.05]);
+	const squareRotate = useTransform(currentPhase, [0, 1], [0, 10]);
+
+	// Shape 2: Pair - Phase 1-2
+	const pairOpacity = useTransform(
+		currentPhase,
+		[1, 1.2, 1.8, 2],
+		[0, 1, 1, 0],
+	);
+	const pairScale = useTransform(currentPhase, [1, 2], [0.95, 1.05]);
+	const pairGap = useTransform(currentPhase, [1, 2], [-30, 30]);
+
+	// Shape 3: Sanpo - Phase 2-3
+	const sanpoOpacity = useTransform(
+		currentPhase,
+		[2, 2.2, 2.8, 3.0],
+		[0, 1, 1, 0],
+	);
+	const sanpoScale = useTransform(currentPhase, [2, 3], [0.95, 1.05]);
+	const sanpoOffset = useTransform(currentPhase, [2, 2.4], [60, 0]);
+	const centerScale = useTransform(currentPhase, [2.25, 2.45], [0, 1]);
+
+	return (
+		<div
+			ref={containerRef}
+			className="relative w-full"
+			style={{ height: "300vh" }}
+		>
+			<div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden px-4">
+				{/* Shapes Container (Top) */}
+				<div className="relative w-[200px] h-[200px] flex items-center justify-center mb-6">
+					{/* Shape 1: Square */}
+					<motion.div
+						className="absolute bg-[#50B070] rounded-3xl"
+						style={{
+							width: 140,
+							height: 140,
+							scale: squareScale,
+							opacity: squareOpacity,
+							rotate: squareRotate,
+							zIndex: 10,
+						}}
+					/>
+
+					{/* Shape 2: Pair */}
+					<motion.div
+						className="absolute flex items-center justify-center"
+						style={{
+							scale: pairScale,
+							opacity: pairOpacity,
+							zIndex: 10,
+						}}
+					>
+						<div className="relative flex items-center justify-center">
+							<motion.div
+								className="w-[100px] h-[100px] bg-[#E6C844] rounded-full mix-blend-multiply opacity-90"
+								style={{ x: pairGap }}
+							/>
+							<motion.div
+								className="w-[100px] h-[100px] bg-[#205090] rounded-full mix-blend-multiply opacity-90"
+								style={{ x: useTransform(pairGap, (v) => -v) }}
+							/>
+						</div>
+					</motion.div>
+
+					{/* Shape 3: Sanpo */}
+					<motion.div
+						className="absolute flex items-center justify-center"
+						style={{
+							scale: sanpoScale,
+							opacity: sanpoOpacity,
+							zIndex: 10,
+						}}
+					>
+						<div className="relative w-[220px] h-[240px] flex items-center justify-center">
+							{/* Top: Green (Seller) - Centered at top */}
+							<motion.div
+								className="absolute w-[120px] h-[120px] rounded-full bg-[#50B070] mix-blend-multiply opacity-90"
+								style={{
+									top: 20,
+									left: "50%",
+									marginLeft: -60,
+									y: useTransform(sanpoOffset, (v) => -v)
+								}}
+							/>
+							{/* Bottom Left: Yellow (Society) */}
+							<motion.div
+								className="absolute w-[120px] h-[120px] rounded-full bg-[#E6C844] mix-blend-multiply opacity-90"
+								style={{
+									bottom: 20,
+									left: "50%",
+									marginLeft: -100,
+									x: useTransform(sanpoOffset, (v) => -v),
+									y: sanpoOffset
+								}}
+							/>
+							{/* Bottom Right: Blue (Buyer) */}
+							<motion.div
+								className="absolute w-[120px] h-[120px] rounded-full bg-[#205090] mix-blend-multiply opacity-90"
+								style={{
+									bottom: 20,
+									left: "50%",
+									marginLeft: -20,
+									x: sanpoOffset,
+									y: sanpoOffset
+								}}
+							/>
+							{/* Center Flower */}
+							<motion.div
+								className="absolute flex items-center justify-center z-20"
+								style={{
+									scale: centerScale,
+									width: 80,
+									height: 80,
+								}}
+							>
+								{[0, 60, 120, 180, 240, 300].map((deg) => (
+									<div
+										key={deg}
+										className="absolute w-[32px] h-[32px] bg-white rounded-full shadow-sm"
+										style={{ transform: `rotate(${deg}deg) translate(16px)` }}
+									/>
+								))}
+								<div className="absolute w-[40px] h-[40px] bg-[#FFF5E5] rounded-full shadow-inner flex items-center justify-center">
+									<div className="w-[18px] h-[18px] bg-[#FF8C00] rounded-full opacity-90 shadow-sm" />
+								</div>
+							</motion.div>
+						</div>
+					</motion.div>
 				</div>
-			))}
+
+				{/* Text Content (Bottom) - Stacked */}
+				<div className="relative w-full max-w-sm h-[200px]">
+					{CONTENT_ITEMS.map((item, index) => (
+						<ScrollOpacityItemMobile
+							key={item.id}
+							data={item}
+							index={index}
+							phase={currentPhase}
+						/>
+					))}
+				</div>
+			</div>
 		</div>
+	);
+}
+
+function ScrollOpacityItemMobile({
+	data,
+	index,
+	phase,
+}: {
+	// biome-ignore lint/suspicious/noExplicitAny: Data structure
+	data: any;
+	index: number;
+	// biome-ignore lint/suspicious/noExplicitAny: Motion value type
+	phase: any;
+}) {
+	const opacity = useTransform(
+		phase,
+		[index, index + 0.2, index + 0.8, index + 1],
+		[0, 1, 1, 0],
+	);
+
+	const y = useTransform(phase, [index, index + 1], [30, -30]);
+
+	return (
+		<motion.div className="absolute inset-0 w-full" style={{ opacity, y }}>
+			{index === 0 && (
+				<span className="block text-[#50B070] font-bold text-lg mb-2">01.</span>
+			)}
+			{index === 1 && (
+				<span className="block font-bold text-lg mb-2">
+					<span className="text-[#E6C844]">02</span>
+					<span className="text-[#205090]">.</span>
+				</span>
+			)}
+			{index === 2 && (
+				<span className="block font-bold text-lg mb-2">
+					<span className="text-[#50B070]">0</span>
+					<span className="text-[#E6C844]">3</span>
+					<span className="text-[#205090]">.</span>
+				</span>
+			)}
+			<h3 className="text-[1.3rem] font-black text-white leading-[1.3] mb-3">
+				{data.title}
+			</h3>
+			<p className="text-sm text-gray-300 leading-relaxed">
+				{data.description}
+			</p>
+		</motion.div>
+	);
+}
+
+function MobileScrollTextItem({
+	data,
+	index,
+	phase,
+}: {
+	// biome-ignore lint/suspicious/noExplicitAny: Data structure
+	data: any;
+	index: number;
+	// biome-ignore lint/suspicious/noExplicitAny: Motion value type
+	phase: any;
+}) {
+	const opacity = useTransform(
+		phase,
+		[index, index + 0.2, index + 0.8, index + 1],
+		[0, 1, 1, 0],
+	);
+
+	const y = useTransform(phase, [index, index + 1], [30, -30]);
+
+	return (
+		<motion.div
+			className="absolute w-full left-0 px-6"
+			style={{ opacity, y }}
+		>
+			{index === 0 && (
+				<span className="block text-[#50B070] font-bold text-lg mb-2">01.</span>
+			)}
+			{index === 1 && (
+				<span className="block font-bold text-lg mb-2">
+					<span className="text-[#E6C844]">02</span>
+					<span className="text-[#205090]">.</span>
+				</span>
+			)}
+			{index === 2 && (
+				<span className="block font-bold text-lg mb-2">
+					<span className="text-[#50B070]">0</span>
+					<span className="text-[#E6C844]">3</span>
+					<span className="text-[#205090]">.</span>
+				</span>
+			)}
+			<h3 className="text-[1.4rem] font-black text-white leading-[1.3] mb-4">
+				{data.title}
+			</h3>
+			<p className="text-sm text-gray-300 leading-relaxed">
+				{data.description}
+			</p>
+		</motion.div>
 	);
 }
