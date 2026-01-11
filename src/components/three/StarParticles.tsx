@@ -54,26 +54,58 @@ export function StarParticles({
 	particleTexture.wrapS = THREE.ClampToEdgeWrapping;
 	particleTexture.wrapT = THREE.ClampToEdgeWrapping;
 	particleTexture.premultiplyAlpha = true;
-	const particles = useMemo(() => {
-		const count = 2500;
+const particles = useMemo(() => {
+		const count = 3000; // Increase slightly for density, still very performant
 		const positions = new Float32Array(count * 3);
 		const colors = new Float32Array(count * 3);
+		const scales = new Float32Array(count); // New attribute for size
 		const color = new THREE.Color();
 
+		// Star Spectral Types Data (approximate probability & color)
+		// Type: [Probability Threshold, Color Hex, Base Size]
+		const starTypes = [
+			{ threshold: 0.001, color: "#9bb0ff", size: 2.0 }, // O - Blue (Very rare)
+			{ threshold: 0.01, color: "#aabfff", size: 1.6 },  // B - Blue-white
+			{ threshold: 0.05, color: "#cad7ff", size: 1.4 },  // A - White
+			{ threshold: 0.15, color: "#f8f7ff", size: 1.2 },  // F - Yellow-white
+			{ threshold: 0.40, color: "#fff4ea", size: 1.0 },  // G - Yellow (Sun-like)
+			{ threshold: 0.80, color: "#ffd2a1", size: 0.8 },  // K - Orange
+			{ threshold: 1.00, color: "#ffcc6f", size: 0.6 }   // M - Red (Common, small)
+		];
+
+		const getStarData = (r: number) => {
+			for (const type of starTypes) {
+				if (r < type.threshold) return type;
+			}
+			return starTypes[starTypes.length - 1];
+		};
+
 		for (let i = 0; i < count; i++) {
-			positions[i * 3] = (Math.random() - 0.5) * 50;
-			positions[i * 3 + 1] = (Math.random() - 0.5) * 50;
-			positions[i * 3 + 2] = (Math.random() - 0.5) * 50;
-			// 青白い色に設定（少し青みがかった白）
-			color.setRGB(0.8, 0.9, 1.0);
+			// Spherical distribution for more natural "space" feel, or wide cube?
+			// Sticking to Box/Cube as per original for hero coverage, but wider spread.
+			positions[i * 3] = (Math.random() - 0.5) * 80;
+			positions[i * 3 + 1] = (Math.random() - 0.5) * 80;
+			positions[i * 3 + 2] = (Math.random() - 0.5) * 60;
+
+			// Determine star type
+			const type = getStarData(Math.random());
+			color.set(type.color);
+
+			// Slight random variation per star to avoid uniformity
+			color.offsetHSL(0, (Math.random() - 0.5) * 0.1, (Math.random() - 0.5) * 0.1);
+
 			colors[i * 3] = color.r;
 			colors[i * 3 + 1] = color.g;
 			colors[i * 3 + 2] = color.b;
+
+			// Randomize size slightly around the base size
+			scales[i] = type.size * (0.8 + Math.random() * 0.5);
 		}
 
 		const geometry = new THREE.BufferGeometry();
 		geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 		geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+		geometry.setAttribute("aScale", new THREE.BufferAttribute(scales, 1));
 		return geometry;
 	}, []);
 
