@@ -6,7 +6,7 @@ export const fallbackVideoSlides: VideoSlide[] = [
 		id: "fallback-hero-simplify",
 		title: "デジタルの悩みをシンプルに",
 		mediaType: "image",
-		imageSrc: "/images/hero-simplify-digital.png",
+		imageSrc: "/images/hero-simplify-digital.webp",
 		description: "AIと技術で、複雑なデジタル課題をシンプルに解決します",
 	},
 	{
@@ -45,7 +45,7 @@ export const developmentFallbackSlides: VideoSlide[] = [
 		id: "dev-fallback-hero-simplify",
 		title: "デジタルの悩みをシンプルに",
 		mediaType: "image",
-		imageSrc: "/images/hero-simplify-digital.png",
+		imageSrc: "/images/hero-simplify-digital.webp",
 		description: "AIと技術で、複雑なデジタル課題をシンプルに解決します",
 		publishedAt: "2024-01-20",
 		category: "Mission",

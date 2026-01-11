@@ -45,5 +45,5 @@ next-env.d.ts
 /.claude/
 
 # 大きな3Dモデルファイル（Vercel Blobで管理）
-public/models/*.glb
+# public/models/*.glb
 public/models/*.fbx

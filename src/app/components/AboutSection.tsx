@@ -216,7 +216,7 @@ export default function AboutSection({
 					}}
 				>
 					<AboutThreeImage
-						imageSrc={isMobile ? "/images/about-sp.png" : "/images/about.png"}
+						imageSrc={isMobile ? "/images/about-sp.webp" : "/images/about.webp"}
 						scale={isMobile ? [1.15, 1.0] : [1.0, 1.0]}
 						offset={isMobile ? [-0.15, 0] : [0, 0]}
 					/>
