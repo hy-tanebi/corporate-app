@@ -32,12 +32,15 @@ type Props = {
 	position?: [number, number, number];
 	/** renderOrder を外から変えたい時 */
 	renderOrder?: number;
+	/** モバイルフラグ（星の数を減らしてパフォーマンス向上）*/
+	isMobile?: boolean;
 };
 
 export function StarParticles({
 	selfRotate = false,
 	position = [0, 0, 0],
 	renderOrder = 10,
+	isMobile = false,
 }: Props) {
 	const mesh = useRef<THREE.Points>(null);
 	// biome-ignore lint/suspicious/noExplicitAny: Shader material ref
@@ -55,7 +58,8 @@ export function StarParticles({
 	particleTexture.wrapT = THREE.ClampToEdgeWrapping;
 	particleTexture.premultiplyAlpha = true;
 const particles = useMemo(() => {
-		const count = 3000; // Increase slightly for density, still very performant
+		// モバイルでは星の数を減らしてパフォーマンス向上
+		const count = isMobile ? 2000 : 3000;
 		const positions = new Float32Array(count * 3);
 		const colors = new Float32Array(count * 3);
 		const scales = new Float32Array(count); // New attribute for size
@@ -107,7 +111,7 @@ const particles = useMemo(() => {
 		geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 		geometry.setAttribute("aScale", new THREE.BufferAttribute(scales, 1));
 		return geometry;
-	}, []);
+	}, [isMobile]);
 
 	useFrame((_state, delta) => {
 		if (selfRotate && mesh.current) {

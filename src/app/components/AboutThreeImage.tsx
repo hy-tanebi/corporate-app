@@ -153,7 +153,6 @@ declare module "@react-three/fiber" {
 	}
 }
 
-// Update ImageMesh to accept scale
 const ImageMesh = ({
 	imageSrc,
 	scale = 1.0,
@@ -170,6 +169,12 @@ const ImageMesh = ({
 
 	const mouse = useRef(new THREE.Vector2(0.5, 0.5));
 	const hoverStrength = useRef(0);
+
+	// Calculate initial scale/offset values from props
+	const initialScaleX = Array.isArray(scale) ? scale[0] : scale;
+	const initialScaleY = Array.isArray(scale) ? scale[1] : scale;
+	const initialOffsetX = offset[0];
+	const initialOffsetY = offset[1];
 
 	// Update Resolution Uniforms
 	useEffect(() => {
@@ -228,8 +233,8 @@ const ImageMesh = ({
 				ref={materialRef}
 				uTexture={texture}
 				transparent
-				uScale={new THREE.Vector2(1, 1)} // Initial
-				uOffset={new THREE.Vector2(0, 0)} // Initial
+				uScale={new THREE.Vector2(initialScaleX, initialScaleY)}
+				uOffset={new THREE.Vector2(initialOffsetX, initialOffsetY)}
 			/>
 		</mesh>
 	);
