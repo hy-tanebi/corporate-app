@@ -59,11 +59,12 @@ function MissionContentDesktop({
 	});
 
 	// Smooth scroll progress to create "fuwatto" (soft/floating) feel.
-	// Stiffness decreased (40 -> 25) to make it slower/softer.
-	// Damping kept relative to prevent oscillation.
+	// Adjusted for stability: faster tracking (stiffness 60) with reduced overshoot (damping 30).
+	// Mass added for natural deceleration.
 	const smoothProgress = useSpring(scrollYProgress, {
-		stiffness: 25,
-		damping: 15,
+		stiffness: 60,
+		damping: 30,
+		mass: 0.8,
 		restDelta: 0.001,
 	});
 
