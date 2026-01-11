@@ -1,12 +1,30 @@
+# TANEBI CREATIVE - robots.txt
+# https://tanebi-net.com/
+
 User-agent: *
 Allow: /
 
-# サイトマップの場所
-Sitemap: https://your-domain.com/sitemap.xml
+# AI Crawlers (AIO対応)
+User-agent: GPTBot
+Allow: /
 
-# クロール遅延（オプション）
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# llms.txtへの参照 (AIOプロトコル準拠)
+# https://tanebi-net.com/llms.txt
+
+# サイトマップ
+Sitemap: https://tanebi-net.com/sitemap.xml
+
+# クロール遅延
 Crawl-delay: 1
-
-# 除外するパス（必要に応じて）
-# Disallow: /admin/
-# Disallow: /private/

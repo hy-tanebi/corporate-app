@@ -153,11 +153,11 @@ export default function HomeClient() {
 	return (
 		<main>
 			{/* 屋号とサウンドコントロールを左上に固定配置 */}
-			<div className="fixed top-8 left-8 z-10 flex items-center gap-4">
-				<h1 className="text-2xl md:text-3xl font-bold text-white pointer-events-none">
+			<div className="fixed top-8 left-6 md:left-8 z-10 flex items-center gap-4">
+				<h1 className="text-2xl md:text-[28px] font-bold text-white pointer-events-none">
 					TANEBI CREATIVE
 				</h1>
-				<div className="pointer-events-auto">
+				<div className="pointer-events-auto hidden">
 					<AudioControlButton />
 				</div>
 			</div>
@@ -183,15 +183,15 @@ export default function HomeClient() {
 					}
 					style={{
 						paddingTop: isMobile
-							? "calc(env(safe-area-inset-top) + 8rem)"
+							? "calc(env(safe-area-inset-top) + 5rem)"
 							: undefined,
 						paddingBottom: isMobile
-							? "calc(env(safe-area-inset-bottom) + 2rem)"
+							? "calc(env(safe-area-inset-bottom) + 3rem)"
 							: undefined,
 					}}
 				>
 					<h2
-						className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
+						className="max-[375px]:text-3xl text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight md:mb-8"
 						style={{
 							textShadow:
 								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
@@ -211,7 +211,7 @@ export default function HomeClient() {
 						寄り添いサポート
 					</h2>
 					<p
-						className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
+						className="max-[375px]:text-sm text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
 						style={{
 							textShadow:
 								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
@@ -245,15 +245,15 @@ export default function HomeClient() {
 					}
 					style={{
 						paddingTop: isMobile
-							? "calc(env(safe-area-inset-top) + 8rem)"
+							? "calc(env(safe-area-inset-top) + 5rem)"
 							: undefined,
 						paddingBottom: isMobile
-							? "calc(env(safe-area-inset-bottom) + 2rem)"
+							? "calc(env(safe-area-inset-bottom) + 3rem)"
 							: undefined,
 					}}
 				>
 					<h2
-						className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
+						className="max-[375px]:text-3xl text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight md:mb-8"
 						style={{
 							textShadow:
 								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
@@ -275,7 +275,7 @@ export default function HomeClient() {
 						に。
 					</h2>
 					<p
-						className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
+						className="max-[375px]:text-sm text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
 						style={{
 							textShadow:
 								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
