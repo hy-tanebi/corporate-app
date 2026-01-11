@@ -352,7 +352,7 @@ function MissionContentMobile({
 			className="relative w-full"
 			style={{ height: "300vh" }}
 		>
-			<div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden px-4">
+			<div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden px-8">
 				{/* Shapes Container (Top) */}
 				<div className="relative w-[200px] h-[200px] flex items-center justify-center mb-6">
 					{/* Shape 1: Square */}
@@ -456,7 +456,7 @@ function MissionContentMobile({
 				</div>
 
 				{/* Text Content (Bottom) - Stacked */}
-				<div className="relative w-full max-w-sm h-[200px]">
+				<div className="relative w-full h-[200px]">
 					{CONTENT_ITEMS.map((item, index) => (
 						<ScrollOpacityItemMobile
 							key={item.id}

@@ -748,7 +748,7 @@ function HeroScene({
 				<group ref={starGroupRef}>
 					{/* 1. 背景（即座に表示されるべきもの: 軽量） */}
 					<Suspense fallback={null}>
-						<StarParticles selfRotate={false} position={[0, 0, -10]} />
+						<StarParticles selfRotate={false} position={[0, 0, -10]} isMobile={isMobile} />
 						<ShootingStars interval={3500} duration={4000} />
 					</Suspense>
 				</group>
