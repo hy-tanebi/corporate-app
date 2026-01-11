@@ -110,7 +110,7 @@ export default function AboutSection({
 	// タイトル制御 (About)
 	useEffect(() => {
 		if (contentOpacity > 0) {
-			document.title = "ABOUT | TANEBI CREATIVE タネビ クリエイティブ";
+			document.title = "ABOUT ME | TANEBI CREATIVE タネビ クリエイティブ";
 		}
 	}, [contentOpacity]);
 
@@ -136,7 +136,7 @@ export default function AboutSection({
 			ref={sectionRef}
 			className="w-full relative"
 			style={{
-				height: isMobile ? "500vh" : "2400vh", // Extended height for time earning (Aggressively reduced for mobile)
+				height: isMobile ? "500vh" : "800vh", // Extended height for time earning (Aggressively reduced for mobile)
 			}}
 		>
 			{/* SVGフィルター定義 (不可視) */}
@@ -187,7 +187,7 @@ export default function AboutSection({
 							className="text-[8vw] md:text-[7vw] font-bold mx-2 md:mx-8"
 							style={{ fontFamily: "'Inter', sans-serif" }}
 						>
-							ABOUT
+							ABOUT ME
 						</span>
 					))}
 				</div>

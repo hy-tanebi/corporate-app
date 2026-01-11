@@ -360,7 +360,7 @@ function MissionSection(
 			let newIrisProgress = irisTransitionProgress;
 			if (aboutWrapperRef.current) {
 				const rect = aboutWrapperRef.current.getBoundingClientRect();
-				const TRANSITION_ZONE = windowHeight * (isMobile ? 2.5 : 10.0);
+				const TRANSITION_ZONE = windowHeight * (isMobile ? 2.5 : 4.0);
 				const distFromBottom = rect.bottom - windowHeight;
 
 				if (distFromBottom <= TRANSITION_ZONE && distFromBottom >= 0) {
@@ -542,9 +542,13 @@ function MissionSection(
 		updateBackgroundColor,
 	]);
 
-	// 段階マッピング
-	const zAxisProgress = easeOutCubic(remap01(sectionProgress, 0.3, 0.7));
-	const horizontalProgress = easeOutCubic(remap01(sectionProgress, 0.7, 0.95));
+	// 段階マッピング (Mobile: Faster completion to align before description)
+	const zAxisProgress = easeOutCubic(
+		remap01(sectionProgress, isMobile ? 0.2 : 0.3, isMobile ? 0.5 : 0.7),
+	);
+	const horizontalProgress = easeOutCubic(
+		remap01(sectionProgress, isMobile ? 0.5 : 0.7, isMobile ? 0.7 : 0.95),
+	);
 
 	// matrix 用パラメータ
 	const scale = 1 + (1 - zAxisProgress) * 4;
@@ -576,7 +580,7 @@ function MissionSection(
 			}}
 		>
 			{/* MISSION + CREATIVE THINKING エリア */}
-			<div className="h-screen flex flex-col items-center justify-center gap-8 px-8">
+			<div className="h-screen flex flex-col items-center justify-center gap-4 md:gap-8 px-8">
 				<h2
 					className="text-6xl md:text-8xl font-bold text-white"
 					style={{
@@ -590,7 +594,11 @@ function MissionSection(
 
 				<div
 					className="relative flex items-center justify-center"
-					style={{ perspective: "1000px", minHeight: 150, width: "100%" }}
+					style={{
+						perspective: "1000px",
+						minHeight: isMobile ? 60 : 150,
+						width: "100%",
+					}}
 				>
 					<p
 						className="text-xl md:text-4xl text-white/90 font-bold absolute will-change-transform tracking-wider md:tracking-normal"
@@ -645,7 +653,7 @@ function MissionSection(
 				</div>
 			</div>
 
-			<div ref={gradientRef} className="w-full h-[50vh] md:h-[100vh]" />
+			<div ref={gradientRef} className="w-full h-[30vh] md:h-[30vh]" />
 
 			<div ref={aboutWrapperRef} className="relative w-full">
 				<AboutSection transitionProgress={irisTransitionProgress} />
@@ -654,7 +662,7 @@ function MissionSection(
 			<div
 				ref={contactRef}
 				className={`w-full flex items-center justify-center relative z-30 ${
-					isMobile ? "h-[50vh]" : "h-screen"
+					isMobile ? "h-[50vh]" : "h-[50vh]"
 				}`}
 			>
 				<h2

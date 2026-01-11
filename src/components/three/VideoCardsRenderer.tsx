@@ -4,10 +4,10 @@ import type { VideoSlide } from "../../types/content";
 
 // Constants
 const TAU = Math.PI * 2;
-const THIRD_PHASE_START = 0.3;
-const THIRD_PHASE_END = 0.93;
-const VIDEO_START_PROGRESS = 0.35;
-const VIDEO_EASE = 5.0;
+const THIRD_PHASE_START = 0.15;
+const THIRD_PHASE_END = 0.85;
+const VIDEO_START_PROGRESS = 0.18;
+const VIDEO_EASE = 1.5;
 const CARD_DWELL_FRAC = 0.95;
 const GAP_TURNS = 0.15;
 const FADE_FRAC = 0.7;
@@ -60,6 +60,7 @@ interface VideoCardsRendererProps {
 	ROT_TURNS: number;
 	onCardClick?: (slide: VideoSlide, index: number) => void;
 	onCardHover?: (isHovering: boolean) => void;
+	isMobile?: boolean;
 }
 
 export default function VideoCardsRenderer({
@@ -70,6 +71,7 @@ export default function VideoCardsRenderer({
 	ROT_TURNS,
 	onCardClick,
 	onCardHover,
+	isMobile = false,
 }: VideoCardsRendererProps) {
 	const phaseLin = THREE.MathUtils.clamp(
 		(scrollProgress - THIRD_PHASE_START) /
@@ -166,6 +168,7 @@ export default function VideoCardsRenderer({
 						onClick={() => onCardClick?.(slide, index)}
 						onHoverChange={onCardHover}
 						isInteractive={finalIsInteractive}
+						isMobile={isMobile}
 					/>
 				);
 			})}

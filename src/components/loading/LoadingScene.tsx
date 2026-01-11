@@ -24,10 +24,12 @@ function AstronautModel({ position }: { position: [number, number, number] }) {
 			setIsMobile(isM);
 
             if (isM) {
-                // Mobile Random: Safe bounds [X:±0.8, Y:±1.0, Z:-5]
+                // Mobile Random: Strong Top-Right Bias
+                // X: 1.2 to 1.8 (Strong Right) -> Bounded motion will ensure safety.
+                // Y: 2.0 to 3.5 (Up - Unchanged)
                 setRandomPos([
-                    (Math.random() - 0.5) * 1.6,
-                    (Math.random() - 0.5) * 2.0,
+                    Math.random() * 0.6 + 1.2,    // 1.2 ~ 1.8 (Right)
+                    Math.random() * 1.5 + 2.0,    // 2.0 ~ 3.5 (Up)
                     -5
                 ]);
             } else {
@@ -70,15 +72,7 @@ export default function LoadingScene() {
 			<directionalLight position={[5, 0, -5]} intensity={1.5} />
 
 			{/* 星空背景 */}
-			<Stars
-				radius={100}
-				depth={50}
-				count={5000}
-				factor={4}
-				saturation={0}
-				fade
-				speed={1}
-			/>
+
 
 			{/* 宇宙飛行士 */}
 			<AstronautModel position={[0, 0, 0]} />

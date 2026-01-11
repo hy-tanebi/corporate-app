@@ -138,25 +138,26 @@ export default function HomeClient() {
 
 	// 第1テキストの表示タイミング（0-30%でフェードイン、30-45%で表示、45-55%でフェードアウト）
 	// 第1テキストの表示タイミング（0-18%でフェードイン、18-27%で表示、27-33%でフェードアウト）
-	// Original: 0-30% -> New: 0-18% (approx factor 1.66 -> 0.6 scale)
-	const text1FadeIn = Math.max(0, Math.min(1, scrollProgress * 5.5)); // 0-18%
-	const text1FadeOut = Math.max(0, Math.min(1, (0.33 - scrollProgress) * 16)); // 27-33%
+	// Text 1: Intro (0-18%)
+	// Fade in 0-5%, Visible 5-13%, Fade out 13-18%
+	const text1FadeIn = Math.max(0, Math.min(1, scrollProgress * 20)); // 0-5% in
+	const text1FadeOut = Math.max(0, Math.min(1, (0.18 - scrollProgress) * 20)); // 13-18% out
 	const text1Opacity = Math.min(text1FadeIn, text1FadeOut);
 
-	// 第2テキストの表示タイミング（36-40%でフェードイン、40-89%で表示、89-91%でフェードアウト）
-	// Starts earlier (after Text 1) and lasts longer (through the video phase)
-	const text2FadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.36) * 20)); // 36-41%
-	const text2FadeOut = Math.max(0, Math.min(1, (0.915 - scrollProgress) * 40)); // 89-91.5%
+	// Text 2: Video (18-80%)
+	// Fade in 18-23% (Sync with Video Start 0.18)
+	const text2FadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.18) * 20)); // 18-23% in
+	const text2FadeOut = Math.max(0, Math.min(1, (0.80 - scrollProgress) * 25)); // 76-80% out
 	const text2Opacity = Math.min(text2FadeIn, text2FadeOut);
 
 	return (
 		<main>
 			{/* 屋号とサウンドコントロールを左上に固定配置 */}
-			<div className="fixed top-8 left-8 z-10 flex items-center gap-4">
-				<h1 className="text-2xl md:text-3xl font-bold text-white pointer-events-none">
+			<div className="fixed top-8 left-6 md:left-8 z-10 flex items-center gap-4">
+				<h1 className="text-2xl md:text-[28px] font-bold text-white pointer-events-none">
 					TANEBI CREATIVE
 				</h1>
-				<div className="pointer-events-auto">
+				<div className="pointer-events-auto hidden">
 					<AudioControlButton />
 				</div>
 			</div>
@@ -182,15 +183,15 @@ export default function HomeClient() {
 					}
 					style={{
 						paddingTop: isMobile
-							? "calc(env(safe-area-inset-top) + 8rem)"
+							? "calc(env(safe-area-inset-top) + 5rem)"
 							: undefined,
 						paddingBottom: isMobile
-							? "calc(env(safe-area-inset-bottom) + 2rem)"
+							? "calc(env(safe-area-inset-bottom) + 3rem)"
 							: undefined,
 					}}
 				>
 					<h2
-						className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
+						className="max-[375px]:text-3xl text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight md:mb-8"
 						style={{
 							textShadow:
 								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
@@ -210,7 +211,7 @@ export default function HomeClient() {
 						寄り添いサポート
 					</h2>
 					<p
-						className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
+						className="max-[375px]:text-sm text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
 						style={{
 							textShadow:
 								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
@@ -244,15 +245,15 @@ export default function HomeClient() {
 					}
 					style={{
 						paddingTop: isMobile
-							? "calc(env(safe-area-inset-top) + 8rem)"
+							? "calc(env(safe-area-inset-top) + 5rem)"
 							: undefined,
 						paddingBottom: isMobile
-							? "calc(env(safe-area-inset-bottom) + 2rem)"
+							? "calc(env(safe-area-inset-bottom) + 3rem)"
 							: undefined,
 					}}
 				>
 					<h2
-						className="text-4xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight md:mb-8"
+						className="max-[375px]:text-3xl text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight md:mb-8"
 						style={{
 							textShadow:
 								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
@@ -274,7 +275,7 @@ export default function HomeClient() {
 						に。
 					</h2>
 					<p
-						className="text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
+						className="max-[375px]:text-sm text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
 						style={{
 							textShadow:
 								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
@@ -314,7 +315,7 @@ export default function HomeClient() {
 			{/* スクロール可能なコンテンツエリア（透明） */}
 			<div
 				className="w-full pointer-events-none"
-				style={{ height: isMobile ? "800vh" : "2000vh" }}
+				style={{ height: isMobile ? "800vh" : "1000vh" }}
 			>
 				{/* 空のコンテンツでスクロールを可能にする */}
 			</div>
