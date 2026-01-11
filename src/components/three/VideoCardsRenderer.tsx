@@ -60,6 +60,7 @@ interface VideoCardsRendererProps {
 	ROT_TURNS: number;
 	onCardClick?: (slide: VideoSlide, index: number) => void;
 	onCardHover?: (isHovering: boolean) => void;
+	isMobile?: boolean;
 }
 
 export default function VideoCardsRenderer({
@@ -70,6 +71,7 @@ export default function VideoCardsRenderer({
 	ROT_TURNS,
 	onCardClick,
 	onCardHover,
+	isMobile = false,
 }: VideoCardsRendererProps) {
 	const phaseLin = THREE.MathUtils.clamp(
 		(scrollProgress - THIRD_PHASE_START) /
@@ -166,6 +168,7 @@ export default function VideoCardsRenderer({
 						onClick={() => onCardClick?.(slide, index)}
 						onHoverChange={onCardHover}
 						isInteractive={finalIsInteractive}
+						isMobile={isMobile}
 					/>
 				);
 			})}

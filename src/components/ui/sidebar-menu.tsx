@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X, Home, Rocket, User, MessageCircle } from "lucide-react";
+import { Menu, X, Home, Rocket, User, Bird } from "lucide-react";
 import gsap from "gsap";
 
 interface SidebarMenuProps {
@@ -43,7 +43,7 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 		{
 			href: "/contact",
 			label: "CONTACT",
-			icon: MessageCircle,
+			icon: Bird,
 			description: "お気軽にお問い合わせください",
 		},
 	];
@@ -301,7 +301,7 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 							</nav>
 
 							<motion.div
-								className="mt-auto text-white/50 text-sm"
+								className="mt-auto text-white/50 text-sm w-full text-center"
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1, transition: { delay: 0.8 } }}
 								exit={{ opacity: 0, transition: { duration: 0.2, delay: 0 } }}

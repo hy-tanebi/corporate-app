@@ -618,8 +618,8 @@ function HeroScene({
 				if (videoCardsRef.current)
 					videoCardsRef.current.visible = !hideTri && !isContactVisible;
 
-                // Sync Background Opacity (Star & Astronaut)
-                let targetOpacity = 1.0;
+				// Sync Background Opacity (Star & Astronaut)
+				let targetOpacity = 1.0;
                 let shouldShowBg = true;
 
                 if (isContactVisible || transitionProgress > 0) {
@@ -835,6 +835,7 @@ function HeroScene({
 							ROT_TURNS={ROT_TURNS}
 							onCardClick={onCardClick}
 							onCardHover={onCardHover}
+							isMobile={isMobile}
 						/>
 					</Suspense>
 				</group>

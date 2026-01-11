@@ -82,6 +82,7 @@ interface VideoCard3DProps {
 	onClick?: () => void;
 	onHoverChange?: (isHovering: boolean) => void;
 	isInteractive?: boolean;
+	isMobile?: boolean;
 }
 
 export default function VideoCard3D({
@@ -100,6 +101,7 @@ export default function VideoCard3D({
 	onClick,
 	onHoverChange,
 	isInteractive = true,
+	isMobile = false,
 }: VideoCard3DProps) {
 	const meshRef = useRef<THREE.Mesh>(null);
 	const exitGroupRef = useRef<THREE.Group>(null);
@@ -388,7 +390,7 @@ export default function VideoCard3D({
 							}}
 							onPointerOver={(e) => {
 								e.stopPropagation();
-								if (drawOpacity > 0.5 && isInteractive) {
+								if (drawOpacity > 0.5 && isInteractive && !isMobile) {
 									isHoveringRef.current = true;
 									document.body.style.cursor = "pointer";
 									onHoverChange?.(true);
