@@ -96,7 +96,7 @@ export default function VideoCard3D({
 	progress,
 	scale = 1,
 	opacity = 1,
-	cornerRadiusPx = 5,
+	cornerRadiusPx = 10,
 	displayHeightPx = 400,
 	onClick,
 	onHoverChange,
@@ -355,15 +355,12 @@ export default function VideoCard3D({
 		// マテリアル更新
 		if (meshRef.current) {
 			const material = meshRef.current.material as THREE.MeshBasicMaterial;
-			const THRESHOLD = 0.8;
-			const isOpaque = drawOpacity >= THRESHOLD;
-			const finalOpacity = isOpaque ? 1.0 : drawOpacity;
 
-			// 値が変わった時だけ更新するのがベストだが、React-three-fiberのuseFrame内では頻繁に呼ばれる
-			material.opacity = finalOpacity;
-			material.transparent = !isOpaque;
+			// 角丸のためにalphaMapは常に適用
+			material.opacity = drawOpacity;
+			material.transparent = true;
 			// biome-ignore lint/suspicious/noExplicitAny: Alpha texture type mismatch
-			material.alphaMap = !isOpaque ? (alphaTexture as any) : null;
+			material.alphaMap = alphaTexture as any;
 			material.needsUpdate = true;
 		}
 	});
