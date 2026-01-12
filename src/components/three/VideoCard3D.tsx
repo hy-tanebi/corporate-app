@@ -216,7 +216,7 @@ export default function VideoCard3D({
                 onHoverChange?.(false);
             }
 		};
-	}, [videoSrc, imageSrc, mediaType, title, opacity, isActive]); // opacity依存を追加: 表示されたらロード開始
+	}, [videoSrc, imageSrc, mediaType, title, opacity, isActive, onHoverChange]); // opacity依存を追加: 表示されたらロード開始
 
 	// === 再生制御 (Active時のみ再生) ===
 	useEffect(() => {

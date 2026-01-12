@@ -124,7 +124,7 @@ export function calculateCardStatus(
 
 	return {
 		opacity,
-		isActive: opacity > 0.05,
+		isActive: finalIsInteractive,
 		progress: phaseEased,
 	};
 }

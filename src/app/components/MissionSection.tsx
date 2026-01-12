@@ -3,7 +3,6 @@
 
 import {
 	useEffect,
-	useMemo,
 	useRef,
 	useState,
 	useCallback,
@@ -21,9 +20,9 @@ function ContactFormSection() {
 }
 
 interface MissionSectionProps {
-	scrollProgress: number; // 0〜1 の全体スクロール進捗（親から供給）
+	// scrollProgress: number; // Removed - internal tracking
 	isCircleFullyExpanded: boolean; // 円が拡大完了したトリガ
-	onProgressChange?: (progress: number) => void; // セクション内進捗を親に通知
+	// onProgressChange?: (progress: number) => void; // Removed - avoiding parent re-renders
 }
 
 export interface MissionSidebarHandle {
@@ -40,19 +39,31 @@ const easeInOutCubic = (t: number) =>
 	t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 
 function MissionSection(
-	{
-		scrollProgress,
-		isCircleFullyExpanded,
-		onProgressChange,
-	}: MissionSectionProps,
+	{ isCircleFullyExpanded }: MissionSectionProps,
 	ref: React.Ref<MissionSidebarHandle>,
 ) {
 	const { setIsContactVisible, setSpaceOpacity, setTransitionProgress } =
 		useHeroState();
 	const [isMobile, setIsMobile] = useState(false);
 
-	// Section Progress State (moved to top to avoid ReferenceError)
-	const [sectionProgress, setSectionProgress] = useState(0);
+	// Internal Scroll Progress Ref (replaces useState to avoid re-renders)
+	const scrollProgressRef = useRef(0);
+	// Section Progress Tracking (Physics)
+	const targetRef = useRef(0);
+	const currentRef = useRef(0);
+	const prevRawTargetRef = useRef(0);
+	const isGoingForwardRef = useRef(true);
+
+	// Element Refs for direct DOM manipulation
+	const containerRef = useRef<HTMLDivElement>(null);
+	const missionTitleRef = useRef<HTMLHeadingElement>(null);
+	const technicalTextRef = useRef<HTMLParagraphElement>(null);
+	const partnerTextRef = useRef<HTMLParagraphElement>(null);
+	const descriptionOuterRef = useRef<HTMLDivElement>(null);
+	const descriptionInnerRef = useRef<HTMLDivElement>(null);
+
+	// Ref to track logic state without causing re-renders
+	const showDescriptionStateRef = useRef(false);
 
 	useEffect(() => {
 		const checkMobile = () => {
@@ -61,6 +72,22 @@ function MissionSection(
 		checkMobile();
 		window.addEventListener("resize", checkMobile);
 		return () => window.removeEventListener("resize", checkMobile);
+	}, []);
+
+	// Window Scroll Listener to update scrollProgressRef
+	useEffect(() => {
+		const handleWindowScroll = () => {
+			const scrollTop = window.scrollY;
+			const docHeight =
+				document.documentElement.scrollHeight - window.innerHeight;
+			// Prevent division by zero
+			const scrolled = docHeight > 0 ? scrollTop / docHeight : 0;
+			scrollProgressRef.current = scrolled;
+		};
+
+		window.addEventListener("scroll", handleWindowScroll);
+		handleWindowScroll(); // Initial check
+		return () => window.removeEventListener("scroll", handleWindowScroll);
 	}, []);
 
 	// ======= 調整パラメータ（ここをいじるだけで遅くできます） =======
@@ -74,39 +101,7 @@ function MissionSection(
 	const SMOOTH_ALPHA_BACKWARD = 0.3;
 	const GAMMA = 1.8;
 
-	// 生のターゲット進捗（0→1）
-	const rawTarget = useMemo(() => {
-		if (!isCircleFullyExpanded) return 0;
-		return remap01(scrollProgress, SECTION_START, SECTION_END);
-	}, [scrollProgress, isCircleFullyExpanded, SECTION_START]);
-
-	// 前回のrawTargetを保存して、進む/戻るを判定
-	const prevRawTargetRef = useRef(0);
-	const isGoingForwardRef = useRef(true);
-
-	useEffect(() => {
-		if (rawTarget > prevRawTargetRef.current) {
-			isGoingForwardRef.current = true;
-		} else if (rawTarget < prevRawTargetRef.current) {
-			isGoingForwardRef.current = false;
-		}
-		prevRawTargetRef.current = rawTarget;
-	}, [rawTarget]);
-
-	// ガンマで序盤減速（進む時のみ適用、戻る時は線形）
-	const shapedTarget = isGoingForwardRef.current
-		? rawTarget ** GAMMA
-		: rawTarget;
-
-	// 速度上限＋慣性つきの追従進捗（実際に描画に使う）
-	const targetRef = useRef(0);
-	const currentRef = useRef(0);
-	// const [sectionProgress, setSectionProgress] = useState(0); // Moved to top
-
-	useEffect(() => {
-		targetRef.current = shapedTarget;
-	}, [shapedTarget]);
-
+	// Animation Loop
 	useEffect(() => {
 		let raf = 0;
 		let last = performance.now();
@@ -115,43 +110,139 @@ function MissionSection(
 			const dt = (now - last) / 1000; // 秒
 			last = now;
 
+			// --- 1. Calculate Target based on Window Scroll ---
+			let rawTarget = 0;
+			if (isCircleFullyExpanded) {
+				rawTarget = remap01(scrollProgressRef.current, SECTION_START, SECTION_END);
+			}
+
+			// Determine direction
+			if (rawTarget > prevRawTargetRef.current) {
+				isGoingForwardRef.current = true;
+			} else if (rawTarget < prevRawTargetRef.current) {
+				isGoingForwardRef.current = false;
+			}
+			prevRawTargetRef.current = rawTarget;
+
+			// Gamma correction (only forward)
+			const shapedTarget = isGoingForwardRef.current
+				? rawTarget ** GAMMA
+				: rawTarget;
+
+			targetRef.current = shapedTarget;
+
+			// --- 2. Physics Simulation ---
 			const tgt = targetRef.current;
 			let cur = currentRef.current;
 
 			// 差分
 			const diff = tgt - cur;
 
-			// 速度上限（進む時と戻る時で切り替え）
+			// 速度上限
 			const isGoingForward = diff > 0;
 			const speedLimit = isGoingForward
 				? PROGRESS_SPEED_FORWARD
 				: PROGRESS_SPEED_BACKWARD;
 			const maxStep = speedLimit * dt;
 
-			// 慣性追従によるステップ（進む時と戻る時で慣性を切り替え）
+			// 慣性
 			const smoothAlpha = isGoingForward ? SMOOTH_ALPHA : SMOOTH_ALPHA_BACKWARD;
 			const inertialStep = diff * smoothAlpha;
 
-			// 実際に適用するステップは「慣性」と「速度上限」の小さい方
+			// Step calculation
 			let step =
 				Math.abs(inertialStep) > maxStep
 					? Math.sign(inertialStep) * maxStep
 					: inertialStep;
 
-			// ★スマホの場合は完全連動（慣性・遅延ゼロ）にする
-			// 指の動きに吸い付くようにするため、計算したステップを無視して直接ターゲットへ
+			// Mobile optimization: direct tracking
 			if (isMobile) {
-				step = diff; // diffをそのまま足せば cur + step = tgt になる
+				step = diff;
 			}
 
 			cur += step;
-
 			currentRef.current = cur;
-			setSectionProgress(cur);
 
-			// 親コンポーネントに進捗を通知
-			if (onProgressChange) {
-				onProgressChange(cur);
+			// --- 3. Render / Update DOM ---
+			// Calculate derived values
+			const showMission = cur >= 0.15;
+			const showCreative = cur >= 0.3;
+			const descriptionThreshold = isMobile ? 0.75 : 0.85;
+			const showDescription = cur >= descriptionThreshold;
+			const showSection = isCircleFullyExpanded;
+            // Note: showSection uses prop, but checking here for style updates
+
+			// Update Container Opacity/PointerEvents
+			if (containerRef.current) {
+                // Opacity is simpler via class or style, but here we drive it
+				const opacity = showSection ? "1" : "0";
+                if(containerRef.current.style.opacity !== opacity) {
+                    containerRef.current.style.opacity = opacity;
+                    containerRef.current.style.pointerEvents = showSection ? "auto" : "none";
+                }
+
+                // Toggle overflow class / scrollability
+                if (showDescription !== showDescriptionStateRef.current) {
+                    showDescriptionStateRef.current = showDescription;
+                    if (showDescription) {
+                        containerRef.current.classList.remove("overflow-hidden");
+                        containerRef.current.classList.add("overflow-y-auto");
+                    } else {
+                        containerRef.current.classList.add("overflow-hidden");
+                        containerRef.current.classList.remove("overflow-y-auto");
+                    }
+                }
+			}
+
+			// Update MISSION Title
+			if (missionTitleRef.current) {
+				missionTitleRef.current.style.opacity = showMission ? "1" : "0";
+				missionTitleRef.current.style.transform = `translateY(${showMission ? 0 : -20}px)`;
+			}
+
+			// Update Creative/Partner Texts (Matrix Transform)
+			const zAxisProgress = easeOutCubic(
+				remap01(cur, isMobile ? 0.2 : 0.3, isMobile ? 0.5 : 0.7),
+			);
+			const horizontalProgress = easeOutCubic(
+				remap01(cur, isMobile ? 0.5 : 0.7, isMobile ? 0.7 : 0.95),
+			);
+			const scale = 1 + (1 - zAxisProgress) * 4;
+			const baseTx = isMobile ? 65 : 104;
+			const centerOffsetX = isMobile ? 5 : 10;
+			const leftTx = -baseTx * horizontalProgress + centerOffsetX;
+			const rightTx = +baseTx * horizontalProgress + centerOffsetX;
+			const upTy = -25 * (1 - horizontalProgress);
+			const dnTy = +25 * (1 - horizontalProgress);
+
+			if (technicalTextRef.current) {
+				technicalTextRef.current.style.opacity = showCreative ? "1" : "0";
+				if (showCreative) {
+					technicalTextRef.current.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${leftTx}, ${upTy})`;
+				} else {
+					technicalTextRef.current.style.transform = `matrix(5, 0, 0, 5, 0, -200)`;
+				}
+			}
+
+			if (partnerTextRef.current) {
+				partnerTextRef.current.style.opacity = showCreative ? "1" : "0";
+				if (showCreative) {
+					partnerTextRef.current.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${rightTx}, ${dnTy})`;
+				} else {
+					partnerTextRef.current.style.transform = `matrix(5, 0, 0, 5, 0, 200)`;
+				}
+			}
+
+			// Update Description Wrappers
+			if (descriptionOuterRef.current) {
+				descriptionOuterRef.current.style.opacity = showDescription ? "1" : "0";
+				descriptionOuterRef.current.style.transform = `translateY(${showDescription ? 0 : 30}px)`;
+			}
+			if (descriptionInnerRef.current) {
+				// Inner wrapper duplicates the effect in original code, so valid to update both or remove one.
+                // Updating both to stay 1:1 with original logic.
+				descriptionInnerRef.current.style.opacity = showDescription ? "1" : "0";
+				descriptionInnerRef.current.style.transform = `translateY(${showDescription ? 0 : 30}px)`;
 			}
 
 			raf = requestAnimationFrame(loop);
@@ -160,22 +251,14 @@ function MissionSection(
 		raf = requestAnimationFrame(loop);
 		return () => cancelAnimationFrame(raf);
 	}, [
-		onProgressChange,
+		isCircleFullyExpanded,
 		isMobile,
+		SECTION_START,
 		PROGRESS_SPEED_FORWARD,
 		PROGRESS_SPEED_BACKWARD,
 		SMOOTH_ALPHA,
 	]);
 
-	// 表示フラグ
-	const showSection = isCircleFullyExpanded;
-	const showMission = sectionProgress >= 0.15;
-	const showCreative = sectionProgress >= 0.3;
-	// 詳細テキストの表示（スクロールロック解除）タイミング
-	// スマホの場合は「待たされる感」を減らすため、アニメーションが9割完了したらもう出し始める
-	// さらに早めて0.75にする（文字の横移動中だが、もうスクロールできて良い）
-	// Desktopも0.97だと遅すぎるため、0.85まで早める
-	const showDescription = sectionProgress >= (isMobile ? 0.75 : 0.85);
 
 	// グラデーション遷移セクションのスクロール進捗を追跡 (Ref化して再レンダリング防止)
 	const gradientProgressRef = useRef(0);
@@ -188,7 +271,6 @@ function MissionSection(
 	const contactRef = useRef<HTMLDivElement>(null);
 	const contactTitleRef = useRef<HTMLHeadingElement>(null);
 	const contactFormRef = useRef<HTMLDivElement>(null);
-	const containerRef = useRef<HTMLDivElement>(null);
 	const backgroundRef = useRef<HTMLDivElement>(null); // 背景要素へのRef
 	const scrollPositionRef = useRef(0);
 	// 自動スクロール中かどうかを判定するフラグ
@@ -200,8 +282,7 @@ function MissionSection(
 			if (containerRef.current && aboutWrapperRef.current) {
 				// Aboutセクションの開始位置
 				const top = aboutWrapperRef.current.offsetTop;
-				// Aboutセクションの高さ（800vh）のうち、アニメーションが完了する位置までスクロール
-				// AboutSectionのスクロール進捗0.5あたりで画像が完全に表示される
+				// Aboutセクションのスクロール進捗0.5あたりで画像が完全に表示される
 				const wrapperHeight = aboutWrapperRef.current.clientHeight;
 				const windowHeight = window.innerHeight;
 				const targetScrollAndOffset = (wrapperHeight - windowHeight) * 0.5;
@@ -213,10 +294,9 @@ function MissionSection(
 				});
 
 				// Physicsを即座に完了させて、内部スクロール(overflow-y-auto)を有効化する
-				// これがないと、アニメーション中はoverflow-hiddenのため、スクロール操作がWindowに伝播してトップに戻ってしまう
 				currentRef.current = 1.0;
 				targetRef.current = 1.0;
-				setSectionProgress(1.0);
+                // Note: DOM updates will be picked up by RAF loop next frame
 			}
 		},
 		scrollToMission: () => {
@@ -224,7 +304,7 @@ function MissionSection(
 				// 自動スクロールフラグを解除
 				isAutoScrollingToContact.current = false;
 
-				// コンタクト表示フラグを強制解除 (宇宙空間のままになるのを防ぐ)
+				// コンタクト表示フラグを強制解除
 				setIsContactVisible(false);
 				setIsContactInView(false);
 
@@ -241,10 +321,9 @@ function MissionSection(
 					behavior: "auto",
 				});
 
-				// Physicsをターゲット位置(0.95)に強制リセットして、表示完了状態から開始
+				// Physicsをターゲット位置(0.95)に強制リセット
 				currentRef.current = 0.95;
 				targetRef.current = 0.95;
-				setSectionProgress(0.95);
 			}
 		},
 		scrollToContact: () => {
@@ -260,12 +339,11 @@ function MissionSection(
 					behavior: "smooth",
 				});
 
-				// Physicsを即座に完了させる（About同様のスクロールロック回避）
+				// Physicsを即座に完了させる
 				currentRef.current = 1.0;
 				targetRef.current = 1.0;
-				setSectionProgress(1.0);
 
-				// しばらくしたらフラグを戻す（スクロール完了見込み時間後）
+				// しばらくしたらフラグを戻す
 				setTimeout(() => {
 					isAutoScrollingToContact.current = false;
 				}, 1000);
@@ -314,12 +392,20 @@ function MissionSection(
 		setSpaceOpacity(1);
 	}, [irisTransitionProgress, setSpaceOpacity, setTransitionProgress]);
 
-	// スクロールイベント
+	// スクロールイベント (Inner Overlay Scroll)
 	useEffect(() => {
 		const container = containerRef.current;
-		if (!showDescription || !container) return;
+        // showDescriptionStateRef.current is the source of truth for "active scroll listener"?
+        // Wait, originally this listener was active if `showDescription` (state) was true.
+        // We now rely on RAF to enable pointer events and overflow.
+        // The listener is attached to container. If container has pointer-events: none, user can't scroll it?
+        // But invalidation logic relies on checking `showDescription`.
+		if (!container) return;
 
 		const handleScroll = () => {
+            // Check if we "should" be processing. Matches original `if (!showDescription) return`
+            if (!showDescriptionStateRef.current) return;
+
 			const windowHeight = window.innerHeight;
 			const currentScrollTop = container.scrollTop;
 
@@ -410,8 +496,6 @@ function MissionSection(
 			}
 
 			// Update Background Color Directly
-			// ここで最新の値を渡して更新。State更新を待たない。
-			// irisProgressはState更新と同時にローカル変数も使う
 			updateBackgroundColor(
 				newGradientProgress,
 				newIrisProgress,
@@ -447,18 +531,19 @@ function MissionSection(
 			container.removeEventListener("scroll", handleScroll);
 		};
 	}, [
-		showDescription,
 		isContactInView,
 		setIsContactVisible,
 		irisTransitionProgress,
 		isMobile,
 		updateBackgroundColor,
+        // showDescription dependency is removed as we check ref inside
 	]);
 
 	// オーバーレイでのスクロールをメインウィンドウに伝播させる処理
 	useEffect(() => {
 		const container = containerRef.current;
-		if (!container || !showSection) return;
+        // showSection dependency check
+		if (!container || !isCircleFullyExpanded) return;
 
 		let touchStartY = 0;
 		const handleTouchStart = (e: TouchEvent) => {
@@ -505,26 +590,27 @@ function MissionSection(
 			container.removeEventListener("touchmove", handleTouchMove);
 			container.removeEventListener("wheel", handleWheel);
 		};
-	}, [showSection]);
+	}, [isCircleFullyExpanded]);
 
-	// スクロールイベント
+	// スクロールイベント (Reset Logic)
 	useEffect(() => {
 		const container = containerRef.current;
 		if (!container) return;
 
-		if (showSection && scrollPositionRef.current > 0) {
+		if (isCircleFullyExpanded && scrollPositionRef.current > 0) {
 			container.scrollTop = scrollPositionRef.current;
 		}
 
-		if (!showSection) {
+		if (!isCircleFullyExpanded) {
 			container.scrollTop = 0;
 			scrollPositionRef.current = 0;
 
 			currentRef.current = 0;
 			targetRef.current = 0;
-			setSectionProgress(0);
+            // setSectionProgress(0); // Removed state set
 			prevRawTargetRef.current = 0;
 			isGoingForwardRef.current = true;
+            showDescriptionStateRef.current = false; // Reset internal state ref
 
 			gradientProgressRef.current = 0; // Ref Reset
 			setIrisTransitionProgress(0);
@@ -533,59 +619,38 @@ function MissionSection(
 			setSpaceOpacity(1);
 			setTransitionProgress(0);
 			updateBackgroundColor(0, 0, false); // Direct Update
+
+            // Clean up DOM styles that RAF might not catch if raf stops or loop logic depends on isCircleFullyExpanded
+            if (missionTitleRef.current) { missionTitleRef.current.style.opacity = "0"; }
+            // ... (RAF loop will naturally effectively zero these if running, but resetting explicitly is safer if logic pauses)
 		}
 	}, [
-		showSection,
+		isCircleFullyExpanded, // Replaces showSection
 		setIsContactVisible,
 		setSpaceOpacity,
 		setTransitionProgress,
 		updateBackgroundColor,
 	]);
 
-	// 段階マッピング (Mobile: Faster completion to align before description)
-	const zAxisProgress = easeOutCubic(
-		remap01(sectionProgress, isMobile ? 0.2 : 0.3, isMobile ? 0.5 : 0.7),
-	);
-	const horizontalProgress = easeOutCubic(
-		remap01(sectionProgress, isMobile ? 0.5 : 0.7, isMobile ? 0.7 : 0.95),
-	);
-
-	// matrix 用パラメータ
-	const scale = 1 + (1 - zAxisProgress) * 4;
-
-	// スマホ(768px未満)、PC共にMISSIONの幅（text-6xl/text-8xl）に合わせるよう調整
-	const baseTx = isMobile ? 65 : 104;
-	const centerOffsetX = isMobile ? 5 : 10;
-
-	const leftTx = -baseTx * horizontalProgress + centerOffsetX;
-	const rightTx = +baseTx * horizontalProgress + centerOffsetX;
-	const upTy = -25 * (1 - horizontalProgress);
-	const dnTy = +25 * (1 - horizontalProgress);
-
-	// === Mask (Spaceship Transition) ===
-	const shrinkPhase = Math.min(irisTransitionProgress / 0.4, 1);
-	const _visibleRadius = Math.max(0, (1 - shrinkPhase) * 150);
-
 	return (
 		<section
 			id="mission"
 			ref={containerRef}
-			className={`fixed inset-0 z-20 mission-scrollbar ${
-				showDescription ? "overflow-y-auto" : "overflow-hidden"
-			}`}
+			className="fixed inset-0 z-20 mission-scrollbar overflow-hidden" // Default class
 			style={{
-				opacity: showSection ? 1 : 0,
-				pointerEvents: showSection ? "auto" : "none",
+				opacity: isCircleFullyExpanded ? 1 : 0,
+				pointerEvents: isCircleFullyExpanded ? "auto" : "none",
 				transition: "opacity 0.5s ease-out",
 			}}
 		>
 			{/* MISSION + CREATIVE THINKING エリア */}
 			<div className="h-screen flex flex-col items-center justify-center gap-4 md:gap-8 px-8">
 				<h2
+					ref={missionTitleRef}
 					className="text-6xl md:text-8xl font-bold text-white"
 					style={{
-						opacity: showMission ? 1 : 0,
-						transform: `translateY(${showMission ? 0 : -20}px)`,
+						opacity: 0,
+						transform: `translateY(-20px)`,
 						transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
 					}}
 				>
@@ -601,12 +666,11 @@ function MissionSection(
 					}}
 				>
 					<p
+						ref={technicalTextRef}
 						className="text-xl md:text-4xl text-white/90 font-bold absolute will-change-transform tracking-wider md:tracking-normal"
 						style={{
-							opacity: showCreative ? 1 : 0,
-							transform: showCreative
-								? `matrix(${scale}, 0, 0, ${scale}, ${leftTx}, ${upTy})`
-								: `matrix(5, 0, 0, 5, 0, -200)`,
+							opacity: 0,
+							transform: `matrix(5, 0, 0, 5, 0, -200)`,
 							transition: "opacity 0.5s ease-out",
 						}}
 					>
@@ -614,12 +678,11 @@ function MissionSection(
 					</p>
 
 					<p
+						ref={partnerTextRef}
 						className="text-xl md:text-4xl text-white/90 font-bold absolute will-change-transform tracking-wider md:tracking-normal"
 						style={{
-							opacity: showCreative ? 1 : 0,
-							transform: showCreative
-								? `matrix(${scale}, 0, 0, ${scale}, ${rightTx}, ${dnTy})`
-								: `matrix(5, 0, 0, 5, 0, 200)`,
+							opacity: 0,
+							transform: `matrix(5, 0, 0, 5, 0, 200)`,
 							transition: "opacity 0.5s ease-out 0.12s",
 						}}
 					>
@@ -629,10 +692,11 @@ function MissionSection(
 			</div>
 
 			<div
+				ref={descriptionOuterRef}
 				className="w-full min-h-screen flex flex-col items-center justify-center px-0 md:px-8 py-20"
 				style={{
-					opacity: showDescription ? 1 : 0,
-					transform: `translateY(${showDescription ? 0 : 30}px)`,
+					opacity: 0,
+					transform: `translateY(30px)`,
 					transition: "opacity 1s ease-out, transform 1s ease-out",
 				}}
 			>
@@ -640,9 +704,10 @@ function MissionSection(
 					<div className="flex flex-col gap-6">
 						{/* MissionContentコンポーネント */}
 						<div
+							ref={descriptionInnerRef}
 							style={{
-								opacity: showDescription ? 1 : 0,
-								transform: `translateY(${showDescription ? 0 : 30}px)`,
+								opacity: 0,
+								transform: `translateY(30px)`,
 								transition: "opacity 1s ease-out, transform 1s ease-out",
 								width: "100%",
 							}}

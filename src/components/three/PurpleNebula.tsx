@@ -87,7 +87,7 @@ export function PurpleNebula({
 
 	return (
 		<mesh position={position} rotation={rotation} renderOrder={renderOrder}>
-			<planeGeometry args={[scale, scale, 32, 32]} />
+			<planeGeometry args={[scale, scale, 16, 16]} />
 			{/* @ts-ignore */}
 			<purpleNebulaShaderMaterial
 				ref={materialRef}

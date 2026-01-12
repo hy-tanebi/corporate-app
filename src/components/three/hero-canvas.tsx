@@ -141,7 +141,7 @@ function HeroScene({
         const count = isMobile ? 4 : 2;
 
 		for (let i = 0; i < count; i++) {
-            let x, y, z, opacity, scale;
+			let x: number, y: number, z: number, opacity: number, scale: number;
             if (isMobile) {
                 // Mobile: "Partial" but "Overall" Look
                 // Increased X range to -20~20 to cover full width (avoids left bias).

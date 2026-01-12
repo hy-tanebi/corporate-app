@@ -59,7 +59,7 @@ export function StarParticles({
 	particleTexture.premultiplyAlpha = true;
 const particles = useMemo(() => {
 		// モバイルでは星の数を減らしてパフォーマンス向上
-		const count = isMobile ? 2000 : 3000;
+		const count = isMobile ? 1200 : 3000;
 		const positions = new Float32Array(count * 3);
 		const colors = new Float32Array(count * 3);
 		const scales = new Float32Array(count); // New attribute for size

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import { useProgress } from "@react-three/drei";
 import LoadingScene from "./LoadingScene";
@@ -11,13 +11,27 @@ export default function LoadingScreen({
 	onLoadingComplete: () => void;
 }) {
 	// Real Progress from Three.js DefaultLoadingManager
-	const { progress, active } = useProgress();
+	const { progress } = useProgress();
 	const [hasStarted, setHasStarted] = useState(false);
 
 	// スクロール無効化
 	useEffect(() => {
 		document.body.style.overflow = "hidden";
 	}, []);
+
+	// Loading Completion Logic
+	const handleStart = useCallback((immediate = false) => {
+		setHasStarted(true);
+		// スクロールを復元
+		document.body.style.overflow = "unset";
+		// フェードアウトアニメーション後にコールバック実行
+		setTimeout(
+			() => {
+				onLoadingComplete();
+			},
+			immediate ? 0 : 1000,
+		);
+	}, [onLoadingComplete]);
 
 	// Loading Completion Logic
 	useEffect(() => {
@@ -30,20 +44,7 @@ export default function LoadingScreen({
 			}, 500);
 			return () => clearTimeout(timer);
 		}
-	}, [progress]);
-
-	const handleStart = (immediate = false) => {
-		setHasStarted(true);
-		// スクロールを復元
-		document.body.style.overflow = "unset";
-		// フェードアウトアニメーション後にコールバック実行
-		setTimeout(
-			() => {
-				onLoadingComplete();
-			},
-			immediate ? 0 : 1000,
-		);
-	};
+	}, [progress, handleStart]);
 
 	return (
 		<div

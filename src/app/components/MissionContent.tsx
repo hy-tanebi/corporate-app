@@ -22,7 +22,7 @@ const CONTENT_ITEMS = [
 		id: "03",
 		title: "つくる人、使う人、続ける事業のために。",
 		description:
-			"要件を満たすだけの制作ではなく、実際に使われ、事業の中で機能し続けることを見据えた三つの視点を重ねて設計・実装を行っていきます。",
+			"要件を満たすだけの制作ではなく、AIエージェントが正しく機能し、実際に使われ、事業の中で機能し続けることを見据えた三つの視点を重ねて設計・実装を行っていきます。",
 	},
 ];
 
@@ -518,52 +518,4 @@ function ScrollOpacityItemMobile({
 	);
 }
 
-function MobileScrollTextItem({
-	data,
-	index,
-	phase,
-}: {
-	// biome-ignore lint/suspicious/noExplicitAny: Data structure
-	data: any;
-	index: number;
-	// biome-ignore lint/suspicious/noExplicitAny: Motion value type
-	phase: any;
-}) {
-	const opacity = useTransform(
-		phase,
-		[index, index + 0.2, index + 0.8, index + 1],
-		[0, 1, 1, 0],
-	);
 
-	const y = useTransform(phase, [index, index + 1], [30, -30]);
-
-	return (
-		<motion.div
-			className="absolute w-full left-0 px-6"
-			style={{ opacity, y }}
-		>
-			{index === 0 && (
-				<span className="block text-[#50B070] font-bold text-lg mb-2">01.</span>
-			)}
-			{index === 1 && (
-				<span className="block font-bold text-lg mb-2">
-					<span className="text-[#E6C844]">02</span>
-					<span className="text-[#205090]">.</span>
-				</span>
-			)}
-			{index === 2 && (
-				<span className="block font-bold text-lg mb-2">
-					<span className="text-[#50B070]">0</span>
-					<span className="text-[#E6C844]">3</span>
-					<span className="text-[#205090]">.</span>
-				</span>
-			)}
-			<h3 className="text-[1.4rem] font-black text-white leading-[1.3] mb-4">
-				{data.title}
-			</h3>
-			<p className="text-sm text-gray-300 leading-relaxed">
-				{data.description}
-			</p>
-		</motion.div>
-	);
-}
