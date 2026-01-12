@@ -161,7 +161,7 @@ export default function VideoCardsRenderer({
 						title={slide.title}
 						position={[x, 0, z]}
 						rotation={[0, angle + Math.PI, 0]}
-						isActive={opacity > 0.05}
+						isActive={finalIsInteractive}
 						progress={phaseEased}
 						scale={0.7}
 						opacity={opacity}

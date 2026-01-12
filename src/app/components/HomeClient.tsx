@@ -9,12 +9,18 @@ import ContactSection from "./ContactSection";
 import { useHeroState } from "@/contexts/HeroStateContext";
 
 export default function HomeClient() {
-	const [scrollProgress, setScrollProgress] = useState(0);
+	// Optimization: Removed scrollProgress state to prevent re-renders
 	const [isCircleFullyExpanded, setIsCircleFullyExpanded] = useState(false);
-	const [missionSectionProgress, setMissionSectionProgress] = useState(0);
+	// Optimization: Removed missionSectionProgress state as it was causing re-renders and passed to an unused component
 	const [isMobile, setIsMobile] = useState(false);
 	const missionRef = useRef<MissionSidebarHandle>(null);
 	const { setShouldSnapAnimation } = useHeroState();
+
+	// Refs for direct DOM manipulation
+	const text1Ref = useRef<HTMLDivElement>(null);
+	const text2Ref = useRef<HTMLDivElement>(null);
+	// Keep track of scroll progress in a ref for logic that needs it without re-rendering
+	const scrollProgressRef = useRef(0);
 
 	useEffect(() => {
 		const checkMobile = () => {
@@ -53,7 +59,7 @@ export default function HomeClient() {
 			// 少し余裕を持たせて、アニメーションが開始した直後の状態(0.15付近)にするなら
 			// Start + (End - Start) * 0.15 くらいが適切だが、
 			// シンプルにセクション開始位置(Start)へ遷移させる
-			const SECTION_START = isMobile ? 0.85 : 0.94;
+			// const SECTION_START = isMobile ? 0.85 : 0.94;
 			// 0.95進んだ位置を計算 (TECHNICAL PARTNERが完全に横に並んだ状態)
 			const SECTION_END = 0.999;
 			// New mapping adjustment:
@@ -87,68 +93,98 @@ export default function HomeClient() {
 		}
 	};
 
+	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
+	const CIRCLE_START = 0.92;
+	const CIRCLE_SCROLL_END = 0.97; // hero-canvas.tsxのCIRCLE_SCROLL_END
+	const CIRCLE_ACTUAL_END = 0.97; // 完全に拡大したタイミング (0.99 -> 0.97)
+
 	useEffect(() => {
 		const handleScroll = () => {
 			const scrollTop = window.scrollY;
 			const docHeight =
 				document.documentElement.scrollHeight - window.innerHeight;
 			const scrolled = scrollTop / docHeight;
-			setScrollProgress(scrolled); // 1以上も許可（MISSIONセクションで100%超のスクロールを使用）
+			scrollProgressRef.current = scrolled;
+
+			// --- Logic for setIsCircleFullyExpanded (State) ---
+			// Only update state when threshold is crossed
+			if (scrolled >= CIRCLE_ACTUAL_END) {
+				setIsCircleFullyExpanded((prev) => {
+					if (!prev) {
+						console.log("Circle fully expanded at scrollProgress:", scrolled);
+						return true;
+					}
+					return prev;
+				});
+			} else if (scrolled < CIRCLE_START) {
+				setIsCircleFullyExpanded((prev) => {
+					if (prev) {
+						console.log("Circle shrinking at scrollProgress:", scrolled);
+						return false;
+					}
+					return prev;
+				});
+			}
+
+			// --- Setup for Animations ---
+			const isCircleExpanded = scrolled >= CIRCLE_SCROLL_END;
+
+			// --- Text 1 Animation (Intro 0-18%) ---
+			// Fade in 0-5%, Visible 5-13%, Fade out 13-18%
+			const text1FadeIn = Math.max(0, Math.min(1, scrolled * 20)); // 0-5% in
+			const text1FadeOut = Math.max(0, Math.min(1, (0.18 - scrolled) * 20)); // 13-18% out
+			const text1Opacity = Math.min(text1FadeIn, text1FadeOut);
+
+			if (text1Ref.current) {
+				const opacity = isCircleExpanded ? 0 : text1Opacity;
+				text1Ref.current.style.opacity = opacity.toString();
+
+				// Transform logic
+				if (isMobile) {
+					const tx = (1 - opacity) * -20;
+					text1Ref.current.style.transform = `translateX(${tx}px)`;
+				} else {
+					const tx = (1 - opacity) * -20;
+					text1Ref.current.style.transform = `translateY(-50%) translateX(${tx}px)`;
+				}
+			}
+
+			// --- Text 2 Animation (Video 18-80%) ---
+			// Fade in 18-23% (Sync with Video Start 0.18)
+			const text2FadeIn = Math.max(0, Math.min(1, (scrolled - 0.18) * 20)); // 18-23% in
+			const text2FadeOut = Math.max(0, Math.min(1, (0.8 - scrolled) * 25)); // 76-80% out
+			const text2Opacity = Math.min(text2FadeIn, text2FadeOut);
+
+			if (text2Ref.current) {
+				const opacity = isCircleExpanded ? 0 : text2Opacity;
+				text2Ref.current.style.opacity = opacity.toString();
+
+				// Transform logic
+				if (isMobile) {
+					const tx = (1 - opacity) * -20;
+					text2Ref.current.style.transform = `translateX(${tx}px)`;
+				} else {
+					const tx = (1 - opacity) * -20;
+					text2Ref.current.style.transform = `translateY(-50%) translateX(${tx}px)`;
+				}
+			}
+
+			// --- Title Logic ---
+			if (
+				scrolled < 0.8 &&
+				document.title &&
+				!document.title.startsWith("TANEBI")
+			) {
+				document.title = "TANEBI CREATIVE タネビ クリエイティブ";
+			}
 		};
 
 		window.addEventListener("scroll", handleScroll);
+		// Initial call
+		handleScroll();
+
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, []);
-
-	// タイトル制御 (Top)
-	useEffect(() => {
-		// スクロールが浅い場合（Missionセクションに入る前）、タイトルをデフォルトに戻す
-		// かつ、ミッションセクション側で制御されていないタイミング
-		if (scrollProgress < 0.8 && !isMobile) {
-			document.title = "TANEBI CREATIVE タネビ クリエイティブ";
-		} else if (scrollProgress < 0.8 && isMobile) {
-			document.title = "TANEBI CREATIVE タネビ クリエイティブ";
-		}
-	}, [scrollProgress, isMobile]);
-
-	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
-	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
-	const CIRCLE_START = 0.92;
-	const CIRCLE_SCROLL_END = 0.97; // hero-canvas.tsxのCIRCLE_SCROLL_END
-	const CIRCLE_ACTUAL_END = 0.97; // 完全に拡大したタイミング (0.99 -> 0.97)
-
-	// 黒い円が完全に拡大したらフラグを立てる（戻る時はfalseに戻す）
-	useEffect(() => {
-		if (scrollProgress >= CIRCLE_ACTUAL_END) {
-			if (!isCircleFullyExpanded) {
-				setIsCircleFullyExpanded(true);
-				console.log("Circle fully expanded at scrollProgress:", scrollProgress);
-			}
-		} else if (scrollProgress < CIRCLE_START) {
-			// スクロールを戻して黒い円が縮小したらフラグをfalseに戻す（ヒステリシスを持たせて即座に閉じないようにする）
-			if (isCircleFullyExpanded) {
-				setIsCircleFullyExpanded(false);
-				console.log("Circle shrinking at scrollProgress:", scrollProgress);
-			}
-		}
-	}, [scrollProgress, isCircleFullyExpanded]);
-
-	// 黒い円が拡大中はすべてのUI要素を非表示
-	const isCircleExpanded = scrollProgress >= CIRCLE_SCROLL_END;
-
-	// 第1テキストの表示タイミング（0-30%でフェードイン、30-45%で表示、45-55%でフェードアウト）
-	// 第1テキストの表示タイミング（0-18%でフェードイン、18-27%で表示、27-33%でフェードアウト）
-	// Text 1: Intro (0-18%)
-	// Fade in 0-5%, Visible 5-13%, Fade out 13-18%
-	const text1FadeIn = Math.max(0, Math.min(1, scrollProgress * 20)); // 0-5% in
-	const text1FadeOut = Math.max(0, Math.min(1, (0.18 - scrollProgress) * 20)); // 13-18% out
-	const text1Opacity = Math.min(text1FadeIn, text1FadeOut);
-
-	// Text 2: Video (18-80%)
-	// Fade in 18-23% (Sync with Video Start 0.18)
-	const text2FadeIn = Math.max(0, Math.min(1, (scrollProgress - 0.18) * 20)); // 18-23% in
-	const text2FadeOut = Math.max(0, Math.min(1, (0.80 - scrollProgress) * 25)); // 76-80% out
-	const text2Opacity = Math.min(text2FadeIn, text2FadeOut);
+	}, [isMobile]); // Re-bind if isMobile changes
 
 	return (
 		<main>
@@ -164,18 +200,14 @@ export default function HomeClient() {
 
 			{/* 第1テキスト: 最初のキャッチコピー */}
 			<div
-				className={`fixed z-10 transition-all duration-1000 ease-out md:max-w-4xl ${
+				ref={text1Ref}
+				className={`fixed z-10 transition-transform duration-75 ease-out md:max-w-4xl ${
 					isMobile
 						? "left-0 top-0 w-full h-[100dvh] pointer-events-none"
 						: "left-8 md:left-16 top-1/2 pointer-events-none"
 				}`}
-				style={{
-					opacity: isCircleExpanded ? 0 : text1Opacity,
-					// Mobile: Just slide X. Desktop: Center Y + Slide X.
-					transform: isMobile
-						? `translateX(${(1 - text1Opacity) * -20}px)`
-						: `translateY(-50%) translateX(${(1 - text1Opacity) * -20}px)`,
-				}}
+				// Style will be controlled by JS ref
+				style={{ opacity: 0 }}
 			>
 				<div
 					className={
@@ -193,8 +225,9 @@ export default function HomeClient() {
 					<h2
 						className="max-[375px]:text-3xl text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight md:mb-8"
 						style={{
-							textShadow:
-								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+							textShadow: isMobile
+								? "none"
+								: "0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
 						}}
 					>
 						WEBの
@@ -213,8 +246,9 @@ export default function HomeClient() {
 					<p
 						className="max-[375px]:text-sm text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
 						style={{
-							textShadow:
-								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+							textShadow: isMobile
+								? "none"
+								: "0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
 						}}
 					>
 						<span className="block">ホームページ制作 / ECサイト制作</span>
@@ -227,17 +261,13 @@ export default function HomeClient() {
 
 			{/* 第2テキスト: 詳細メッセージ */}
 			<div
-				className={`fixed z-10 transition-all duration-1000 ease-out md:max-w-4xl ${
+				ref={text2Ref}
+				className={`fixed z-10 transition-transform duration-75 ease-out md:max-w-4xl ${
 					isMobile
 						? "left-0 top-0 w-full h-[100dvh] pointer-events-none"
 						: "left-8 md:left-16 top-1/2 pointer-events-none"
 				}`}
-				style={{
-					opacity: isCircleExpanded ? 0 : text2Opacity,
-					transform: isMobile
-						? `translateX(${(1 - text2Opacity) * -20}px)`
-						: `translateY(-50%) translateX(${(1 - text2Opacity) * -20}px)`,
-				}}
+				style={{ opacity: 0 }}
 			>
 				<div
 					className={
@@ -255,8 +285,9 @@ export default function HomeClient() {
 					<h2
 						className="max-[375px]:text-3xl text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight md:mb-8"
 						style={{
-							textShadow:
-								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+							textShadow: isMobile
+								? "none"
+								: "0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
 						}}
 					>
 						現場が抱える
@@ -277,8 +308,9 @@ export default function HomeClient() {
 					<p
 						className="max-[375px]:text-sm text-base md:text-xl font-bold text-white/80 leading-relaxed space-y-1 md:space-y-2 mb-4 md:mb-0"
 						style={{
-							textShadow:
-								"0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
+							textShadow: isMobile
+								? "none"
+								: "0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
 						}}
 					>
 						<span className="block">
@@ -301,15 +333,15 @@ export default function HomeClient() {
 			{/* MISSIONセクション */}
 			<MissionSection
 				ref={missionRef}
-				scrollProgress={scrollProgress}
+				// Removed scrollProgress prop
 				isCircleFullyExpanded={isCircleFullyExpanded}
-				onProgressChange={setMissionSectionProgress}
+				// Removed onProgressChange prop
 			/>
 
 			{/* CONTACTセクション */}
 			<ContactSection
-				scrollProgress={scrollProgress}
-				missionSectionProgress={missionSectionProgress}
+				scrollProgress={0} // Passed simplified 0 as it's unused
+				missionSectionProgress={0} // Passed simplified 0 as it's unused
 			/>
 
 			{/* スクロール可能なコンテンツエリア（透明） */}

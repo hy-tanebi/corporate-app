@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, Suspense, useEffect, useState } from "react";
-import { Stars } from "@react-three/drei";
+import { Suspense, useEffect, useState } from "react";
 import { Astronaut } from "../three/Astronaut";
 
 // フォールバック用のシンプルな表示（非表示）
@@ -10,7 +9,7 @@ function AstronautFallback() {
 }
 
 // 宇宙飛行士のラッパーコンポーネント
-function AstronautModel({ position }: { position: [number, number, number] }) {
+function AstronautModel() {
 	// モバイル判定 (初期値はfalseで統一しハイドレーションエラー回避)
     // 安全な状態（Safe State）に戻る
 	const [isMobile, setIsMobile] = useState(false);
@@ -75,7 +74,7 @@ export default function LoadingScene() {
 
 
 			{/* 宇宙飛行士 */}
-			<AstronautModel position={[0, 0, 0]} />
+			<AstronautModel />
 		</>
 	);
 }
