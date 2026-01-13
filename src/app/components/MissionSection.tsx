@@ -643,8 +643,9 @@ function MissionSection(
 				transition: "opacity 0.5s ease-out",
 			}}
 		>
+// ...
 			{/* MISSION + CREATIVE THINKING エリア */}
-			<div className="h-screen flex flex-col items-center justify-center gap-4 md:gap-8 px-8">
+			<div className="h-[100dvh] flex flex-col items-center justify-center gap-4 md:gap-8 px-8">
 				<h2
 					ref={missionTitleRef}
 					className="text-6xl md:text-8xl font-bold text-white"
@@ -693,7 +694,7 @@ function MissionSection(
 
 			<div
 				ref={descriptionOuterRef}
-				className="w-full min-h-screen flex flex-col items-center justify-center px-0 md:px-8 py-20"
+				className="w-full min-h-[100dvh] flex flex-col items-center justify-center px-0 md:px-8 py-20"
 				style={{
 					opacity: 0,
 					transform: `translateY(30px)`,

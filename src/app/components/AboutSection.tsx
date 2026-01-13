@@ -268,25 +268,24 @@ export default function AboutSection({
 
 							<div
 								className="max-w-lg space-y-6 text-sm md:text-base font-medium tracking-wide leading-relaxed text-right text-white/90 mix-blend-difference"
-								style={{ fontFamily: "'Inter', sans-serif", color: "#eae0cc" }}
+								style={{ fontFamily: "'Inter', sans-serif", color: "#F1F3F2" }}
 							>
 								<p>
-									Web制作からAI活用・DX推進まで。
+									Webと技術で、前に進む仕組みを。
 									<br />
-									大手通信会社やWeb制作会社での実務経験と、現場視点の技術力で、事業の前進を支援します。
+									制作・開発・AI活用を通じて、
 									<br />
-									<span className="text-xs md:text-sm mt-2 block opacity-80">
-										岩手県内であれば、直接お伺いしてのご提案も可能です。
-									</span>
+									事業や現場の課題解決を支援します。
+									<br />
+									<br />
+									実務で培った設計と実装をもとに、
+									<br />
+									使われ続けるWebと仕組みをつくります。
 								</p>
-								<div className="mt-6 flex flex-col items-end gap-1 text-xs md:text-sm text-gray-400 normal-case font-bold tracking-wider opacity-80">
-									<p>Core: Next.js / TypeScript / Tailwind CSS</p>
-									<p>Creative: Three.js / GSAP / Framer Motion</p>
-									<p>System: Supabase / MicroCMS / Resend</p>
+								<div className="mt-6 flex flex-col items-end gap-1 text-xs md:text-sm text-[#EAF6F0] normal-case font-bold tracking-wider">
+									<p>Web・ECサイト／Webアプリ開発</p>
+									<p>AI活用・業務効率化支援</p>
 								</div>
-								<p className="text-gray-400 text-xs mt-8 tracking-widest uppercase">
-									Based in IWATE
-								</p>
 							</div>
 						</div>
 					</div>
