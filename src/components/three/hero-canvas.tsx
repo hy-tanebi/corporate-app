@@ -40,7 +40,7 @@ const CARD_DWELL_FRAC = 0.95; // 滑らかな回転に戻す (0.7 -> 0.95)
 const VIDEO_ROT_INERTIA = 2.0; // 慣性を戻す (4.0 -> 2.0)
 
 // ===== 黒円/リターン =====
-const RETURN_SCROLL_START = 0.80;
+const RETURN_SCROLL_START = 0.65; // 0.80 -> 0.65 (Early start for smooth return)
 const RETURN_SCROLL_END = 0.85;
 const CIRCLE_SCROLL_START = 0.86;
 const CIRCLE_SCROLL_END = 0.97; // 黒い円の拡大終了
@@ -489,13 +489,13 @@ function HeroScene({
 			} else if (scrollProgress < RETURN_SCROLL_START) {
 				triangleGroupRef.current.scale.set(0.7, 0.7, 0.7);
 			} else if (scrollProgress <= RETURN_SCROLL_END) {
-				// const tUp = sstep(
-				// 	scrollProgress,
-				// 	RETURN_SCROLL_START,
-				// 	RETURN_SCROLL_END,
-				// );
-				// const s = THREE.MathUtils.lerp(0.7, 1.0, smooth01(tUp));
-				triangleGroupRef.current.scale.set(0.7, 0.7, 0.7);
+				const tUp = sstep(
+					scrollProgress,
+					RETURN_SCROLL_START,
+					RETURN_SCROLL_END,
+				);
+				const s = THREE.MathUtils.lerp(0.7, 1.0, smooth01(tUp));
+				triangleGroupRef.current.scale.set(s, s, s);
 			} else {
 				triangleGroupRef.current.scale.set(1, 1, 1);
 			}

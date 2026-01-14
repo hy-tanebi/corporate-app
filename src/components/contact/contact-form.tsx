@@ -134,7 +134,7 @@ export function ContactForm() {
 											<Input
 												placeholder="山田太郎"
 												{...field}
-												className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+												className="bg-white/10 dark:bg-white/10 border-white/20 text-white dark:text-white placeholder:text-gray-400"
 												disabled={isPending}
 											/>
 										</FormControl>
@@ -158,7 +158,7 @@ export function ContactForm() {
 												type="email"
 												placeholder="example@email.com"
 												{...field}
-												className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+												className="bg-white/10 dark:bg-white/10 border-white/20 text-white dark:text-white placeholder:text-gray-400"
 												disabled={isPending}
 											/>
 										</FormControl>
@@ -181,7 +181,7 @@ export function ContactForm() {
 											<Input
 												placeholder="株式会社〇〇"
 												{...field}
-												className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+												className="bg-white/10 dark:bg-white/10 border-white/20 text-white dark:text-white placeholder:text-gray-400"
 												disabled={isPending}
 											/>
 										</FormControl>
@@ -204,7 +204,7 @@ export function ContactForm() {
 											<Input
 												placeholder="お問い合わせ内容の件名"
 												{...field}
-												className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+												className="bg-white/10 dark:bg-white/10 border-white/20 text-white dark:text-white placeholder:text-gray-400"
 												disabled={isPending}
 											/>
 										</FormControl>
@@ -223,7 +223,7 @@ export function ContactForm() {
 										<FormControl>
 											<Textarea
 												placeholder="お問い合わせ内容をご記入ください。"
-												className="resize-none min-h-[150px] bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+												className="resize-none min-h-[150px] bg-white/10 dark:bg-white/10 border-white/20 text-white dark:text-white placeholder:text-gray-400"
 												{...field}
 												disabled={isPending}
 											/>
