@@ -196,7 +196,7 @@ export default function HomeClient() {
 		loop();
 
 		return () => cancelAnimationFrame(rafId);
-	}, [isMobile, CIRCLE_ACTUAL_END, CIRCLE_SCROLL_END, CIRCLE_START]);
+	}, [isMobile]);
 
 	// Window Scroll Listener (Only updates Target)
 	useEffect(() => {
