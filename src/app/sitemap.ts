@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getBlogPosts } from "@/lib/microcms";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://your-domain.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://tanebi-net.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	// 静的ページ

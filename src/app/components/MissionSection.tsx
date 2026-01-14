@@ -643,7 +643,7 @@ function MissionSection(
 				transition: "opacity 0.5s ease-out",
 			}}
 		>
-// ...
+
 			{/* MISSION + CREATIVE THINKING エリア */}
 			<div className="h-[100dvh] flex flex-col items-center justify-center gap-4 md:gap-8 px-8">
 				<h2
