@@ -19,8 +19,10 @@ export default function HomeClient() {
 	// Refs for direct DOM manipulation
 	const text1Ref = useRef<HTMLDivElement>(null);
 	const text2Ref = useRef<HTMLDivElement>(null);
-	// Keep track of scroll progress in a ref for logic that needs it without re-rendering
-	const scrollProgressRef = useRef(0);
+
+	// Scroll Physics State
+	const targetScrollRef = useRef(0);
+	const currentScrollRef = useRef(0);
 
 	useEffect(() => {
 		const checkMobile = () => {
@@ -98,30 +100,32 @@ export default function HomeClient() {
 	const CIRCLE_SCROLL_END = 0.97; // hero-canvas.tsxのCIRCLE_SCROLL_END
 	const CIRCLE_ACTUAL_END = 0.97; // 完全に拡大したタイミング (0.99 -> 0.97)
 
+	// Animation Loop (Lerp & Render)
 	useEffect(() => {
-		const handleScroll = () => {
-			const scrollTop = window.scrollY;
-			const docHeight =
-				document.documentElement.scrollHeight - window.innerHeight;
-			const scrolled = scrollTop / docHeight;
-			scrollProgressRef.current = scrolled;
+		let rafId = 0;
+
+		const loop = () => {
+			// 1. Lerp Physics (Smoothness)
+			// targetに向かって current を近づける (係数 0.08 でふわっと追従)
+			const diff = targetScrollRef.current - currentScrollRef.current;
+			// 差分が小さいときは止める（収束させる）
+			if (Math.abs(diff) < 0.0001) {
+				currentScrollRef.current = targetScrollRef.current;
+			} else {
+				currentScrollRef.current += diff * 0.08;
+			}
+
+			const scrolled = currentScrollRef.current; // Smoothed Value
 
 			// --- Logic for setIsCircleFullyExpanded (State) ---
-			// Only update state when threshold is crossed
 			if (scrolled >= CIRCLE_ACTUAL_END) {
 				setIsCircleFullyExpanded((prev) => {
-					if (!prev) {
-						console.log("Circle fully expanded at scrollProgress:", scrolled);
-						return true;
-					}
+					if (!prev) return true;
 					return prev;
 				});
 			} else if (scrolled < CIRCLE_START) {
 				setIsCircleFullyExpanded((prev) => {
-					if (prev) {
-						console.log("Circle shrinking at scrollProgress:", scrolled);
-						return false;
-					}
+					if (prev) return false;
 					return prev;
 				});
 			}
@@ -129,17 +133,22 @@ export default function HomeClient() {
 			// --- Setup for Animations ---
 			const isCircleExpanded = scrolled >= CIRCLE_SCROLL_END;
 
-			// --- Text 1 Animation (Intro 0-18%) ---
-			// Fade in 0-5%, Visible 5-13%, Fade out 13-18%
-			const text1FadeIn = Math.max(0, Math.min(1, scrolled * 20)); // 0-5% in
-			const text1FadeOut = Math.max(0, Math.min(1, (0.18 - scrolled) * 20)); // 13-18% out
+			// --- Text 1 Animation ("WEBの困りごとに...") ---
+			// Timing Shifted Later & Smoothed
+			// Desktop: In 8-15%, Out 22-28%
+			// Mobile: In 3-10%, Out 17-23% (Earlier to reduce scroll)
+			// Multiplier ~14 (1/0.07) for 7% range
+			const text1Start = isMobile ? 0.03 : 0.08;
+			const text1End = isMobile ? 0.23 : 0.28;
+			const text1FadeIn = Math.max(0, Math.min(1, (scrolled - text1Start) * 14));
+			const text1FadeOut = Math.max(0, Math.min(1, (text1End - scrolled) * 16));
 			const text1Opacity = Math.min(text1FadeIn, text1FadeOut);
 
 			if (text1Ref.current) {
 				const opacity = isCircleExpanded ? 0 : text1Opacity;
 				text1Ref.current.style.opacity = opacity.toString();
 
-				// Transform logic
+				// Transform logic (Slide up/down with smooth scroll)
 				if (isMobile) {
 					const tx = (1 - opacity) * -20;
 					text1Ref.current.style.transform = `translateX(${tx}px)`;
@@ -149,17 +158,19 @@ export default function HomeClient() {
 				}
 			}
 
-			// --- Text 2 Animation (Video 18-80%) ---
-			// Fade in 18-23% (Sync with Video Start 0.18)
-			const text2FadeIn = Math.max(0, Math.min(1, (scrolled - 0.18) * 20)); // 18-23% in
-			const text2FadeOut = Math.max(0, Math.min(1, (0.8 - scrolled) * 25)); // 76-80% out
+			// --- Text 2 Animation ("現場が抱える...") ---
+			// Timing Shifted Later
+			// Desktop: In 28-35%, Out 76-80% (Starts as Text 1 fades out)
+			// Mobile: In 13-20%, Out 76-80% (Earlier to reduce scroll)
+			const text2Start = isMobile ? 0.13 : 0.28;
+			const text2FadeIn = Math.max(0, Math.min(1, (scrolled - text2Start) * 14));
+			const text2FadeOut = Math.max(0, Math.min(1, (0.8 - scrolled) * 25));
 			const text2Opacity = Math.min(text2FadeIn, text2FadeOut);
 
 			if (text2Ref.current) {
 				const opacity = isCircleExpanded ? 0 : text2Opacity;
 				text2Ref.current.style.opacity = opacity.toString();
 
-				// Transform logic
 				if (isMobile) {
 					const tx = (1 - opacity) * -20;
 					text2Ref.current.style.transform = `translateX(${tx}px)`;
@@ -177,19 +188,38 @@ export default function HomeClient() {
 			) {
 				document.title = "TANEBI CREATIVE タネビ クリエイティブ";
 			}
+
+			rafId = requestAnimationFrame(loop);
+		};
+
+		// Start Loop
+		loop();
+
+		return () => cancelAnimationFrame(rafId);
+	}, [isMobile, CIRCLE_ACTUAL_END, CIRCLE_SCROLL_END, CIRCLE_START]);
+
+	// Window Scroll Listener (Only updates Target)
+	useEffect(() => {
+		const handleScroll = () => {
+			const scrollTop = window.scrollY;
+			const docHeight =
+				document.documentElement.scrollHeight - window.innerHeight;
+			const rawScrolled = docHeight > 0 ? scrollTop / docHeight : 0;
+
+			// Update Target
+			targetScrollRef.current = rawScrolled;
 		};
 
 		window.addEventListener("scroll", handleScroll);
-		// Initial call
-		handleScroll();
+		handleScroll(); // Initial check
 
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, [isMobile]); // Re-bind if isMobile changes
+	}, []);
 
 	return (
 		<main>
 			{/* 屋号とサウンドコントロールを左上に固定配置 */}
-			<div className="fixed top-8 left-6 md:left-8 z-10 flex items-center gap-4">
+			<div className="fixed top-8 left-6 md:left-8 z-10 flex items-center gap-4 h-[50px]">
 				<h1 className="text-2xl md:text-[28px] font-bold text-white pointer-events-none">
 					TANEBI CREATIVE
 				</h1>
@@ -215,7 +245,7 @@ export default function HomeClient() {
 					}
 					style={{
 						paddingTop: isMobile
-							? "calc(env(safe-area-inset-top) + 5rem)"
+							? "calc(env(safe-area-inset-top) + 5rem + 15px)"
 							: undefined,
 						paddingBottom: isMobile
 							? "calc(env(safe-area-inset-bottom) + 3rem)"
@@ -275,7 +305,7 @@ export default function HomeClient() {
 					}
 					style={{
 						paddingTop: isMobile
-							? "calc(env(safe-area-inset-top) + 5rem)"
+							? "calc(env(safe-area-inset-top) + 5rem + 15px)"
 							: undefined,
 						paddingBottom: isMobile
 							? "calc(env(safe-area-inset-bottom) + 3rem)"

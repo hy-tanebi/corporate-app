@@ -117,7 +117,7 @@ function MissionContentDesktop({
 			className="relative w-full max-w-[1600px] mx-auto"
 			style={{ height: isMobile ? "500vh" : "450vh" }}
 		>
-			<div className="sticky top-0 h-screen w-full flex flex-row overflow-hidden">
+			<div className="sticky top-0 h-[100dvh] w-full flex flex-row overflow-hidden">
 				{/* Left Column: Visuals (50%) - Centered */}
 				<div className="w-1/2 h-full flex items-center justify-center relative">
 					<div className="relative w-[500px] h-[500px] flex items-center justify-center">
@@ -294,6 +294,8 @@ function ScrollOpacityItem({
 	);
 }
 
+// ... (previous code)
+
 // === Mobile Implementation (Sticky Scroll - Single Column) ===
 function MissionContentMobile({
 	scrollContainerRef,
@@ -319,29 +321,35 @@ function MissionContentMobile({
 	const currentPhase = useTransform(smoothProgress, [0, 1], [0, 3]);
 
 	// Shape 1: Square - Phase 0-1
+	// 0.85で消えるのは維持しつつ、0.75まで表示を維持する (維持期間延長)
 	const squareOpacity = useTransform(
 		currentPhase,
-		[0, 0.2, 0.8, 1],
+		[0, 0.2, 0.75, 0.85],
 		[0, 1, 1, 0],
 	);
+	const squareVisibility = useTransform(squareOpacity, (o) => o < 0.05 ? "hidden" : "visible");
 	const squareScale = useTransform(currentPhase, [0, 1], [0.95, 1.05]);
 	const squareRotate = useTransform(currentPhase, [0, 1], [0, 10]);
 
 	// Shape 2: Pair - Phase 1-2
+	// 1.85で消えるのは維持、1.75まで表示維持
 	const pairOpacity = useTransform(
 		currentPhase,
-		[1, 1.2, 1.8, 2],
+		[1, 1.2, 1.75, 1.85],
 		[0, 1, 1, 0],
 	);
+	const pairVisibility = useTransform(pairOpacity, (o) => o < 0.05 ? "hidden" : "visible");
 	const pairScale = useTransform(currentPhase, [1, 2], [0.95, 1.05]);
 	const pairGap = useTransform(currentPhase, [1, 2], [-30, 30]);
 
 	// Shape 3: Sanpo - Phase 2-3
+	// 2.85で消えるのは維持、2.75まで表示維持
 	const sanpoOpacity = useTransform(
 		currentPhase,
-		[2, 2.2, 2.8, 3.0],
+		[2, 2.2, 2.75, 2.85],
 		[0, 1, 1, 0],
 	);
+	const sanpoVisibility = useTransform(sanpoOpacity, (o) => o < 0.05 ? "hidden" : "visible");
 	const sanpoScale = useTransform(currentPhase, [2, 3], [0.95, 1.05]);
 	const sanpoOffset = useTransform(currentPhase, [2, 2.4], [60, 0]);
 	const centerScale = useTransform(currentPhase, [2.25, 2.45], [0, 1]);
@@ -352,17 +360,18 @@ function MissionContentMobile({
 			className="relative w-full"
 			style={{ height: "300vh" }}
 		>
-			<div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden px-8">
+			<div className="sticky top-0 h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden px-8">
 				{/* Shapes Container (Top) */}
 				<div className="relative w-[200px] h-[200px] flex items-center justify-center mb-6">
 					{/* Shape 1: Square */}
 					<motion.div
 						className="absolute bg-[#50B070] rounded-3xl"
 						style={{
-							width: 140,
-							height: 140,
+							width: 110,
+							height: 110,
 							scale: squareScale,
 							opacity: squareOpacity,
+							visibility: squareVisibility,
 							rotate: squareRotate,
 							zIndex: 10,
 						}}
@@ -374,6 +383,7 @@ function MissionContentMobile({
 						style={{
 							scale: pairScale,
 							opacity: pairOpacity,
+							visibility: pairVisibility,
 							zIndex: 10,
 						}}
 					>
@@ -395,6 +405,7 @@ function MissionContentMobile({
 						style={{
 							scale: sanpoScale,
 							opacity: sanpoOpacity,
+							visibility: sanpoVisibility,
 							zIndex: 10,
 						}}
 					>
@@ -484,25 +495,29 @@ function ScrollOpacityItemMobile({
 }) {
 	const opacity = useTransform(
 		phase,
-		[index, index + 0.2, index + 0.8, index + 1],
+		// 表示期間を短縮し、次のアイテムが始まる(index+1)前に完全に消えるように調整
+		// index + 0.85 で消える -> 次は index + 1.0 で始まる -> 0.15の空白期間
+		// 表示維持期間を 0.6 -> 0.75 に延長
+		[index, index + 0.2, index + 0.75, index + 0.85],
 		[0, 1, 1, 0],
 	);
+	const visibility = useTransform(opacity, (o) => o < 0.05 ? "hidden" : "visible");
 
 	const y = useTransform(phase, [index, index + 1], [30, -30]);
 
 	return (
-		<motion.div className="absolute inset-0 w-full" style={{ opacity, y }}>
+		<motion.div className="absolute inset-0 w-full" style={{ opacity, visibility, y }}>
 			{index === 0 && (
 				<span className="block text-[#50B070] font-bold text-lg mb-2">01.</span>
 			)}
 			{index === 1 && (
-				<span className="block font-bold text-lg mb-2">
+				<span className="block font-bold text-xl mb-2">
 					<span className="text-[#E6C844]">02</span>
 					<span className="text-[#205090]">.</span>
 				</span>
 			)}
 			{index === 2 && (
-				<span className="block font-bold text-lg mb-2">
+				<span className="block font-bold text-xl mb-2">
 					<span className="text-[#50B070]">0</span>
 					<span className="text-[#E6C844]">3</span>
 					<span className="text-[#205090]">.</span>
