@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
 export const SITE_CONFIG = {
-	name: "TANEBI CREATIVE | タネビ クリエイティブ",
+	name: "TANEBI CREATIVE | 岩手・奥州のWeb開発・AI活用・DX支援",
 	description:
 		"未来を共に創る、クリエイティブパートナー。Web制作、システム開発、デザインなど、幅広い領域で課題解決をサポートします。",
-	url: process.env.NEXT_PUBLIC_SITE_URL || "https://tanebi-creative.com",
+	url: process.env.NEXT_PUBLIC_SITE_URL || "https://tanebi-net.com",
 	author: "TANEBI CREATIVE",
 	twitterHandle: "@tanebi_creative", // Replace with actual handle
 	ogImage: "/images/ogp.png", // Default OG Image
@@ -133,5 +133,8 @@ export const DEFAULT_METADATA: Metadata = {
 	icons: {
 		icon: "/images/favicon.png",
 		apple: "/images/favicon.png", // Apple touch icon (optional, using same for now)
+	},
+	verification: {
+		google: "_MgYG4duuAQUZDGWyhM1a-HKF7WpTz_i8n-Qp9POXYw",
 	},
 };
