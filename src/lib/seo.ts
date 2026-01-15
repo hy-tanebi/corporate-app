@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const SITE_CONFIG = {
 	name: "TANEBI CREATIVE | 岩手・奥州のWeb開発・AI活用・DX支援",
 	description:
-		"未来を共に創る、クリエイティブパートナー。Web制作、システム開発、デザインなど、幅広い領域で課題解決をサポートします。",
+		"岩手県奥州市を拠点に、AIを活用した業務改善やDX推進、ホームページ・ECサイト制作、アプリ開発を行っています。地域の中小企業がデジタルを実務で活かせるよう支援します。",
 	url: process.env.NEXT_PUBLIC_SITE_URL || "https://tanebi-net.com",
 	author: "TANEBI CREATIVE",
 	twitterHandle: "@tanebi_creative", // Replace with actual handle
@@ -12,12 +12,14 @@ export const SITE_CONFIG = {
 
 export function generateKeywords(tags?: string[]): string[] {
 	const baseKeywords = [
+		"奥州市 AI事業者",
+		"岩手県 AI導入支援",
+		"奥州市 Web制作",
+		"岩手県 DX支援",
+		"AI業務効率化",
+		"ホームページ制作 岩手",
 		"TANEBI CREATIVE",
 		"タネビ クリエイティブ",
-		"Web制作",
-		"システム開発",
-		"デザイン",
-		"DX支援",
 	];
 	return tags ? [...baseKeywords, ...tags] : baseKeywords;
 }
@@ -100,7 +102,7 @@ export const DEFAULT_METADATA: Metadata = {
 		template: `%s | ${SITE_CONFIG.name}`,
 	},
 	description: SITE_CONFIG.description,
-	keywords: "Next.js, TypeScript, React, Three.js, ポートフォリオ, 技術ブログ",
+	keywords: "奥州市 AI事業者, 岩手県 AI導入支援, 奥州市 Web制作, 岩手県 DX支援, AI業務効率化, ホームページ制作 岩手, TANEBI CREATIVE, タネビ クリエイティブ",
 	authors: [{ name: SITE_CONFIG.author }],
 	creator: SITE_CONFIG.author,
 	openGraph: {
