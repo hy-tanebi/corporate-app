@@ -58,8 +58,8 @@ export function StarParticles({
 	particleTexture.wrapT = THREE.ClampToEdgeWrapping;
 	particleTexture.premultiplyAlpha = true;
 const particles = useMemo(() => {
-		// モバイルでは星の数を減らしてパフォーマンス向上
-		const count = isMobile ? 1200 : 3000;
+		// ★パフォーマンス最適化: 星の数を削減（デスクトップ 3000→1500、モバイル 1200→800）
+		const count = isMobile ? 800 : 1500;
 		const positions = new Float32Array(count * 3);
 		const colors = new Float32Array(count * 3);
 		const scales = new Float32Array(count); // New attribute for size
