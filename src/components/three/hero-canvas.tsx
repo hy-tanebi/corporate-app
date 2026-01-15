@@ -137,8 +137,9 @@ function HeroScene({
 	// 紫色のガスのランダム配置（リロード時に1回だけ生成）
 	const nebulaPositions = useMemo(() => {
 		const positions = [];
-        // Mobile: More clouds (4) for better coverage. Desktop: 2 is enough.
-        const count = isMobile ? 4 : 2;
+        // ★パフォーマンス最適化: デスクトップのガス数を2→1に削減
+        // Mobile: 4 clouds for coverage. Desktop: 1 is enough (was 2).
+        const count = isMobile ? 4 : 1;
 
 		for (let i = 0; i < count; i++) {
 			let x: number, y: number, z: number, opacity: number, scale: number;
@@ -194,7 +195,15 @@ function HeroScene({
 	const fluidRef = useRef<THREE.Mesh>(null);
 	// biome-ignore lint/suspicious/noExplicitAny: Custom shader material ref
 	const hoverMatRef = useRef<any>(null);
-	const fbo = useFBO({ samples: 0 });
+	// FBO（画面キャプチャ用）- 解像度100%で高品質を維持
+	// ★パフォーマンスは条件付き更新とシェーダー軽量化で確保
+	const fboWidth = typeof window !== "undefined" ? window.innerWidth : 1024;
+	const fboHeight = typeof window !== "undefined" ? window.innerHeight : 1024;
+	const fbo = useFBO(fboWidth, fboHeight, { samples: 0 });
+
+	// ★パフォーマンス最適化: アイドル時は3フレームに1回のみFBO更新
+	const frameCountRef = useRef(0);
+	const lastFboUpdateRef = useRef(0);
 
 	// FBO を Linear に（色ズレ防止）
 	useEffect(() => {
@@ -352,7 +361,16 @@ function HeroScene({
 		// 1) FBO描画（液体メッシュは一時非表示）
 		// ★モバイル最適化: モバイルではFBO処理をスキップして負荷軽減
 		const isMobileFrame = state.size.width < 768;
-		if (fluidRef.current && !isMobileFrame) {
+
+		// ★パフォーマンス最適化: 条件付きFBO更新
+		// - ホバー中（hoverStrength > 0.1）: 毎フレーム更新
+		// - アイドル時: 3フレームに1回更新（約66%のGPU負荷削減）
+		frameCountRef.current++;
+		const isHoverActive = hoverStrength.current > 0.1;
+		const shouldUpdateFbo = isHoverActive || (frameCountRef.current - lastFboUpdateRef.current >= 3);
+
+		if (fluidRef.current && !isMobileFrame && shouldUpdateFbo) {
+			lastFboUpdateRef.current = frameCountRef.current;
 			const wasVisible = fluidRef.current.visible;
 			fluidRef.current.visible = false;
 			state.gl.setRenderTarget(fbo);
