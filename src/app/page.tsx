@@ -12,13 +12,14 @@ export default function Home() {
 						"@context": "https://schema.org",
 						"@graph": [
 							{
-								"@type": "ProfessionalService",
+								"@type": ["ProfessionalService", "LocalBusiness"],
 								"@id": "https://tanebi-net.com/#organization",
-								name: "TANEBI CREATIVE",
+								name: "TANEBI CREATIVE（タネビ クリエイティブ）- 奥州市のAI事業者",
+								alternateName: ["タネビ クリエイティブ", "TANEBI CREATIVE", "奥州市 AI事業者"],
 								url: "https://tanebi-net.com",
 								image: "https://tanebi-net.com/images/ogp.jpg",
 								description:
-									"タネビ クリエイティブ（TANEBI CREATIVE）は、AIO（AI検索最適化）を導入したWeb制作と、LLMO（AI推奨最適化）を駆使したDX改善サポートを提供する、岩手県奥州市の個人事務所です。発芽するアイデアを形にし、種火のように根幹から寄り添う支援。技術と対話で事業の前進を支援します。",
+									"岩手県奥州市を拠点に、AIを活用した業務改善やDX推進、ホームページ・ECサイト制作、アプリ開発を行っています。地域の中小企業がデジタルを実務で活かせるよう支援します。",
 								slogan:
 									"種から形へ、種火を力に。技術と対話で、事業の前進を支援します。",
 								address: {
@@ -39,6 +40,9 @@ export default function Home() {
 									},
 								],
 								knowsAbout: [
+									"AI事業者",
+									"AI導入支援",
+									"AI活用コンサルティング",
 									"AIO (AI検索最適化)",
 									"LLMO (AI推奨・推薦最適化)",
 									"岩手県内の中小企業向けDX・業務効率化支援",
