@@ -4,8 +4,8 @@
 	"private": true,
 	"scripts": {
 		"dev": "dotenvx run -f .env.local -- next dev",
-		"build": "dotenvx run -f .env.local -- next build",
-		"start": "dotenvx run -f .env.local -- next start",
+		"build": "next build",
+		"start": "next start",
 		"lint": "biome lint .",
 		"format": "biome format --write ."
 	},
