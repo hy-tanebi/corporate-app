@@ -3,9 +3,9 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "next dev",
-		"build": "next build",
-		"start": "next start",
+		"dev": "dotenvx run -f .env.local -- next dev",
+		"build": "dotenvx run -f .env.local -- next build",
+		"start": "dotenvx run -f .env.local -- next start",
 		"lint": "biome lint .",
 		"format": "biome format --write ."
 	},
