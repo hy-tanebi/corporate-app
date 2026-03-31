@@ -31,10 +31,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files
-# .env.local は dotenvx で暗号化済みのためコミット可
-# .env.keys は復号鍵のため絶対にコミット禁止
-.env.keys
-.env
+.env*
 
 # vercel
 .vercel
