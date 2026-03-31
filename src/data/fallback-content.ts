@@ -11,24 +11,24 @@ export const fallbackVideoSlides: VideoSlide[] = [
 	},
 	{
 		id: "fallback-1",
-		title: "プロジェクト準備中 1",
+		title: "AI導入支援",
 		mediaType: "image",
-		imageSrc: "/images/placeholder-project-1.jpg", // 後で画像を追加予定
-		description: "新しいプロジェクトを準備中です",
+		imageSrc: "/images/hero_ai_connected.webp",
+		description: "業務効率化・DX推進をAIでサポートします",
 	},
 	{
 		id: "fallback-2",
-		title: "プロジェクト準備中 2",
+		title: "DX支援",
 		mediaType: "image",
-		imageSrc: "/images/placeholder-project-2.jpg", // 後で画像を追加予定
-		description: "技術検証を行っています",
+		imageSrc: "/images/hero_dx_support.webp",
+		description: "技術と対話で、事業の前進を支援します",
 	},
 	{
 		id: "fallback-4",
-		title: "プロジェクト準備中 4",
+		title: "Webアプリ開発",
 		mediaType: "image",
-		imageSrc: "/images/placeholder-project-4.jpg", // 後で画像を追加予定
-		description: "実装を計画中です",
+		imageSrc: "/images/hero_human_app.webp",
+		description: "人に寄り添ったアプリケーションを開発します",
 	},
 ];
 
@@ -57,7 +57,7 @@ export const developmentFallbackSlides: VideoSlide[] = [
 		title: "テスト3",
 		mediaType: "video",
 		mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-		imageSrc: "/images/placeholder-project-1.jpg",
+		imageSrc: "/images/hero_ai_connected.webp",
 		description:
 			"これはテスト用の記事です。Next.jsとThree.jsを使用してモダンなWebアプリケーションを構築しています。",
 		publishedAt: "2024-01-15",
@@ -71,7 +71,7 @@ export const developmentFallbackSlides: VideoSlide[] = [
 		title: "テスト投稿2",
 		mediaType: "video",
 		mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-		imageSrc: "/images/placeholder-project-2.jpg",
+		imageSrc: "/images/hero_dx_support.webp",
 		description:
 			"React Three Fiberを使用した3Dアニメーション開発についての記事です。",
 		publishedAt: "2024-01-10",
@@ -85,7 +85,7 @@ export const developmentFallbackSlides: VideoSlide[] = [
 		title: "テスト投稿1",
 		mediaType: "video",
 		mp4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-		imageSrc: "/images/placeholder-project-3.jpg",
+		imageSrc: "/images/hero_human_app.webp",
 		description:
 			"モバイルファーストなレスポンシブデザインの実装方法について説明しています。",
 		publishedAt: "2024-01-05",
