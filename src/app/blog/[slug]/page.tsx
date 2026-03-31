@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { TableOfContentsClient } from "@/components/table-of-contents-client";
+import { TableOfContentsClient } from "@/components/blog/post-toc-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import {

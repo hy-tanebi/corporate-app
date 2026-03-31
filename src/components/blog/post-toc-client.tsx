@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { AuthorProfile } from "@/lib/microcms";
-import { ProfileCard } from "./profile-card";
+import { ProfileCard } from "../profile-card";
 
 // 見出しの型
 interface HeadingItem {
