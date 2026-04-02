@@ -120,30 +120,15 @@ export function validateVideoSlide(slide: any): slide is VideoSlide {
 
 // 安全なフォールバックデータの取得
 export function getSafeVideoSlides(slides?: VideoSlide[]): VideoSlide[] {
-	console.log("🔍 getSafeVideoSlides input:", slides);
-
 	if (!slides || slides.length === 0) {
-		console.log("📦 フォールバックデータを使用します");
-		const fallback = getFallbackVideoSlides();
-		console.log("📦 フォールバックデータ:", fallback);
-		return fallback;
+		return getFallbackVideoSlides();
 	}
 
-	// データの検証
 	const validSlides = slides.filter(validateVideoSlide);
-	console.log("✅ 検証後のデータ:", validSlides);
-	console.log(
-		"🔍 最初のスライドの詳細:",
-		JSON.stringify(validSlides[0], null, 2),
-	);
 
 	if (validSlides.length === 0) {
-		console.log("📦 検証失敗、フォールバックデータを使用します");
-		const fallback = getFallbackVideoSlides();
-		console.log("📦 フォールバックデータ:", fallback);
-		return fallback;
+		return getFallbackVideoSlides();
 	}
 
-	console.log("✅ 入力データを使用します");
 	return validSlides;
 }
