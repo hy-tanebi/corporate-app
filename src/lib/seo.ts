@@ -57,6 +57,9 @@ export function generateBlogMetadata(post: BlogPost): Metadata {
 		title: post.title,
 		description: description,
 		keywords: keywords,
+		alternates: {
+			canonical: `${SITE_CONFIG.url}/blog/${post.id}`,
+		},
 		openGraph: {
 			title: post.title,
 			description: description,
@@ -130,6 +133,9 @@ export const DEFAULT_METADATA: Metadata = {
 	robots: {
 		index: true,
 		follow: true,
+	},
+	alternates: {
+		canonical: SITE_CONFIG.url,
 	},
 	metadataBase: new URL(SITE_CONFIG.url),
 	icons: {
