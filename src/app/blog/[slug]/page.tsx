@@ -13,6 +13,7 @@ import {
 	type AuthorProfile,
 } from "@/lib/microcms";
 import { generateBlogMetadata } from "@/lib/seo";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 interface BlogDetailPageProps {
 	params: Promise<{ slug: string }>;
@@ -149,8 +150,8 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 							className={`prose dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-4 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-img:rounded-lg prose-img:shadow-md ${shouldShowToc ? "prose-lg" : "prose-xl"}`}
 						>
 							{typeof post.content === "string" ? (
-								// biome-ignore lint/security/noDangerouslySetInnerHtml: microCMSからの安全なコンテンツ
-								<div dangerouslySetInnerHTML={{ __html: post.content }} />
+								// biome-ignore lint/security/noDangerouslySetInnerHtml: microCMSコンテンツをDOMPurifyでサニタイズ済み
+								<div dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} />
 							) : (
 								<pre className="whitespace-pre-wrap bg-gray-100 p-4 rounded">
 									{JSON.stringify(post.content, null, 2)}

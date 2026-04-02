@@ -18,6 +18,7 @@ import { ApplicationForm } from "./application-form";
 import { TableOfContents } from "./table-of-contents";
 import { createApplication } from "@/app/actions/application";
 import type { GroupInfo } from "@/lib/microcms";
+import { sanitizeHtml } from "@/lib/sanitize";
 import type { CreateApplicationData } from "@/lib/types/application";
 import { toast } from "sonner";
 
@@ -82,8 +83,8 @@ export function RecruitmentContent({ groupInfo }: RecruitmentContentProps) {
 						<CardContent>
 							<div
 								className="prose prose-lg max-w-none text-gray-700"
-								// biome-ignore lint/security/noDangerouslySetInnerHtml: Trusted content
-								dangerouslySetInnerHTML={{ __html: groupInfo.description }}
+								// biome-ignore lint/security/noDangerouslySetInnerHtml: DOMPurifyでサニタイズ済み
+								dangerouslySetInnerHTML={{ __html: sanitizeHtml(groupInfo.description) }}
 							/>
 						</CardContent>
 					</Card>
