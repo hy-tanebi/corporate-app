@@ -68,7 +68,6 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
 		});
 
 		setHeadings(headingsData);
-		console.log("Client-side headings:", headingsData); // デバッグログ
 	}, [mounted]);
 
 	// アクティブな見出しの追跡
@@ -100,7 +99,6 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
 	}, [headings]);
 
 	const handleHeadingClick = (id: string) => {
-		console.log("Clicking heading:", id); // デバッグログ
 		const element = document.getElementById(id);
 
 		if (element) {
@@ -109,14 +107,10 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
 			const offsetPosition =
 				elementPosition + window.pageYOffset - headerOffset;
 
-			console.log("Scrolling to:", offsetPosition); // デバッグログ
-
 			window.scrollTo({
 				top: offsetPosition,
 				behavior: "smooth",
 			});
-		} else {
-			console.log("Element not found:", id); // デバッグログ
 		}
 	};
 

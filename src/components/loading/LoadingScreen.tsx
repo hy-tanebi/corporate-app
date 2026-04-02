@@ -37,7 +37,6 @@ export default function LoadingScreen({
 	useEffect(() => {
 		// When progress hits 100 (and technically active becomes false, but 100 is good visual indicator)
 		if (progress === 100) {
-			console.log("Real Loading complete.");
 			// Small delay to let the user see "100%"
 			const timer = setTimeout(() => {
 				handleStart(true);
