@@ -3,7 +3,13 @@
 import { Resend } from "resend";
 import { z } from "zod";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResendClient() {
+	const apiKey = process.env.RESEND_API_KEY;
+	if (!apiKey) {
+		throw new Error("RESEND_API_KEY が設定されていません");
+	}
+	return new Resend(apiKey);
+}
 
 const contactSchema = z.object({
 	name: z.string().min(1, "お名前を入力してください"),
@@ -69,6 +75,7 @@ export async function sendContactEmail(
 		const recipientEmail = myEmail;
 
 		// 1. 管理者への通知メール
+		const resend = getResendClient();
 		const data = await resend.emails.send({
 			from: fromAddress,
 			to: [recipientEmail],
