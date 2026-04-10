@@ -1,6 +1,6 @@
 # TANEBI CREATIVE
 
-> 個人事業 TANEBI CREATIVE の公式コーポレートサイト（[tanebi-net.com](https://tanebi-net.com)）
+> 個人事業 TANEBI CREATIVE のコーポレートサイト（[tanebi-net.com](https://tanebi-net.com)）
 
 ## はじめに
 
@@ -13,7 +13,7 @@
 
 | 課題 | 解決したこと |
 |---|---|
-| 技術力や事業内容を伝える場所がなく、クライアントへの窓口もありませんでした | インタラクティブな 3D サイトとして、技術力を体験で伝えられるようにしました |
+| 技術力や事業内容を伝える場所がなく、クライアントへの窓口もありませんでした | インタラクティブな 3D サイトで技術力を体験として伝え、実際にお問い合わせ獲得にもつながりました |
 | 知見の発信・SEO による継続的な集客ができていませんでした | ブログ機能を実装し、記事ベースの発信・検索流入の基盤を構築しました |
 
 ---
@@ -253,7 +253,7 @@ graph TB
 
 ### Server Components First
 
-ページコンポーネントは原則 RSC として実装し、`"use client"` は Three.js シーンやフォームなどインタラクション必須の箇所に限定しています。フォーム送信は Server Actions で完結させ、API ルートを排除しました。microCMS からのデータ取得は RSC 内で直接 `await` し、取得済みデータを Client Component に props として渡す構造にしています。
+ページコンポーネントは原則 RSC として実装し、`"use client"` は Three.js シーンやフォームなどインタラクション必須の箇所に限定しています。フォーム送信は Server Actions で完結させています。API ルートは microCMS Webhook（On-Demand Revalidation）など外部連携が必要な箇所のみに限定しています。microCMS からのデータ取得は RSC 内で直接 `await` し、取得済みデータを Client Component に props として渡す構造にしています。
 
 ### Three.js の SSR 除外とパフォーマンス最適化
 
@@ -273,6 +273,7 @@ JSON-LD 構造化データ（Organization, WebSite, Service）をトップペー
 src/
 ├── app/
 │   ├── actions/          # Server Actions (お問い合わせ, 応募)
+│   ├── api/              # API ルート (microCMS Webhook)
 │   ├── blog/             # ブログ機能 (microCMS連携, SSG)
 │   ├── components/       # ページ固有コンポーネント (Colocation)
 │   ├── page.tsx          # トップページ (RSC, JSON-LD)
