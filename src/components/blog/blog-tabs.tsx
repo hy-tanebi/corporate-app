@@ -1,34 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { BlogPageClient } from "./blog-page-client";
-import { RecruitmentContent } from "./recruitment-content";
-import type { BlogPost, GroupInfo } from "@/lib/microcms";
+import type { BlogPost } from "@/lib/microcms";
 
 interface BlogTabsProps {
 	initialPosts: BlogPost[];
-	groupInfo: GroupInfo;
 }
 
-export function BlogTabs({ initialPosts, groupInfo }: BlogTabsProps) {
-	const router = useRouter();
-	const searchParams = useSearchParams();
-	const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "blog");
-
-	const handleTabChange = (tab: string) => {
-		setActiveTab(tab);
-		const params = new URLSearchParams(searchParams);
-		if (tab === "blog") {
-			params.delete("tab");
-		} else {
-			params.set("tab", tab);
-		}
-
-		const newURL = params.toString() ? `/blog?${params.toString()}` : "/blog";
-		router.replace(newURL, { scroll: false });
-	};
-
+export function BlogTabs({ initialPosts }: BlogTabsProps) {
 	return (
 		<div className="min-h-screen">
 			{/* FV (First View) - 固定ヘッダー */}
@@ -45,53 +24,18 @@ export function BlogTabs({ initialPosts, groupInfo }: BlogTabsProps) {
 				<div className="relative h-full flex items-center justify-center text-center text-white px-4">
 					<div>
 						<h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-							ブログ & 募集要項
+							ブログ
 						</h1>
 						<p className="text-lg md:text-xl opacity-90 max-w-2xl">
-							技術的な知見やプロジェクトの学習記録、そして一緒に音楽を奏でる仲間の募集について
+							技術的な知見やプロジェクトの学習記録
 						</p>
 					</div>
 				</div>
 			</section>
 
-			{/* タブナビゲーション */}
-			<section className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-600">
-				<div className="container mx-auto px-4">
-					<nav className="flex space-x-0">
-						<button
-							type="button"
-							onClick={() => handleTabChange("blog")}
-							className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
-								activeTab === "blog"
-									? "border-blue-500 text-blue-600 dark:text-gray-900 bg-blue-50 dark:bg-white"
-									: "border-transparent text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-900 hover:bg-gray-50 dark:hover:bg-white"
-							}`}
-						>
-							ブログ
-						</button>
-						<button
-							type="button"
-							onClick={() => handleTabChange("recruitment")}
-							className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
-								activeTab === "recruitment"
-									? "border-blue-500 text-blue-600 dark:text-gray-900 bg-blue-50 dark:bg-white"
-									: "border-transparent text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-900 hover:bg-gray-50 dark:hover:bg-white"
-							}`}
-						>
-							募集要項
-						</button>
-					</nav>
-				</div>
-			</section>
-
-			{/* タブコンテンツ */}
+			{/* コンテンツ */}
 			<section className="flex-1">
-				{activeTab === "blog" && (
-					<BlogPageClient initialPosts={initialPosts} hideHeader />
-				)}
-				{activeTab === "recruitment" && (
-					<RecruitmentContent groupInfo={groupInfo} />
-				)}
+				<BlogPageClient initialPosts={initialPosts} hideHeader />
 			</section>
 		</div>
 	);

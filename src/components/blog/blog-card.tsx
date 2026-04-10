@@ -14,7 +14,8 @@ interface BlogCardProps {
 }
 
 // 記事の概要を取得（HTMLタグを除去して最初の100文字）
-function getPostSummary(content: string): string {
+function getPostSummary(content: string | undefined): string {
+	if (!content) return "";
 	const textOnly = content
 		.replace(/<[^>]*>/g, "")
 		.replace(/\n/g, " ")
@@ -23,7 +24,8 @@ function getPostSummary(content: string): string {
 }
 
 // 読了時間を計算（日本語の平均読書速度: 600文字/分）
-function getReadingTime(content: string): number {
+function getReadingTime(content: string | undefined): number {
+	if (!content) return 1;
 	const textOnly = content.replace(/<[^>]*>/g, "");
 	const charactersCount = textOnly.length;
 	return Math.max(1, Math.ceil(charactersCount / 600));
