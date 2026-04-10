@@ -312,6 +312,18 @@ html.dark [data-card="blog-card"] span {
 	color: #9ca3af;
 }
 
+/* コードブロックのモバイル横スクロール対応 */
+.prose pre {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+.prose pre code {
+	white-space: pre;
+	word-break: normal;
+	overflow-wrap: normal;
+}
+
 /* ネオモルフィズムとアニメーション */
 @keyframes pulse {
 	0%,
@@ -376,4 +388,18 @@ html.dark [data-card="blog-card"] span {
 
 .animate-fade-in {
 	animation: fade-in 0.8s ease-out;
+}
+
+/* Slide in from right animation */
+@keyframes slide-in-right {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+.animate-slide-in-right {
+	animation: slide-in-right 0.25s ease-out;
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { TableOfContentsClient } from "@/components/blog/post-toc-client";
+import { ScrollToTop } from "@/components/blog/scroll-to-top";
 import { Card, CardContent } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import {
@@ -73,7 +74,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 			<Card>
 				<CardContent className="p-6 lg:p-8">
 					<div
-						className="prose dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-4 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-img:rounded-lg prose-img:shadow-md prose-lg"
+						className="prose dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-4 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:overflow-x-auto prose-pre:text-sm prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-img:rounded-lg prose-img:shadow-md prose-lg"
 					>
 						{typeof post.content === "string" ? (
 							// biome-ignore lint/security/noDangerouslySetInnerHtml: microCMSコンテンツをDOMPurifyでサニタイズ済み
@@ -100,9 +101,9 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 	);
 
 	return (
-		<div className="container mx-auto px-4 py-8 max-w-5xl">
+		<div className="container mx-auto px-4 pt-16 lg:pt-8 py-8 max-w-5xl">
 			{/* ヘッダー部分（常に1カラム） */}
-			<nav className="mb-8">
+			<nav className="mb-8 hidden lg:block">
 				<div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
 					<Link
 						href="/"
@@ -161,13 +162,13 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 			{shouldShowToc ? (
 				<div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
 					<article>{renderArticleBody()}</article>
-					<div className="hidden lg:block">
-						<TableOfContentsClient profile={profile || undefined} />
-					</div>
+					<TableOfContentsClient profile={profile || undefined} />
 				</div>
 			) : (
 				<article className="max-w-4xl mx-auto">{renderArticleBody()}</article>
 			)}
+
+			<ScrollToTop />
 		</div>
 	);
 }
