@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import type { BlogPost } from "@/lib/microcms";
-import { Clock, Eye, Calendar } from "lucide-react";
-import { CardHoverPointer } from "@/components/three/card-hover-pointer";
+import { Clock, Calendar } from "lucide-react";
 
 interface BlogCardProps {
 	post: BlogPost;
@@ -32,11 +31,7 @@ function getReadingTime(content: string | undefined): number {
 }
 
 export function BlogCard({ post }: BlogCardProps) {
-	const [isFlipped, setIsFlipped] = useState(false);
 	const [isImageExpanded, setIsImageExpanded] = useState(false);
-	const [isHovering, setIsHovering] = useState(false);
-	const cardRef = useRef<HTMLDivElement>(null);
-	const summary = getPostSummary(post.content);
 	const readingTime = getReadingTime(post.content);
 
 	// Force white background in dark mode
@@ -57,72 +52,47 @@ export function BlogCard({ post }: BlogCardProps) {
 
 	return (
 		<>
-			{/* デスクトップ版（lg以上）- フリップアニメーション */}
-			{/* biome-ignore lint/a11y/noStaticElementInteractions: 3D tilt effect */}
-			<div
-				ref={cardRef}
-				className="perspective-1000 h-full hidden lg:block relative"
-				onMouseEnter={() => {
-					setIsFlipped(true);
-					setIsHovering(true);
-				}}
-				onMouseLeave={() => {
-					setIsFlipped(false);
-					setIsHovering(false);
-				}}
-			>
-				<CardHoverPointer isHovering={isHovering} cardRef={cardRef} />
-				<div
-					className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
-						isFlipped ? "rotate-y-180" : ""
-					} `}
-					style={{
-						border: "2px solid rgb(209 213 219)",
-						backgroundColor: "white",
-						boxShadow:
-							"0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
-					}}
-				>
-					{/* 表面 */}
-					<Link
-						href={`/blog/${post.id}`}
-						className="block absolute inset-0 backface-hidden"
+			{/* デスクトップ版（lg以上）- ホバーで浮き上がる */}
+			<div className="h-full hidden lg:block">
+				<Link href={`/blog/${post.id}`}>
+					<Card
+						className="h-full cursor-pointer !bg-white dark:!bg-white relative z-10 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+						data-card="blog-card"
+						style={{
+							backgroundColor: "white !important",
+							border: "2px solid rgb(209 213 219)",
+							boxShadow:
+								"0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+							color: "rgb(3 7 18) !important",
+						}}
 					>
-						<Card
-							className="h-full hover:shadow-lg transition-shadow duration-200 cursor-pointer !bg-white dark:!bg-white relative z-10"
-							data-card="blog-card"
-							style={{
-								backgroundColor: "white !important",
-								border: "none !important",
-								color: "rgb(3 7 18) !important",
-							}}
-						>
-							{post.eyecatch && (
-								<div className="relative aspect-video overflow-hidden">
-									<Image
-										src={post.eyecatch.url}
-										alt={post.title}
-										fill
-										className="object-cover"
-										sizes="25vw"
-									/>
+						{post.eyecatch && (
+							<div className="relative aspect-video overflow-hidden border-b border-gray-200">
+								<Image
+									src={post.eyecatch.url}
+									alt={post.title}
+									fill
+									className="object-cover"
+									sizes="25vw"
+								/>
+							</div>
+						)}
+						<CardHeader className="pb-3">
+							{post.category && post.category.length > 0 && (
+								<div className="mb-2 flex flex-wrap gap-1">
+									{post.category.map((cat) => (
+										<CategoryBadge key={cat} category={cat} size="sm" linkable={false} />
+									))}
 								</div>
 							)}
-							<CardHeader className="pb-3 border-l-2 border-t-2 border-r-2">
-								{post.category && post.category.length > 0 && (
-									<div className="mb-2 flex flex-wrap gap-1">
-										{post.category.map((cat) => (
-											<CategoryBadge key={cat} category={cat} size="sm" />
-										))}
-									</div>
-								)}
-								<CardTitle className="text-base line-clamp-2">
-									{post.title}
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="pt-0 border-l-2 border-b-2 border-r-2">
+							<CardTitle className="text-base line-clamp-2">
+								{post.title}
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="pt-0">
+							<div className="flex items-center justify-between">
 								<time
-									className="text-xs text-gray-500 dark:text-gray-400"
+									className="text-xs text-gray-500"
 									dateTime={post.publishedAt}
 								>
 									{new Date(post.publishedAt)
@@ -130,68 +100,14 @@ export function BlogCard({ post }: BlogCardProps) {
 										.split("T")[0]
 										.replace(/-/g, "/")}
 								</time>
-							</CardContent>
-						</Card>
-					</Link>
-
-					{/* 裏面 */}
-					<Link
-						href={`/blog/${post.id}`}
-						className="block absolute inset-0 backface-hidden rotate-y-180"
-					>
-						<Card
-							className="h-full cursor-pointer !bg-white dark:!bg-white relative z-10 flex flex-col"
-							data-card="blog-card"
-							style={{
-								backgroundColor: "white !important",
-								backgroundImage: "none !important",
-								border: "none !important",
-								color: "rgb(3 7 18) !important",
-							}}
-						>
-							<div className="flex flex-col h-full p-6 bg-white">
-								<div className="flex-shrink-0 mb-4 bg-white">
-									<h3 className="text-lg line-clamp-2 text-gray-800 dark:text-gray-800 font-semibold mb-3 leading-tight">
-										{post.title}
-									</h3>
-									<div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-600 mb-4">
-										<div className="flex items-center gap-1">
-											<Clock className="w-4 h-4" />
-											<span>{readingTime}分で読める</span>
-										</div>
-										<div className="flex items-center gap-1">
-											<Calendar className="w-4 h-4" />
-											<time dateTime={post.publishedAt}>
-												{new Date(post.publishedAt).getMonth() + 1}/
-												{new Date(post.publishedAt).getDate()}
-											</time>
-										</div>
-									</div>
-								</div>
-
-								<div className="flex-grow flex flex-col justify-center mb-6 bg-white">
-									<p className="text-base text-gray-700 dark:text-gray-700 leading-relaxed line-clamp-4 h-24 overflow-hidden bg-white">
-										{summary}
-									</p>
-								</div>
-
-								<div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200 dark:border-gray-300 bg-white">
-									{post.category && post.category.length > 0 && (
-										<div className="flex flex-wrap gap-1">
-											{post.category.slice(0, 2).map((cat) => (
-												<CategoryBadge key={cat} category={cat} size="sm" />
-											))}
-										</div>
-									)}
-									<div className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-600 font-medium bg-white">
-										<Eye className="w-4 h-4" />
-										<span>続きを読む</span>
-									</div>
+								<div className="flex items-center gap-1 text-xs text-gray-600">
+									<Clock className="w-3 h-3" />
+									<span>{readingTime}分</span>
 								</div>
 							</div>
-						</Card>
-					</Link>
-				</div>
+						</CardContent>
+					</Card>
+				</Link>
 			</div>
 
 			{/* モバイル・タブレット版（lg未満）- 画像拡大アニメーション */}
@@ -235,7 +151,7 @@ export function BlogCard({ post }: BlogCardProps) {
 							{post.category && post.category.length > 0 && (
 								<div className="mb-2 flex flex-wrap gap-1">
 									{post.category.map((cat) => (
-										<CategoryBadge key={cat} category={cat} size="sm" />
+										<CategoryBadge key={cat} category={cat} size="sm" linkable={false} />
 									))}
 								</div>
 							)}

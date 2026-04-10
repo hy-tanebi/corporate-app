@@ -1,32 +1,37 @@
 import { createClient } from "microcms-js-sdk";
+import { getMockBlogPosts, getMockBlogPost } from "./mock-blog-data";
+
+const useMock = process.env.USE_MOCK_BLOG === "true";
 
 // 開発環境でのみエラーを投げる（本番ビルド時はワーニングのみ）
 const isDev = process.env.NODE_ENV === "development";
 
-if (!process.env.MICROCMS_SERVICE_DOMAIN) {
-	const message = "MICROCMS_SERVICE_DOMAIN is required";
-	if (isDev) {
-		throw new Error(message);
-	} else {
-		console.warn(message);
+if (!useMock) {
+	if (!process.env.MICROCMS_SERVICE_DOMAIN) {
+		const message = "MICROCMS_SERVICE_DOMAIN is required";
+		if (isDev) {
+			throw new Error(message);
+		} else {
+			console.warn(message);
+		}
 	}
-}
 
-if (!process.env.MICROCMS_API_KEY) {
-	const message = "MICROCMS_API_KEY is required";
-	if (isDev) {
-		throw new Error(message);
-	} else {
-		console.warn(message);
+	if (!process.env.MICROCMS_API_KEY) {
+		const message = "MICROCMS_API_KEY is required";
+		if (isDev) {
+			throw new Error(message);
+		} else {
+			console.warn(message);
+		}
 	}
-}
 
-if (!process.env.MICROCMS_BLOG_API_ID) {
-	const message = "MICROCMS_BLOG_API_ID is required";
-	if (isDev) {
-		throw new Error(message);
-	} else {
-		console.warn(message);
+	if (!process.env.MICROCMS_BLOG_API_ID) {
+		const message = "MICROCMS_BLOG_API_ID is required";
+		if (isDev) {
+			throw new Error(message);
+		} else {
+			console.warn(message);
+		}
 	}
 }
 
@@ -86,6 +91,10 @@ export const getBlogPosts = async (
 	limit = 12,
 	offset = 0,
 ): Promise<BlogPostsResponse> => {
+	if (useMock) {
+		return getMockBlogPosts(limit, offset);
+	}
+
 	if (!client || !process.env.MICROCMS_BLOG_API_ID) {
 		throw new Error("microCMS client is not configured");
 	}
@@ -105,6 +114,12 @@ export const getBlogPosts = async (
 
 // 特定のブログ記事を取得
 export const getBlogPost = async (id: string): Promise<BlogPost> => {
+	if (useMock) {
+		const post = getMockBlogPost(id);
+		if (!post) throw new Error(`Mock post not found: ${id}`);
+		return post;
+	}
+
 	if (!client || !process.env.MICROCMS_BLOG_API_ID) {
 		throw new Error("microCMS client is not configured");
 	}

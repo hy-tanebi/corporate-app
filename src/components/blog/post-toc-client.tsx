@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import type { AuthorProfile } from "@/lib/microcms";
 import { ProfileCard } from "../profile-card";
 
@@ -75,7 +75,15 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
 		if (headings.length === 0) return;
 
 		const handleScroll = () => {
-			const scrollPosition = window.scrollY + 100; // オフセット調整
+			const scrollPosition = window.scrollY + 100;
+
+			// ページ最下部付近ならば最後の見出しをアクティブにする
+			const scrollBottom = window.scrollY + window.innerHeight;
+			const docHeight = document.documentElement.scrollHeight;
+			if (scrollBottom >= docHeight - 50) {
+				setActiveId(headings[headings.length - 1].id);
+				return;
+			}
 
 			// 現在のスクロール位置より上にある見出しを取得
 			const visibleHeadings = headings.filter((heading) => {
@@ -83,11 +91,9 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
 			});
 
 			if (visibleHeadings.length > 0) {
-				// 最後の見出し（最も下にある見出し）をアクティブにする
 				const lastVisible = visibleHeadings[visibleHeadings.length - 1];
 				setActiveId(lastVisible.id);
 			} else if (headings.length > 0) {
-				// すべての見出しがスクロール位置より下にある場合は最初の見出しをアクティブ
 				setActiveId(headings[0].id);
 			}
 		};
@@ -137,13 +143,12 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
 			{profile && <ProfileCard profile={profile} />}
 
 			{/* 目次カード */}
-			<Card className="max-h-[80vh] overflow-auto">
-				<CardHeader className="pb-3">
-					<CardTitle className="text-base flex items-center gap-2">
+			<Card>
+				<details open>
+					<summary className="flex items-center gap-2 px-6 py-4 cursor-pointer text-base font-semibold select-none hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg">
 						📋 目次
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="pt-0">
+					</summary>
+					<div className="px-6 pb-4">
 					<nav>
 						{/* タイムライン */}
 						<div className="relative">
@@ -161,17 +166,20 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
 
 									{/* 進捗ライン */}
 									<div
-										className="absolute w-0.5 bg-gradient-to-b from-blue-500 via-blue-600 to-purple-600 transition-all duration-500 ease-out shadow-sm"
+										className="absolute w-0.5 bg-gradient-to-b from-blue-500 via-blue-600 to-purple-600 transition-all duration-500 ease-out"
 										style={{
 											left: "15px", // 1px右にずらす (14px + 1px)
 											top: "24px",
-											height: activeId
-												? `calc((100% - 48px) * ${headings.findIndex((h) => h.id === activeId) / Math.max(1, headings.length - 1)})`
-												: "0%",
+											height: (() => {
+												if (!activeId) return "0%";
+												const idx = headings.findIndex((h) => h.id === activeId);
+												if (idx < 0) return "0%";
+												const ratio = headings.length <= 1 ? 1 : idx / (headings.length - 1);
+												return `calc((100% - 48px) * ${ratio})`;
+											})(),
 										}}
 									>
-										{/* 光る効果 */}
-										<div className="absolute inset-0 bg-gradient-to-b from-blue-400 to-blue-500 blur-sm opacity-50"></div>
+										{/* 光る効果（削除：ラインのずれ原因） */}
 									</div>
 								</>
 							)}
@@ -205,7 +213,7 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
                           absolute left-4 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition-all duration-300 ease-out
                           ${
 														isActive
-															? "w-3 h-3 bg-blue-500 border-blue-500 shadow-lg scale-125 animate-pulse"
+															? "w-3 h-3 bg-blue-500 border-blue-500 shadow-lg"
 															: isPassed
 																? "w-2 h-2 bg-blue-400 border-blue-400"
 																: "w-2 h-2 bg-gray-300 dark:bg-gray-600 border-gray-300 dark:border-gray-600"
@@ -268,7 +276,8 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
 							</ul>
 						</div>
 					</nav>
-				</CardContent>
+					</div>
+				</details>
 			</Card>
 		</div>
 	);
