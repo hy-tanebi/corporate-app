@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
 // カテゴリーごとの色設定（microCMSで実際に使用している3つのみ）
@@ -14,20 +15,32 @@ const defaultColor =
 interface CategoryBadgeProps {
 	category: string;
 	size?: "sm" | "default";
+	linkable?: boolean;
 }
 
 export function CategoryBadge({
 	category,
 	size = "default",
+	linkable = true,
 }: CategoryBadgeProps) {
 	const colorClass = categoryColors[category] || defaultColor;
 
-	return (
+	const badge = (
 		<Badge
 			variant="secondary"
-			className={`${colorClass} ${size === "sm" ? "text-xs px-2 py-0.5" : ""}`}
+			className={`${colorClass} ${size === "sm" ? "text-xs px-2 py-0.5" : ""} ${linkable ? "hover:opacity-80 transition-opacity cursor-pointer" : ""}`}
 		>
 			{category}
 		</Badge>
 	);
+
+	if (linkable) {
+		return (
+			<Link href={`/blog?category=${encodeURIComponent(category)}`}>
+				{badge}
+			</Link>
+		);
+	}
+
+	return badge;
 }

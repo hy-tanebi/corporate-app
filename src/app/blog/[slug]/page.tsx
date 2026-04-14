@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { TableOfContentsClient } from "@/components/blog/post-toc-client";
+import { ScrollToTop } from "@/components/blog/scroll-to-top";
 import { Card, CardContent } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import {
@@ -60,19 +60,50 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 		notFound();
 	}
 
-	// 見出しの存在チェック用の関数
-	const hasHeadings = (content: string) => {
-		return /<h[123]/.test(content);
+	// 見出しの数をカウント（4個以上で目次を表示）
+	const countHeadings = (content: string) => {
+		const matches = content.match(/<h[123]/g);
+		return matches ? matches.length : 0;
 	};
 
 	const shouldShowToc =
-		typeof post.content === "string" && hasHeadings(post.content);
+		typeof post.content === "string" && countHeadings(post.content) >= 4;
 
-	// 共通コンテンツを作成
-	const renderContent = () => (
+	const renderArticleBody = () => (
 		<>
-			{/* パンくずナビ */}
-			<nav className="mb-8">
+			<Card>
+				<CardContent className="p-6 lg:p-8">
+					<div
+						className="prose dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-4 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:overflow-x-auto prose-pre:text-sm prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-img:rounded-lg prose-img:shadow-md prose-lg"
+					>
+						{typeof post.content === "string" ? (
+							// biome-ignore lint/security/noDangerouslySetInnerHtml: microCMSコンテンツをDOMPurifyでサニタイズ済み
+							<div dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} />
+						) : (
+							<pre className="whitespace-pre-wrap bg-gray-100 p-4 rounded">
+								{JSON.stringify(post.content, null, 2)}
+							</pre>
+						)}
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* ブログ一覧に戻るリンク */}
+			<div className="mt-12 text-center">
+				<Link
+					href="/blog"
+					className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-300 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-700 bg-white dark:bg-white hover:bg-gray-50 dark:hover:bg-gray-50 transition-colors duration-200"
+				>
+					← ブログ一覧に戻る
+				</Link>
+			</div>
+		</>
+	);
+
+	return (
+		<div className="container mx-auto px-4 pt-16 lg:pt-8 py-8 max-w-5xl">
+			{/* ヘッダー部分（常に1カラム） */}
+			<nav className="mb-8 hidden lg:block">
 				<div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
 					<Link
 						href="/"
@@ -94,106 +125,50 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 				</div>
 			</nav>
 
-			<article>
-				{/* アイキャッチ画像 */}
-				{post.eyecatch && (
-					<div className="relative aspect-video mb-8 overflow-hidden rounded-lg">
-						<Image
-							src={post.eyecatch.url}
-							alt={post.title}
-							fill
-							className="object-cover"
-							sizes="100vw"
-							priority
-						/>
+			<header className="mb-12 pb-12 border-b border-gray-200 dark:border-gray-700 text-center py-8">
+				<div className="flex items-center justify-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
+					<time dateTime={post.publishedAt}>
+						{new Date(post.publishedAt).toLocaleDateString("ja-JP", {
+							year: "numeric",
+							month: "long",
+							day: "numeric",
+							weekday: "long",
+						})}
+					</time>
+					{post.updatedAt !== post.publishedAt && (
+						<span>
+							（更新:{" "}
+							{new Date(post.updatedAt)
+								.toISOString()
+								.split("T")[0]
+								.replace(/-/g, "/")}
+							）
+						</span>
+					)}
+				</div>
+				<h1 className="text-2xl lg:text-4xl font-bold tracking-tight mb-6">
+					{post.title}
+				</h1>
+				{post.category && post.category.length > 0 && (
+					<div className="flex flex-wrap justify-center gap-2">
+						{post.category.map((cat) => (
+							<CategoryBadge key={cat} category={cat} />
+						))}
 					</div>
 				)}
+			</header>
 
-				{/* 記事ヘッダー */}
-				<header className="mb-8">
-					<h1 className="text-2xl lg:text-4xl font-bold tracking-tight mb-4">
-						{post.title}
-					</h1>
-					<div className="flex items-center gap-4 flex-wrap">
-						{post.category && post.category.length > 0 && (
-							<div className="flex flex-wrap gap-2">
-								{post.category.map((cat, _index) => (
-									<CategoryBadge key={cat} category={cat} />
-								))}
-							</div>
-						)}
-						<div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-							<time dateTime={post.publishedAt}>
-								公開日:{" "}
-								{new Date(post.publishedAt)
-									.toISOString()
-									.split("T")[0]
-									.replace(/-/g, "/")}
-							</time>
-							{post.updatedAt !== post.publishedAt && (
-								<time dateTime={post.updatedAt}>
-									更新日:{" "}
-									{new Date(post.updatedAt)
-										.toISOString()
-										.split("T")[0]
-										.replace(/-/g, "/")}
-								</time>
-							)}
-						</div>
-					</div>
-				</header>
-
-				{/* 記事本文 */}
-				<Card>
-					<CardContent className="p-6 lg:p-8">
-						<div
-							className={`prose dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-4 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-img:rounded-lg prose-img:shadow-md ${shouldShowToc ? "prose-lg" : "prose-xl"}`}
-						>
-							{typeof post.content === "string" ? (
-								// biome-ignore lint/security/noDangerouslySetInnerHtml: microCMSコンテンツをDOMPurifyでサニタイズ済み
-								<div dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} />
-							) : (
-								<pre className="whitespace-pre-wrap bg-gray-100 p-4 rounded">
-									{JSON.stringify(post.content, null, 2)}
-								</pre>
-							)}
-						</div>
-					</CardContent>
-				</Card>
-			</article>
-
-			{/* ブログ一覧に戻るリンク */}
-			<div className="mt-12 text-center">
-				<Link
-					href="/blog"
-					className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-300 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-700 bg-white dark:bg-white hover:bg-gray-50 dark:hover:bg-gray-50 transition-colors duration-200"
-				>
-					← ブログ一覧に戻る
-				</Link>
-			</div>
-		</>
-	);
-
-	if (shouldShowToc) {
-		// 目次がある場合（2カラムレイアウト）
-		return (
-			<div className="container mx-auto px-4 py-8 max-w-7xl">
+			{/* 本文部分 */}
+			{shouldShowToc ? (
 				<div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
-					<div className="max-w-4xl">{renderContent()}</div>
-
-					{/* 目次（デスクトップのみ表示） */}
-					<div className="hidden lg:block">
-						<TableOfContentsClient profile={profile || undefined} />
-					</div>
+					<article>{renderArticleBody()}</article>
+					<TableOfContentsClient profile={profile || undefined} />
 				</div>
-			</div>
-		);
-	}
+			) : (
+				<article className="max-w-4xl mx-auto">{renderArticleBody()}</article>
+			)}
 
-	// 目次がない場合（1カラムレイアウト）
-	return (
-		<div className="container mx-auto px-4 py-8 max-w-6xl">
-			<div className="mx-auto">{renderContent()}</div>
+			<ScrollToTop />
 		</div>
 	);
 }

@@ -132,71 +132,6 @@ body {
 	animation: modal-content-hide 300ms cubic-bezier(0.4, 0, 0.8, 0);
 }
 
-/* Ensure blog cards always have borders and shadows */
-[data-card="blog-card"] {
-	border: 2px solid rgb(209 213 219) !important;
-	border-radius: 0 !important;
-	box-shadow:
-		0 10px 15px -3px rgb(0 0 0 / 0.1),
-		0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
-	background-color: white !important;
-}
-
-/* Blog cards should always have white background */
-html.dark [data-card="blog-card"],
-html.dark [data-card="blog-card"] > *,
-html.dark .dark\:bg-white,
-html.dark .dark\:\!bg-white {
-	background-color: white !important;
-	background-image: none !important;
-	z-index: 1;
-}
-
-/* Ensure all blog card elements have white background */
-html.dark div[data-card="blog-card"],
-html.dark div[data-card="blog-card"] .rounded-lg,
-html.dark div[data-card="blog-card"] .border,
-html.dark div[data-card="blog-card"] .bg-white {
-	background-color: white !important;
-	background-image: none !important;
-	border-color: rgb(229 231 235) !important;
-}
-
-/* Force white background for all card-like elements in dark mode */
-html.dark .rounded-lg.border.bg-white,
-html.dark .rounded-lg.border.shadow-sm {
-	background-color: white !important;
-}
-
-/* Specifically target the Card component in dark mode */
-html.dark .rounded-lg.border.border-gray-200 {
-	background-color: white !important;
-	border-color: rgb(229 231 235) !important;
-	color: rgb(3 7 18) !important;
-}
-
-html.dark [data-card="blog-card"] {
-	border-color: rgb(209 213 219) !important;
-	background-color: white !important;
-}
-
-/* Remove any gradient backgrounds from blog cards */
-[data-card="blog-card"],
-html.dark [data-card="blog-card"] {
-	background-image: none !important;
-}
-
-/* Force white background for all elements inside blog cards */
-[data-card="blog-card"] div,
-[data-card="blog-card"] p,
-[data-card="blog-card"] span,
-html.dark [data-card="blog-card"] div,
-html.dark [data-card="blog-card"] p,
-html.dark [data-card="blog-card"] span {
-	background-color: white !important;
-	background-image: none !important;
-}
-
 /* 3D Flip Animation Styles */
 .perspective-1000 {
 	perspective: 1000px;
@@ -312,6 +247,18 @@ html.dark [data-card="blog-card"] span {
 	color: #9ca3af;
 }
 
+/* コードブロックのモバイル横スクロール対応 */
+.prose pre {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+.prose pre code {
+	white-space: pre;
+	word-break: normal;
+	overflow-wrap: normal;
+}
+
 /* ネオモルフィズムとアニメーション */
 @keyframes pulse {
 	0%,
@@ -352,12 +299,14 @@ html.dark [data-card="blog-card"] span {
 	background: rgba(59, 130, 246, 0.8);
 }
 
-/* MISSIONセクションのスクロールバーを非表示 */
-.mission-scrollbar::-webkit-scrollbar {
+/* スクロールバー非表示ユーティリティ */
+.mission-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
 	display: none;
 }
 
-.mission-scrollbar {
+.mission-scrollbar,
+.scrollbar-hide {
 	scrollbar-width: none; /* Firefox */
 	-ms-overflow-style: none; /* IE/Edge */
 }
@@ -376,4 +325,18 @@ html.dark [data-card="blog-card"] span {
 
 .animate-fade-in {
 	animation: fade-in 0.8s ease-out;
+}
+
+/* Slide in from right animation */
+@keyframes slide-in-right {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+.animate-slide-in-right {
+	animation: slide-in-right 0.25s ease-out;
 }

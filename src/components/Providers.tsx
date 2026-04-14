@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { AudioProvider } from "@/contexts/audio-context";
 import LoadingScreen from "@/components/loading/LoadingScreen";
 import { Toaster } from "sonner";
 
 export default function Providers({ children }: { children: ReactNode }) {
+	const pathname = usePathname();
+	const isTopPage = pathname === "/";
 	const [isLoading, setIsLoading] = useState(true);
 	const [isMounted, setIsMounted] = useState(false);
 
@@ -24,7 +27,7 @@ export default function Providers({ children }: { children: ReactNode }) {
 
 	return (
 		<AudioProvider>
-			{isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}
+			{isTopPage && isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}
 			{children}
 			<Toaster richColors position="top-center" />
 		</AudioProvider>
