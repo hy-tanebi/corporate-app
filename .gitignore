@@ -44,6 +44,9 @@ next-env.d.ts
 # Claude settings
 /.claude/
 
+# モック用画像
+public/images/mock/
+
 # 大きな3Dモデルファイル（Vercel Blobで管理）
 # public/models/*.glb
 public/models/*.fbx
