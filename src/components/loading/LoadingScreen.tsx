@@ -1,17 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Canvas } from "@react-three/fiber";
-import { useProgress } from "@react-three/drei";
-import LoadingScene from "./LoadingScene";
 
 export default function LoadingScreen({
 	onLoadingComplete,
 }: {
 	onLoadingComplete: () => void;
 }) {
-	// Real Progress from Three.js DefaultLoadingManager
-	const { progress } = useProgress();
+	const [progress, setProgress] = useState(0);
 	const [hasStarted, setHasStarted] = useState(false);
 
 	// スクロール無効化
@@ -19,25 +15,47 @@ export default function LoadingScreen({
 		document.body.style.overflow = "hidden";
 	}, []);
 
-	// Loading Completion Logic
-	const handleStart = useCallback((immediate = false) => {
-		setHasStarted(true);
-		// スクロールを復元
-		document.body.style.overflow = "unset";
-		// フェードアウトアニメーション後にコールバック実行
-		setTimeout(
-			() => {
-				onLoadingComplete();
-			},
-			immediate ? 0 : 1000,
-		);
-	}, [onLoadingComplete]);
+	const handleStart = useCallback(
+		(immediate = false) => {
+			setHasStarted(true);
+			document.body.style.overflow = "unset";
+			setTimeout(
+				() => {
+					onLoadingComplete();
+				},
+				immediate ? 0 : 1000,
+			);
+		},
+		[onLoadingComplete],
+	);
 
-	// Loading Completion Logic
+	// 約2秒で完了するプログレスシミュレーション
 	useEffect(() => {
-		// When progress hits 100 (and technically active becomes false, but 100 is good visual indicator)
+		const start = performance.now();
+		const duration = 2000;
+		let frame: number;
+
+		const tick = () => {
+			const elapsed = performance.now() - start;
+			const t = Math.min(elapsed / duration, 1);
+			// easeOutCubic: 最初は速く、最後だけ少し減速
+			const eased = 1 - (1 - t) ** 3;
+			const current = eased * 100;
+
+			setProgress(current >= 99.5 ? 100 : current);
+
+			if (current < 100) {
+				frame = requestAnimationFrame(tick);
+			}
+		};
+
+		frame = requestAnimationFrame(tick);
+		return () => cancelAnimationFrame(frame);
+	}, []);
+
+	// 100%到達で完了
+	useEffect(() => {
 		if (progress === 100) {
-			// Small delay to let the user see "100%"
 			const timer = setTimeout(() => {
 				handleStart(true);
 			}, 500);
@@ -51,25 +69,17 @@ export default function LoadingScreen({
 				hasStarted ? "opacity-0 pointer-events-none" : "opacity-100"
 			}`}
 		>
-			{/* Three.js Canvas */}
-			<Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-				<LoadingScene />
-			</Canvas>
-
 			{/* ローディングUI */}
-			<div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+			<div className="absolute inset-0 flex flex-col items-center justify-center">
 				<div className="text-center space-y-8 px-4">
-					{/* 屋号 */}
 					<h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
 						TANEBI CREATIVE
 					</h2>
 
-					{/* タイトル */}
 					<h1 className="text-xl md:text-2xl font-bold text-white tracking-wider animate-pulse">
 						LOADING
 					</h1>
 
-					{/* プログレスバー */}
 					<div className="w-64 md:w-96 mx-auto">
 						<div className="h-2 bg-gray-800 rounded-full overflow-hidden">
 							<div
@@ -81,14 +91,6 @@ export default function LoadingScreen({
 							{Math.floor(progress)}%
 						</p>
 					</div>
-
-					{/* サウンドトグルボタン */}
-					{/* サウンドトグルボタン */}
-					{/* {showSoundToggle && (
-						<div className="pointer-events-auto animate-fade-in">
-							<SoundToggle onStart={handleStart} />
-						</div>
-					)} */}
 				</div>
 			</div>
 		</div>
