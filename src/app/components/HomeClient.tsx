@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { SidebarMenu } from "@/components/ui/sidebar-menu";
-import { AudioControlButton } from "@/components/ui/audio-control-button";
 import MissionSection, { type MissionSidebarHandle } from "./MissionSection";
 import ContactSection from "./ContactSection";
 import { useHeroState } from "@/contexts/HeroStateContext";
@@ -218,14 +217,11 @@ export default function HomeClient() {
 
 	return (
 		<main>
-			{/* 屋号とサウンドコントロールを左上に固定配置 */}
-			<div className="fixed top-8 left-6 md:left-8 z-10 flex items-center gap-4 h-[50px]">
+			{/* 屋号を左上に固定配置 */}
+			<div className="fixed top-8 left-6 md:left-8 z-10 h-[50px]">
 				<h1 className="text-2xl md:text-[28px] font-bold text-white pointer-events-none">
 					TANEBI CREATIVE
 				</h1>
-				<div className="pointer-events-auto hidden">
-					<AudioControlButton />
-				</div>
 			</div>
 
 			{/* 第1テキスト: 最初のキャッチコピー */}
