@@ -142,4 +142,12 @@ export function Astronaut({
 	);
 }
 
-useGLTF.preload("/models/artro_draco.glb");
+// preloadをidle時に遅延させ、初期ロードへの影響を軽減
+if (typeof window !== "undefined") {
+	const doPreload = () => useGLTF.preload("/models/artro_draco.glb");
+	if ("requestIdleCallback" in window) {
+		window.requestIdleCallback(doPreload);
+	} else {
+		setTimeout(doPreload, 1000);
+	}
+}
