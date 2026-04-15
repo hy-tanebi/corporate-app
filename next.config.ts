@@ -39,11 +39,37 @@ const nextConfig: NextConfig = {
 		],
 	},
 	// ここから追加
-	webpack(config) {
+	webpack(config, { isServer }) {
 		config.module.rules.push({
 			test: /\.glsl$/,
 			loader: "raw-loader",
 		});
+
+		// クライアントビルドでThree.js関連を独立チャンクに分離し、初期バンドルを軽量化
+		if (!isServer) {
+			const cacheGroups =
+				config.optimization?.splitChunks?.cacheGroups || {};
+			cacheGroups.three = {
+				test: /[\\/]node_modules[\\/](three|@react-three|three-stdlib)[\\/]/,
+				name: "three-vendor",
+				chunks: "all" as const,
+				priority: 30,
+			};
+			cacheGroups.framerMotion = {
+				test: /[\\/]node_modules[\\/]framer-motion[\\/]/,
+				name: "framer-motion-vendor",
+				chunks: "all" as const,
+				priority: 20,
+			};
+			config.optimization = {
+				...config.optimization,
+				splitChunks: {
+					...config.optimization?.splitChunks,
+					cacheGroups,
+				},
+			};
+		}
+
 		return config;
 	},
 };
