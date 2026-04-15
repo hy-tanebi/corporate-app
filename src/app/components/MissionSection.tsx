@@ -9,10 +9,14 @@ import {
 	forwardRef,
 	useImperativeHandle,
 } from "react";
+import dynamic from "next/dynamic";
 import { ContactForm } from "@/components/contact/contact-form";
 import AboutSection from "./AboutSection";
-import MissionContent from "./MissionContent";
 import { useHeroState } from "../../contexts/HeroStateContext";
+
+const MissionContent = dynamic(() => import("./MissionContent"), {
+	ssr: false,
+});
 
 // フォームセクションコンポーネント
 function ContactFormSection() {

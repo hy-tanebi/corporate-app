@@ -2,8 +2,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { SidebarMenu } from "@/components/ui/sidebar-menu";
+import dynamic from "next/dynamic";
 import MissionSection, { type MissionSidebarHandle } from "./MissionSection";
+
+const SidebarMenu = dynamic(
+	() =>
+		import("@/components/ui/sidebar-menu").then((mod) => mod.SidebarMenu),
+	{ ssr: false },
+);
 import ContactSection from "./ContactSection";
 import { useHeroState } from "@/contexts/HeroStateContext";
 
