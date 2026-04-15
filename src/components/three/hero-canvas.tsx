@@ -986,6 +986,13 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 		<>
 			<Canvas
 				camera={{ position: [0, 0, CAMERA_Z], fov: 75 }}
+				frameloop={
+					scrollProgress >= 0.99 &&
+					!heroState.isContactVisible &&
+					heroState.transitionProgress === 0
+						? "never"
+						: "always"
+				}
 				dpr={
 					typeof window !== "undefined" && window.innerWidth < 768
 						? [1, 1]
