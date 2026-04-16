@@ -57,7 +57,7 @@ TANEBI（種火）という社名には、暗闇の中にある小さな火—�
 
 ## 技術スタック
 
-<p><a href="https://nextjs.org/"><img src="https://skillicons.dev/icons?i=nextjs" alt="Next.js" width="48" height="48" /></a>&nbsp;<a href="https://react.dev/"><img src="https://skillicons.dev/icons?i=react" alt="React" width="48" height="48" /></a>&nbsp;<a href="https://www.typescriptlang.org/"><img src="https://skillicons.dev/icons?i=ts" alt="TypeScript" width="48" height="48" /></a>&nbsp;<a href="https://threejs.org/"><img src="https://skillicons.dev/icons?i=threejs" alt="Three.js" width="48" height="48" /></a>&nbsp;<a href="https://tailwindcss.com/"><img src="https://skillicons.dev/icons?i=tailwind" alt="Tailwind CSS" width="48" height="48" /></a>&nbsp;<a href="https://supabase.com/"><img src="https://skillicons.dev/icons?i=supabase" alt="Supabase" width="48" height="48" /></a>&nbsp;<a href="https://vercel.com/"><img src="https://skillicons.dev/icons?i=vercel" alt="Vercel" width="48" height="48" /></a>&nbsp;<a href="https://github.com/features/actions"><img src="https://skillicons.dev/icons?i=githubactions" alt="GitHub Actions" width="48" height="48" /></a></p>
+[![Tech Stack](https://skillicons.dev/icons?i=nextjs,react,ts,threejs,tailwind,supabase,vercel,githubactions)](https://skillicons.dev)
 
 | カテゴリ | 技術 |
 |---|---|
