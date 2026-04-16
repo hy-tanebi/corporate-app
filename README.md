@@ -6,8 +6,6 @@
 
 このリポジトリは、ポートフォリオとしても公開しています。 企画・デザイン・実装・運用を担当しています。
 
-<!-- TODO: デモ動画を埋め込み予定 -->
-
 
 ## 課題と解決
 
@@ -50,7 +48,7 @@ TANEBI（種火）という社名には、暗闇の中にある小さな火—�
 
 ### フォント
 
-**Geist / Geist Mono**（Vercel 製）を採用しています。テクノロジー企業らしい洗練されたサンセリフ体でありながら、高い可読性を持つのが特長です。デプロイ先の Vercel が設計したフォントという技術スタックとの一貫性も、採用の理由の一つです。コード表示には等幅の Geist Mono を使い、技術ブログとしての信頼感も担保しています。
+システムフォント（Arial / sans-serif）を基本とし、Web フォントの読み込みを排除することでファーストビューの表示速度を優先しています。3D シーンの初期ロードが重いサイト特性を踏まえ、フォント起因のレンダリングブロックをゼロにする設計としました。
 
 </details>
 
@@ -64,7 +62,6 @@ TANEBI（種火）という社名には、暗闇の中にある小さな火—�
   <a href="https://www.typescriptlang.org/"><img src="https://skillicons.dev/icons?i=ts" alt="TypeScript" width="48" height="48" /></a>
   <a href="https://threejs.org/"><img src="https://skillicons.dev/icons?i=threejs" alt="Three.js" width="48" height="48" /></a>
   <a href="https://tailwindcss.com/"><img src="https://skillicons.dev/icons?i=tailwind" alt="Tailwind CSS" width="48" height="48" /></a>
-  <a href="https://prisma.io/"><img src="https://skillicons.dev/icons?i=prisma" alt="Prisma" width="48" height="48" /></a>
   <a href="https://supabase.com/"><img src="https://skillicons.dev/icons?i=supabase" alt="Supabase" width="48" height="48" /></a>
   <a href="https://vercel.com/"><img src="https://skillicons.dev/icons?i=vercel" alt="Vercel" width="48" height="48" /></a>
   <a href="https://github.com/features/actions"><img src="https://skillicons.dev/icons?i=githubactions" alt="GitHub Actions" width="48" height="48" /></a>
@@ -76,7 +73,7 @@ TANEBI（種火）という社名には、暗闇の中にある小さな火—�
 | 3Dグラフィックス | Three.js / React Three Fiber / カスタムGLSLシェーダー (16本) |
 | スタイリング | Tailwind CSS / shadcn/ui (Radix UI) |
 | アニメーション | GSAP / Framer Motion |
-| バックエンド | Server Actions / Prisma / Supabase (PostgreSQL) |
+| バックエンド | Server Actions / Supabase (PostgreSQL) |
 | CMS | microCMS |
 | メール送信 | Resend |
 | バリデーション | Zod / React Hook Form |
@@ -110,7 +107,7 @@ React Three Fiber を選んだのは、**React のコンポーネントモデル
 <summary><strong>microCMS と Supabase の使い分け — なぜ CMS を分離したか</strong></summary>
 
 **microCMS** → ブログ記事（コンテンツ管理）  
-**Supabase** → お問い合わせ・応募データ（リレーショナルデータ）
+**Supabase** → お問い合わせデータ（リレーショナルデータ）
 
 Supabase 単体でブログも管理できますが、記事の執筆・編集・画像管理・プレビューといった**編集体験は専用 CMS の方が圧倒的に優れています**。microCMS は日本語対応の管理画面と、リッチエディタによる直感的な記事作成が強みです。一方、お問い合わせデータのようなリレーショナルデータは Supabase（PostgreSQL）で型安全に管理する方が適切です。
 
@@ -142,22 +139,13 @@ Rust 製で実行速度も高速（ESLint 比で 10〜20 倍程度）なため�
 <details>
 <summary><strong>Server Actions — API ルートを使わない理由</strong></summary>
 
-お問い合わせフォームや応募フォームの送信処理を、`app/actions/` に Server Actions として実装しています。従来の API ルート（`app/api/`）を経由する方法と比較して：
+お問い合わせフォームの送信処理を、`app/actions/` に Server Actions として実装しています。従来の API ルート（`app/api/`）を経由する方法と比較して：
 
 - **型安全**: フォームの入力値と Server Action の引数が TypeScript で直接つながります
 - **コード量の削減**: `fetch()` による API 呼び出しと、API ルート側のハンドラ定義が不要です
 - **コロケーション**: フォームコンポーネントとサーバー処理が近い場所に配置され、コードの見通しが良くなります
 
 外部から呼び出される API が不要な（＝自サイトのフォーム送信のみ）ユースケースでは、Server Actions の方がシンプルに実装できます。
-
-</details>
-
-<details>
-<summary><strong>Prisma — Supabase を使うのに ORM を挟む理由</strong></summary>
-
-Supabase は `supabase-js` クライアントを提供していますが、Prisma を ORM として採用した理由は**型安全性とマイグレーション管理**です。`prisma generate` でスキーマから TypeScript 型が自動生成されるため、データベースの構造変更がコンパイル時に検出できます。また、`prisma migrate` でスキーマ変更の履歴を Git 管理でき、環境間の差異を防げます。
-
-Supabase クライアントは RLS（Row Level Security）やリアルタイム機能が必要な場合に有効ですが、このサイトではサーバーサイドからの単純な CRUD が中心のため、Prisma の型安全なクエリビルダーの方が開発効率が高いと判断しました。
 
 </details>
 
@@ -172,7 +160,7 @@ Claude Code を導入した目的は、**1人開発でもチーム開発に近�
 - **カスタムスキル（Skills）**: 定型だが手順の多い作業をスラッシュコマンドとして定義し、再現性のある開発フローを実現しています。スキルはスコープに応じてグローバル・ローカルに使い分けています
   - **グローバルスキル**（`~/.claude/skills/` — 全プロジェクト共通）: `ci-cd-workflow`（GitHub Actions ワークフロー生成）/ `git-commit-workflow`（Conventional Commits 規約に沿ったコミット・PR フロー）/ `dotenvx-setup`（環境変数の暗号化管理）/ `project-scaffold`（新規プロジェクトの初期構成生成）/ `git-worktree-workflow`（複数ブランチの並行開発）
   - **ローカルスキル**（`.claude/skills/` — このプロジェクト専用）: `claude-skill-creator`（スキル作成ガイド）/ `material-design`（UI コンポーネント設計）
-  - **インストール済みスキル**: `prisma-migration-assistant`（スキーマ変更の安全なマイグレーション）/ `vercel-react-best-practices`（Next.js パフォーマンス最適化）/ `shadcn-ui`（コンポーネント実装）
+  - **インストール済みスキル**: `vercel-react-best-practices`（Next.js パフォーマンス最適化）/ `shadcn-ui`（コンポーネント実装）
 - **QA レビューエージェント**: 実装完了後にコード品質レビューを実行し、セキュリティリスクやパフォーマンス上の問題を機械的にチェックしています
 
 また、Claude Code はターミナル上で動作する CLI ツールでありながら、対話的な UI/UX が非常に直感的です。コードの差分表示、ファイル操作の確認プロンプト、ツール実行の可視化など、**開発者が「何が起きているか」を常に把握できる設計**になっており、AI の出力をブラックボックスにしない点が信頼して使える理由の一つです。
@@ -213,7 +201,7 @@ graph LR
     NextJS --> SA
     RSC -->|"記事取得"| microCMS
     SA -->|"メール送信"| Resend
-    SA -->|"Prisma ORM"| PostgreSQL
+    SA -->|"データ保存"| PostgreSQL
     GHA -->|"lint + build"| Vercel
 ```
 
@@ -235,14 +223,12 @@ graph TB
 
     subgraph Actions["Server Actions"]
         Contact["contact.ts<br/>メール送信"]
-        Application["application.ts<br/>応募処理"]
     end
 
     TopPage -->|"dynamic import<br/>ssr: false"| ThreeJS
     TopPage --> Animations
     TopPage --> Form
     Form -->|"action"| Contact
-    Form -->|"action"| Application
     BlogList -->|"await fetch"| CMS["microCMS"]
     BlogPost -->|"await fetch"| CMS
 ```
@@ -259,9 +245,18 @@ graph TB
 
 Three.js コンポーネントは `dynamic(() => import("./hero-canvas"), { ssr: false })` でクライアント限定にし、SSR 時のエラーとバンドル肥大化を回避しています。モバイル判定でパーティクル数を削減（1500 → 800）し、テクスチャキャッシングと `useRef` ベースのスクロール制御で不要な React 再レンダリングを抑止しています。
 
+さらに以下のパフォーマンス最適化を実施しています：
+
+- **3D 初期化の遅延**: `requestIdleCallback` で Canvas マウントと GLB プリロードをブラウザのアイドル時まで遅延させ、初期ロードのメインスレッドブロックを回避
+- **Canvas 描画の動的制御**: Mission セクション表示中は `frameloop="never"` で GPU レンダリングを完全停止し、バッテリー消費とモバイル発熱を抑制
+- **GLB モデルの最適化**: gltf-transform によるメッシュ簡略化・テクスチャリサイズ・Draco 再圧縮で 6.8MB → 3.6MB に削減
+- **webpack splitChunks**: Three.js（three / @react-three / three-stdlib）と Framer Motion を独立チャンクに分離し、初期バンドルサイズを削減
+- **SSR 空白の解消**: Providers の `isMounted` パターンを除去し、初期 HTML を出力することで Lighthouse の FCP/LCP 計測を可能に
+- **LoadingScreen の CSS 化**: ローディング画面から Three.js Canvas を除去し、CSS アニメーションのみで実装。WebGL コンテキストの初期化を 2 回 → 1 回に削減
+
 ### 三層アニメーション設計
 
-アニメーションを Three.js（3Dシーン全体）/ GSAP（スクロール駆動のDOM制御）/ Framer Motion（コンポーネント遷移）の3層に分離しています。`hero-canvas.tsx`（1039行）がスクロール進行率に応じてカメラ・パーティクル・カード表示をフレーム単位で制御しています。
+アニメーションを Three.js（3Dシーン全体）/ GSAP（スクロール駆動のDOM制御）/ Framer Motion（コンポーネント遷移）の3層に分離しています。`hero-canvas.tsx`（約1,000行）がスクロール進行率に応じてカメラ・パーティクル・カード表示をフレーム単位で制御しています。
 
 ### SEO/AIO/LLMO 対応
 
@@ -272,7 +267,7 @@ JSON-LD 構造化データ（Organization, WebSite, Service）をトップペー
 ```
 src/
 ├── app/
-│   ├── actions/          # Server Actions (お問い合わせ, 応募)
+│   ├── actions/          # Server Actions (お問い合わせ)
 │   ├── api/              # API ルート (microCMS Webhook)
 │   ├── blog/             # ブログ機能 (microCMS連携, SSG)
 │   ├── components/       # ページ固有コンポーネント (Colocation)
@@ -283,7 +278,7 @@ src/
 │   ├── blog/             # ブログUI
 │   ├── contact/          # お問い合わせフォーム
 │   └── ui/               # 共通UIコンポーネント (shadcn/ui)
-├── lib/                  # ユーティリティ (microCMS, Prisma, SEO, sanitize)
+├── lib/                  # ユーティリティ (microCMS, SEO, sanitize)
 ├── contexts/             # React Context
 └── types/                # 型定義
 public/
@@ -330,7 +325,6 @@ vertex/fragment ペア8組のシェーダーを `public/shaders/` に配置し�
 - **git-commit-workflow** — Conventional Commits 規約に沿ったコミット・PR作成フロー
 - **ci-cd-workflow** — GitHub Actions ワークフローの生成・管理
 - **dotenvx-setup** — 環境変数の暗号化管理セットアップ
-- **prisma-migration-assistant** — Prisma スキーマ変更時の安全なマイグレーション
 - **project-scaffold** — 新規プロジェクトの初期構成生成
 - **qa-reviewer** — 実装後のコード品質レビューエージェント
 
