@@ -307,6 +307,3 @@ vertex/fragment ペア8組のシェーダーを `public/shaders/` に配置し�
 
 PR 作成時に GitHub Actions で Biome lint + Next.js build チェックを自動実行します。main ブランチへのマージで Vercel に自動デプロイされます。
 
-## ライセンス
-
-ソースコードは参考としてご覧いただけます。サイトのデザイン・コンテンツの無断転用はご遠慮ください。
