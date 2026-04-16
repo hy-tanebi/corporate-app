@@ -57,7 +57,7 @@ TANEBI（種火）という社名には、暗闇の中にある小さな火—�
 
 ## 技術スタック
 
-[![Tech Stack](https://skillicons.dev/icons?i=nextjs,react,ts,threejs,tailwind,supabase,vercel,githubactions)](https://skillicons.dev)
+[![Tech Stack](https://skillicons.dev/icons?i=nextjs,react,ts,threejs,tailwind,vercel,githubactions)](https://skillicons.dev)
 
 | カテゴリ | 技術 |
 |---|---|
@@ -65,12 +65,12 @@ TANEBI（種火）という社名には、暗闇の中にある小さな火—�
 | 3Dグラフィックス | Three.js / React Three Fiber / カスタムGLSLシェーダー (16本) |
 | スタイリング | Tailwind CSS / shadcn/ui (Radix UI) |
 | アニメーション | GSAP / Framer Motion |
-| バックエンド | Server Actions / Supabase (PostgreSQL) |
+| バックエンド | Server Actions |
 | CMS | microCMS |
 | メール送信 | Resend |
 | バリデーション | Zod / React Hook Form |
 | コード品質 | Biome (Linter + Formatter) |
-| AI開発 | Claude Code (カスタムスキル / QAレビューエージェント / CLAUDE.md 開発憲章) |
+| AI開発 | Claude Code (カスタムスキル / CLAUDE.md 開発憲章) |
 | CI/CD | GitHub Actions → Vercel |
 | SEO/AIO | JSON-LD 構造化データ / llms.txt / 動的サイトマップ |
 | セキュリティ | sanitize-html (XSS対策) / セキュリティヘッダー / dotenvx (環境変数暗号化) |
@@ -92,18 +92,6 @@ React Server Components（RSC）をファーストクラスで扱える点が決
 クリエイティブ事業のサイトとして「技術力を体験として伝える」ことが目的です。静的な画像やテキストでは差別化が難しいため、ファーストビューに 3D シーンを配置し、スクロールに連動したインタラクティブな演出を実装しました。
 
 React Three Fiber を選んだのは、**React のコンポーネントモデルと Three.js を統合**できるためです。素の Three.js だと React のライフサイクルとの整合を自前で管理する必要がありますが、R3F なら `useFrame` や `useRef` で React の作法に沿った 3D 開発ができます。drei ライブラリで定型処理（OrbitControls, Text など）も効率化しています。
-
-</details>
-
-<details>
-<summary><strong>microCMS と Supabase の使い分け — なぜ CMS を分離したか</strong></summary>
-
-**microCMS** → ブログ記事（コンテンツ管理）  
-**Supabase** → お問い合わせデータ（リレーショナルデータ）
-
-Supabase 単体でブログも管理できますが、記事の執筆・編集・画像管理・プレビューといった**編集体験は専用 CMS の方が圧倒的に優れています**。microCMS は日本語対応の管理画面と、リッチエディタによる直感的な記事作成が強みです。一方、お問い合わせデータのようなリレーショナルデータは Supabase（PostgreSQL）で型安全に管理する方が適切です。
-
-「コンテンツはコンテンツ管理に最適化されたサービスで、データはデータベースで」という責務の分離を意識した選定です。
 
 </details>
 
@@ -153,7 +141,6 @@ Claude Code を導入した目的は、**1人開発でもチーム開発に近�
   - **グローバルスキル**（`~/.claude/skills/` — 全プロジェクト共通）: `ci-cd-workflow`（GitHub Actions ワークフロー生成）/ `git-commit-workflow`（Conventional Commits 規約に沿ったコミット・PR フロー）/ `dotenvx-setup`（環境変数の暗号化管理）/ `project-scaffold`（新規プロジェクトの初期構成生成）/ `git-worktree-workflow`（複数ブランチの並行開発）
   - **ローカルスキル**（`.claude/skills/` — このプロジェクト専用）: `claude-skill-creator`（スキル作成ガイド）/ `material-design`（UI コンポーネント設計）
   - **インストール済みスキル**: `vercel-react-best-practices`（Next.js パフォーマンス最適化）/ `shadcn-ui`（コンポーネント実装）
-- **QA レビューエージェント**: 実装完了後にコード品質レビューを実行し、セキュリティリスクやパフォーマンス上の問題を機械的にチェックしています
 
 また、Claude Code はターミナル上で動作する CLI ツールでありながら、対話的な UI/UX が非常に直感的です。コードの差分表示、ファイル操作の確認プロンプト、ツール実行の可視化など、**開発者が「何が起きているか」を常に把握できる設計**になっており、AI の出力をブラックボックスにしない点が信頼して使える理由の一つです。
 
@@ -180,10 +167,6 @@ graph LR
         Resend["Resend"]
     end
 
-    subgraph Supabase["Supabase"]
-        PostgreSQL[("PostgreSQL")]
-    end
-
     subgraph CI["CI/CD"]
         GHA["GitHub Actions"]
     end
@@ -193,7 +176,6 @@ graph LR
     NextJS --> SA
     RSC -->|"記事取得"| microCMS
     SA -->|"メール送信"| Resend
-    SA -->|"データ保存"| PostgreSQL
     GHA -->|"lint + build"| Vercel
 ```
 
@@ -318,7 +300,6 @@ vertex/fragment ペア8組のシェーダーを `public/shaders/` に配置し�
 - **ci-cd-workflow** — GitHub Actions ワークフローの生成・管理
 - **dotenvx-setup** — 環境変数の暗号化管理セットアップ
 - **project-scaffold** — 新規プロジェクトの初期構成生成
-- **qa-reviewer** — 実装後のコード品質レビューエージェント
 
 </details>
 
