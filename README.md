@@ -6,6 +6,7 @@
 
 このリポジトリは、ポートフォリオとしても公開しています。 企画・デザイン・実装・運用を担当しています。
 
+https://github.com/user-attachments/assets/9b5a6d05-6d35-423d-b108-a62fcf70b035
 
 ## 課題と解決
 
