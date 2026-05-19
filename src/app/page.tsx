@@ -19,7 +19,7 @@ export default function Home() {
 								url: "https://tanebi-net.com",
 								image: "https://tanebi-net.com/images/ogp.jpg",
 								description:
-									"岩手県奥州市を拠点に、AIを活用した業務改善やDX推進、ホームページ・ECサイト制作、アプリ開発を行っています。地域の中小企業がデジタルを実務で活かせるよう支援します。",
+									"岩手県奥州市を拠点に、AIを活用した業務改善やDX推進、Webサイト・ECサイト制作、アプリ開発を行っています。地域の中小企業がデジタルを実務で活かせるよう支援します。",
 								slogan:
 									"種から形へ、種火を力に。技術と対話で、事業の前進を支援します。",
 								address: {
@@ -43,10 +43,10 @@ export default function Home() {
 									"AI事業者",
 									"AI導入支援",
 									"AI活用コンサルティング",
-									"SEO（AIO・LLMO を含む生成AI時代の検索最適化）",
+									"SEO（AIO/LLMO を含む生成AI時代の検索最適化）",
 									"構造化データ・コンテンツ設計",
 									"岩手県内の中小企業向けDX・業務効率化支援",
-									"AIを活用した集客・ホームページ制作",
+									"AIを活用した集客・Webサイト制作",
 									"AIによる事務作業の自動化",
 									"社内情報の整理・ナレッジ共有の仕組み作り",
 								],
@@ -82,7 +82,7 @@ export default function Home() {
 							{
 								"@type": "Service",
 								"@id": "https://tanebi-net.com/#service-dx",
-								name: "AI業務効率化・DX支援（LLMO 対応）",
+								name: "AI実務活用・DX支援・SEO対応",
 								provider: {
 									"@id": "https://tanebi-net.com/#organization",
 								},

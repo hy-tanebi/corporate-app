@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const SITE_CONFIG = {
 	name: "TANEBI CREATIVE | 岩手・奥州のWeb開発・AI活用・DX支援",
 	description:
-		"岩手県奥州市を拠点に、AIを活用した業務改善やDX推進、ホームページ・ECサイト制作、アプリ開発を行っています。地域の中小企業がデジタルを実務で活かせるよう支援します。",
+		"岩手県奥州市を拠点に、AIを活用した業務改善やDX推進、Webサイト・ECサイト制作、アプリ開発を行っています。地域の中小企業がデジタルを実務で活かせるよう支援します。",
 	url: process.env.NEXT_PUBLIC_SITE_URL || "https://tanebi-net.com",
 	author: "TANEBI CREATIVE",
 	twitterHandle: "@tanebi_creative", // Replace with actual handle
