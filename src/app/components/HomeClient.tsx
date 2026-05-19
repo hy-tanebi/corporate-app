@@ -284,7 +284,7 @@ export default function HomeClient() {
 						}}
 					>
 						<span className="block">ホームページ制作 / ECサイト制作</span>
-						<span className="block">アプリ開発 / AI業務効率化 /</span>
+						<span className="block">アプリ開発 / 業務効率化 / DX支援 /</span>
 						<span className="block">AI時代に対応したSEO対応を</span>
 						<span className="block">課題解決に向けてAI時代の最適な提案を</span>
 					</p>
