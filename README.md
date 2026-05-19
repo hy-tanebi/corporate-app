@@ -72,7 +72,7 @@ TANEBI（種火）という社名には、暗闇の中にある小さな火—�
 | コード品質 | Biome (Linter + Formatter) |
 | AI開発 | Claude Code (カスタムスキル / CLAUDE.md 開発憲章) |
 | CI/CD | GitHub Actions → Vercel |
-| SEO/AIO | JSON-LD 構造化データ / llms.txt / 動的サイトマップ |
+| SEO（AIO/LLMO） | JSON-LD 構造化データ / llms.txt / 動的サイトマップ |
 | セキュリティ | sanitize-html (XSS対策) / セキュリティヘッダー / dotenvx (環境変数暗号化) |
 
 ## 技術選定の理由
@@ -232,7 +232,7 @@ Three.js コンポーネントは `dynamic(() => import("./hero-canvas"), { ssr:
 
 アニメーションを Three.js（3Dシーン全体）/ GSAP（スクロール駆動のDOM制御）/ Framer Motion（コンポーネント遷移）の3層に分離しています。`hero-canvas.tsx`（約1,000行）がスクロール進行率に応じてカメラ・パーティクル・カード表示をフレーム単位で制御しています。
 
-### SEO/AIO/LLMO 対応
+### SEO（AIO/LLMO）対応
 
 JSON-LD 構造化データ（Organization, WebSite, Service）をトップページに埋め込み、ブログ記事には動的メタデータを生成しています。`llms.txt` を配置して LLM クローラー向けの情報を提供し、`robots.txt` で GPTBot・Claude-Web・PerplexityBot 等の AI クローラーを許可しています。
 
