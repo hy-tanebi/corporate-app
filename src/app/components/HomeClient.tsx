@@ -283,10 +283,10 @@ export default function HomeClient() {
 								: "0 0 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.9)",
 						}}
 					>
-						<span className="block">ホームページ制作 / ECサイト制作</span>
-						<span className="block">アプリ開発 / AI業務効率化 /</span>
-						<span className="block">AI時代に対応したSEO対応を</span>
-						<span className="block">課題解決に向けてAI時代の最適な提案を</span>
+						<span className="block">Webサイト・ECサイト制作</span>
+						<span className="block">アプリ開発 / AI実務活用 / DX支援 /</span>
+						<span className="block">SEO・集客支援も</span>
+						<span className="block">課題解決に向けた最適な提案を</span>
 					</p>
 				</div>
 			</div>
