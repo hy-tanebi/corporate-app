@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies, draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { TableOfContentsClient } from "@/components/blog/post-toc-client";
@@ -39,13 +40,20 @@ export async function generateMetadata({
 
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 	const { slug } = await params;
+	const { isEnabled } = await draftMode();
+
+	let draftKey: string | undefined;
+	if (isEnabled) {
+		const cookieStore = await cookies();
+		draftKey = cookieStore.get("__microcms_preview_draftkey")?.value;
+	}
 
 	let post: BlogPost | null = null;
 	let profile: AuthorProfile | null = null;
 
 	try {
 		[post, profile] = await Promise.all([
-			getBlogPost(slug),
+			getBlogPost(slug, draftKey),
 			getAuthorProfile().catch((err) => {
 				console.warn("プロフィール取得エラー:", err);
 				return null;
@@ -101,6 +109,15 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 	);
 
 	return (
+		<>
+		{isEnabled && (
+			<div className="fixed top-0 left-0 right-0 z-50 bg-yellow-400 text-yellow-900 text-center text-sm py-1 font-medium">
+				プレビューモード —{" "}
+				<a href={`/api/exit-preview?slug=${slug}`} className="underline">
+					終了する
+				</a>
+			</div>
+		)}
 		<div className="container mx-auto px-4 pt-16 lg:pt-8 py-8 max-w-5xl">
 			{/* ヘッダー部分（常に1カラム） */}
 			<nav className="mb-8 hidden lg:block">
@@ -170,16 +187,18 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
 			<ScrollToTop />
 		</div>
+		</>
 	);
 }
 
 // 静的生成のためのパス生成
 export async function generateStaticParams() {
-	// ビルド時に環境変数が設定されていない場合は空配列を返す
-	if (!process.env.MICROCMS_SERVICE_DOMAIN || !process.env.MICROCMS_API_KEY) {
-		console.warn(
-			"microCMS環境変数が設定されていません。静的パス生成をスキップします。",
-		);
+	// モックモードまたはビルド時に環境変数が設定されていない場合はスキップ
+	if (
+		process.env.USE_MOCK_BLOG === "true" ||
+		!process.env.MICROCMS_SERVICE_DOMAIN ||
+		!process.env.MICROCMS_API_KEY
+	) {
 		return [];
 	}
 

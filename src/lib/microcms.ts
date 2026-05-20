@@ -113,7 +113,7 @@ export const getBlogPosts = async (
 };
 
 // 特定のブログ記事を取得
-export const getBlogPost = async (id: string): Promise<BlogPost> => {
+export const getBlogPost = async (id: string, draftKey?: string): Promise<BlogPost> => {
 	if (useMock) {
 		const post = getMockBlogPost(id);
 		if (!post) throw new Error(`Mock post not found: ${id}`);
@@ -130,7 +130,8 @@ export const getBlogPost = async (id: string): Promise<BlogPost> => {
 		queries: {
 			fields:
 				"id,title,content,eyecatch,category,mediaType,videoUrl,isShowcase,liveUrl,githubUrl,techStack,createdAt,updatedAt,publishedAt,revisedAt",
-			depth: 1, // 関連コンテンツを展開
+			depth: 1,
+			...(draftKey ? { draftKey } : {}),
 		},
 	});
 	return response;
