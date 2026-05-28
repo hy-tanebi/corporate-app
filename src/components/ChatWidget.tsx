@@ -19,6 +19,8 @@ export default function ChatWidget() {
 						className="w-full h-full"
 						allow="microphone"
 					/>
+					{/* Dify ロゴを隠すオーバーレイ */}
+					<div className="absolute bottom-0 left-0 right-0 h-10 bg-white" />
 				</div>
 			)}
 
