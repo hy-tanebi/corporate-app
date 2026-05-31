@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# superpowers brainstorm sessions
+.superpowers/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -50,3 +53,9 @@ public/images/mock/
 # 大きな3Dモデルファイル（Vercel Blobで管理）
 # public/models/*.glb
 public/models/*.fbx
+
+# ブログ記事の下書き（microCMS公開前のローカル原稿）
+/blog/
+
+# ローカル作業メモ・進捗管理（git管理外）
+/doc/
