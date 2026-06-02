@@ -68,9 +68,6 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 		notFound();
 	}
 
-	// DEBUG: コンテンツの型を確認（確認後に削除）
-	console.log('[DEBUG] content type:', typeof post.content, '| value:', JSON.stringify(post.content)?.substring(0, 200));
-
 	// 見出しの数をカウント（4個以上で目次を表示）
 	const countHeadings = (content: string) => {
 		const matches = content.match(/<h[123]/g);
