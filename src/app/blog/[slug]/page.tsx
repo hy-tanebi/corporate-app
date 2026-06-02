@@ -84,11 +84,15 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 					<div
 						className="prose dark:prose-invert max-w-none prose-lg prose-headings:font-bold prose-headings:tracking-tight prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-gray-200 dark:prose-h2:border-gray-700 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:mb-5 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:overflow-x-auto prose-pre:text-sm prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:text-gray-600 prose-img:rounded-lg prose-img:shadow-md prose-hr:my-8"
 					>
-						{typeof post.content === "string" ? (
+						{!post.content ? (
+							<p className="text-gray-500 dark:text-gray-400">
+								コンテンツは現在準備中です。
+							</p>
+						) : typeof post.content === "string" ? (
 							// biome-ignore lint/security/noDangerouslySetInnerHtml: microCMSコンテンツをDOMPurifyでサニタイズ済み
 							<div dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} />
 						) : (
-							<pre className="whitespace-pre-wrap bg-gray-100 p-4 rounded">
+							<pre className="not-prose whitespace-pre-wrap bg-gray-100 dark:bg-gray-800 p-4 rounded text-sm">
 								{JSON.stringify(post.content, null, 2)}
 							</pre>
 						)}
