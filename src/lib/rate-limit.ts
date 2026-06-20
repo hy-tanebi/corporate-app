@@ -26,11 +26,29 @@ export function checkSessionRateLimit(sessionId: string): boolean {
   return check(`session:${sessionId}`, 30, 24 * 60 * 60_000);
 }
 
-/** x-forwarded-for または x-real-ip から IP を取得 */
+/**
+ * クライアント IP を取得する。
+ *
+ * Vercel のエッジは信頼できるクライアント IP を `x-real-ip` に設定する
+ * （クライアントが偽装した同名ヘッダは上書きされる）。一方 `x-forwarded-for` は
+ * クライアントが先頭に偽の IP を差し込めるため、先頭要素をそのまま信頼すると
+ * IP 単位の rate limit を回避されてしまう。Vercel が付与する実 IP は末尾側に来る。
+ * そこで `x-real-ip` を優先し、無い場合のみ `x-forwarded-for` の末尾要素に
+ * フォールバックする（Vercel 公式ヘルパー `ipAddress` と同じ優先順）。
+ */
 export function getClientIp(request: Request): string {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    request.headers.get('x-real-ip') ??
-    'unknown'
-  );
+  const realIp = request.headers.get('x-real-ip')?.trim();
+  if (realIp) return realIp;
+
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) {
+    const last = forwarded
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .at(-1);
+    if (last) return last;
+  }
+
+  return 'unknown';
 }
