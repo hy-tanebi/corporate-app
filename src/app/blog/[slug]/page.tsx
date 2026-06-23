@@ -13,7 +13,7 @@ import {
 	type BlogPost,
 	type AuthorProfile,
 } from "@/lib/microcms";
-import { generateBlogMetadata } from "@/lib/seo";
+import { generateBlogJsonLd, generateBlogMetadata } from "@/lib/seo";
 import { sanitizeHtml } from "@/lib/sanitize";
 
 interface BlogDetailPageProps {
@@ -112,8 +112,17 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 		</>
 	);
 
+	const jsonLd = generateBlogJsonLd(post, profile?.name);
+	// </script> ブレイクアウト対策として < をエスケープ
+	const jsonLdHtml = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
+
 	return (
 		<>
+		<script
+			type="application/ld+json"
+			// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD（< はエスケープ済み）
+			dangerouslySetInnerHTML={{ __html: jsonLdHtml }}
+		/>
 		{isEnabled && (
 			<div className="fixed top-0 left-0 right-0 z-50 bg-yellow-400 text-yellow-900 text-center text-sm py-1 font-medium">
 				プレビューモード —{" "}

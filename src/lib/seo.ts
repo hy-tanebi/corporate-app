@@ -77,6 +77,61 @@ export function generateBlogMetadata(post: BlogPost): Metadata {
 	};
 }
 
+// ブログ記事の構造化データ（JSON-LD / BlogPosting）生成
+// Google のリッチリザルト・生成AI（AIO/LLMO）での可読性向上を目的とする
+export function generateBlogJsonLd(
+	post: BlogPost,
+	authorName?: string,
+): Record<string, unknown> {
+	const description = extractDescription(post.content);
+	const url = `${SITE_CONFIG.url}/blog/${post.id}`;
+	const image = post.eyecatch?.url
+		? post.eyecatch.url
+		: `${SITE_CONFIG.url}${SITE_CONFIG.ogImage}`;
+
+	// 日付のパース時にエラーが出ないように安全策を追加
+	let datePublished = new Date().toISOString();
+	let dateModified = new Date().toISOString();
+	try {
+		if (post.publishedAt)
+			datePublished = new Date(post.publishedAt).toISOString();
+		if (post.updatedAt) dateModified = new Date(post.updatedAt).toISOString();
+	} catch (e) {
+		console.warn("Date parsing error in generateBlogJsonLd", e);
+	}
+
+	return {
+		"@context": "https://schema.org",
+		"@type": "BlogPosting",
+		headline: post.title,
+		description,
+		image,
+		datePublished,
+		dateModified,
+		url,
+		mainEntityOfPage: {
+			"@type": "WebPage",
+			"@id": url,
+		},
+		author: {
+			"@type": "Person",
+			name: authorName || SITE_CONFIG.author,
+		},
+		publisher: {
+			"@type": "Organization",
+			"@id": `${SITE_CONFIG.url}/#organization`,
+			name: SITE_CONFIG.author,
+			logo: {
+				"@type": "ImageObject",
+				url: `${SITE_CONFIG.url}/images/favicon.png`,
+			},
+		},
+		...(post.category && post.category.length > 0
+			? { keywords: post.category.join(", ") }
+			: {}),
+	};
+}
+
 export const BLOG_LIST_METADATA: Metadata = {
 	title: "ブログ一覧",
 	description: "技術記事やプロジェクトについての情報を発信しています。",
