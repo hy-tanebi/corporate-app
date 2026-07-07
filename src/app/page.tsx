@@ -1,9 +1,9 @@
-import HeroCanvasWithCMS from "@/components/three/HeroCanvasWithCMS";
+import HeroCanvasSection from "@/components/three/HeroCanvasSection";
 import HomeClient from "./components/HomeClient";
 
 export default function Home() {
 	return (
-		<HeroCanvasWithCMS>
+		<HeroCanvasSection>
 			<script
 				type="application/ld+json"
 				// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD
@@ -99,6 +99,6 @@ export default function Home() {
 			/>
 			{/* クライアント側のUIロジックをHomeClientに委譲 */}
 			<HomeClient />
-		</HeroCanvasWithCMS>
+		</HeroCanvasSection>
 	);
 }

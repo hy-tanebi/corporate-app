@@ -973,7 +973,7 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 		// Canvas内からContextにアクセスするのは難しいため、Props経由でSceneに渡す、
 		// もしくはCanvas内でuseContextするためのBridgeが必要だが、
 		// ここでは単純にPropsとしてSceneに渡す形をとる。
-		// Providerは親(HeroCanvasWithCMS -> HeroStateProvider)にある。
+		// Providerは親(HeroCanvasSection -> HeroStateProvider)にある。
 		// ただし、もしCanvas内のコンポーネントがuseHeroState()を使っている場合は、
 		// Canvas内で再度Providerで包むか、dreiの<HttpContextBridge>等が必要。
 		// 現状、HeroSceneはPropsで全て受け取っているので問題ないはず。
