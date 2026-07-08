@@ -100,6 +100,19 @@ export default function HomeClient() {
 		}
 	};
 
+	// 他ページ（LPのCTAなど）から `/#contact` でアクセスされた場合、
+	// Contactセクションまでスクロールする（サイドバーの「/contact」遷移と同じロジックを再利用）
+	// biome-ignore lint/correctness/useExhaustiveDependencies: 初回マウント時のみ実行したいため handleNavigate は依存に含めない
+	useEffect(() => {
+		if (window.location.hash === "#contact") {
+			// 3Dシーンやレイアウトの初期化を待ってから実行（/aboutの遅延パターンに合わせる）
+			const timer = setTimeout(() => {
+				handleNavigate("/contact");
+			}, 500);
+			return () => clearTimeout(timer);
+		}
+	}, []);
+
 	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
 	const CIRCLE_START = 0.92;
 	const CIRCLE_SCROLL_END = 0.97; // hero-canvas.tsxのCIRCLE_SCROLL_END
