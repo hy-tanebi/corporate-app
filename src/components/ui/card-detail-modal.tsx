@@ -117,8 +117,11 @@ export function CardDetailModal({
 								onClick={(e) => {
 									e.stopPropagation();
 									if (slide.liveUrl) {
-										if (slide.liveUrl.startsWith("/")) {
-											// 内部リンクは同一タブで遷移させる
+										if (
+											slide.liveUrl.startsWith("/") &&
+											!slide.liveUrl.startsWith("//")
+										) {
+											// 内部リンクは同一タブで遷移させる（"//"はプロトコル相対URLのため除外）
 											window.location.assign(slide.liveUrl);
 										} else {
 											window.open(slide.liveUrl, "_blank", "noopener,noreferrer");
