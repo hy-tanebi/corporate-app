@@ -117,7 +117,12 @@ export function CardDetailModal({
 								onClick={(e) => {
 									e.stopPropagation();
 									if (slide.liveUrl) {
-										window.open(slide.liveUrl, "_blank", "noopener,noreferrer");
+										if (slide.liveUrl.startsWith("/")) {
+											// 内部リンクは同一タブで遷移させる
+											window.location.assign(slide.liveUrl);
+										} else {
+											window.open(slide.liveUrl, "_blank", "noopener,noreferrer");
+										}
 									}
 								}}
 							>
