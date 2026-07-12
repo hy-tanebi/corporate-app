@@ -135,61 +135,53 @@ export default function ServicePage() {
 										</p>
 									))}
 								</div>
-								<div className="self-start rounded-2xl bg-secondary p-6 lg:p-7">
-									<p className="text-xs font-bold tracking-widest text-muted-foreground mb-4">
+								<div className="self-start lg:pt-1">
+									<p className="text-xs font-bold tracking-widest text-muted-foreground mb-3">
 										例えばこんなこと
 									</p>
-									<ul className="space-y-3">
+									<ul>
 										{menu.items.map((item) => (
 											<li
 												key={item}
-												className="flex items-start gap-3 text-sm font-medium leading-relaxed"
+												className="flex gap-3 py-3 border-t border-border text-sm leading-relaxed"
 											>
-												<span
-													aria-hidden
-													className="mt-[0.45em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#e8590c]"
-												/>
+												<span aria-hidden className="text-[#e8590c]">
+													—
+												</span>
 												{item}
 											</li>
 										))}
 									</ul>
+									<p className="mt-4 text-xs text-muted-foreground">
+										その他、課題に感じていることがありましたら、
+										<Link
+											href="/#contact"
+											className="font-bold text-foreground underline underline-offset-4 hover:text-[#e8590c] transition-colors"
+										>
+											お気軽にご相談ください
+										</Link>
+										。
+									</p>
 								</div>
 							</div>
 						</div>
 					))}
 				</div>
-				<div className="mt-14 flex flex-col items-start gap-4 text-sm lg:text-base text-muted-foreground">
-					<p>
-						自社でも同じ進め方でツールを作り、毎日使っています。{" "}
-						<Link
-							href="/works"
-							className="group inline-flex items-center gap-2 rounded-full border border-foreground px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-foreground hover:text-background ml-1"
+				<p className="mt-14 text-sm lg:text-base text-muted-foreground">
+					自社でも同じ進め方でツールを作り、毎日使っています。{" "}
+					<Link
+						href="/works"
+						className="group inline-flex items-center gap-2 rounded-full border border-foreground px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-foreground hover:text-background ml-1"
+					>
+						実際の取り組みはこちら
+						<span
+							aria-hidden
+							className="transition-transform group-hover:translate-x-0.5"
 						>
-							実際の取り組みはこちら
-							<span
-								aria-hidden
-								className="transition-transform group-hover:translate-x-0.5"
-							>
-								→
-							</span>
-						</Link>
-					</p>
-					<p>
-						その他、課題に感じていることがありましたら、{" "}
-						<Link
-							href="/#contact"
-							className="group inline-flex items-center gap-2 rounded-full border border-foreground px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-foreground hover:text-background ml-1"
-						>
-							お気軽にご相談ください
-							<span
-								aria-hidden
-								className="transition-transform group-hover:translate-x-0.5"
-							>
-								→
-							</span>
-						</Link>
-					</p>
-				</div>
+							→
+						</span>
+					</Link>
+				</p>
 			</LpSection>
 
 			<LpSection eyebrow="Flow" title="ご相談の流れ">
