@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CtaBlock } from "@/components/lp/CtaBlock";
+import { anton, notoSansJp } from "@/components/lp/fonts";
 import { LpSection } from "@/components/lp/LpSection";
 import { PageHero } from "@/components/lp/PageHero";
 
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 
 const issues = [
 	{
+		tag: "WEB",
 		title: "ホームページが古いまま、問い合わせも来ない",
 		summary: "サイトはあるのに、そこから問い合わせが来た記憶がない。",
 		body: [
@@ -19,6 +21,7 @@ const issues = [
 		],
 	},
 	{
+		tag: "EXCEL",
 		title: "Excel・紙の管理が属人化していてしんどい",
 		summary: "その担当者しか分からない。引き継ぎができない。",
 		body: [
@@ -27,6 +30,7 @@ const issues = [
 		],
 	},
 	{
+		tag: "OPS",
 		title: "事務作業・資料作成に時間がかかっている",
 		summary: "毎月同じ資料を手で作っている。議事録が地味に大変。",
 		body: [
@@ -35,6 +39,7 @@ const issues = [
 		],
 	},
 	{
+		tag: "AI",
 		title: "AIが気になるけど、何から始めればいいか分からない",
 		summary: "ChatGPTは触ってみたけど、業務への活かし方が分からない。",
 		body: [
@@ -46,26 +51,36 @@ const issues = [
 
 export default function ServiceIssuesPage() {
 	return (
-		<div className="container mx-auto max-w-5xl px-4">
+		<div className={`${notoSansJp.className} container mx-auto max-w-5xl px-4`}>
 			<PageHero
-				label="ISSUES"
+				label="Find your first step"
+				english="Issues"
 				title="こんなお悩み、ありませんか"
 				lead={
 					"古いホームページのまま何年も経っている。Excel管理が自分にしか分からない状態になっている。AIが気になってはいるけど、何から手をつけていいか分からない。\nそういう「何とかしたいとは思っているけど、後回しにしてしまっている」ことに、一緒に手をつける仕事をしています。"
 				}
+				pills={[
+					{ label: "できることを見る", href: "/service" },
+					{ label: "実際の取り組み", href: "/works" },
+				]}
 			/>
 
-			<LpSection title="よくあるお悩み">
+			<LpSection eyebrow="Issues" title="よくあるお悩み">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
 					{issues.map((issue) => (
 						<div
-							key={issue.title}
-							className="rounded-2xl border border-border p-6 lg:p-8"
+							key={issue.tag}
+							className="rounded-3xl bg-secondary p-7 lg:p-9"
 						>
-							<h3 className="text-lg lg:text-xl font-bold mb-2">
+							<p
+								className={`${anton.className} text-xs tracking-[0.3em] uppercase text-[#e8590c] mb-3`}
+							>
+								{issue.tag}
+							</p>
+							<h3 className="text-lg lg:text-xl font-black leading-snug mb-2">
 								{issue.title}
 							</h3>
-							<p className="text-sm font-medium text-muted-foreground mb-4">
+							<p className="text-sm font-bold text-muted-foreground mb-5">
 								{issue.summary}
 							</p>
 							{issue.body.map((paragraph) => (
@@ -81,8 +96,8 @@ export default function ServiceIssuesPage() {
 				</div>
 			</LpSection>
 
-			<LpSection title="小さく相談できます">
-				<p className="text-base lg:text-lg leading-relaxed max-w-2xl">
+			<LpSection eyebrow="Start small" title="小さく相談できます">
+				<p className="text-base lg:text-lg leading-loose max-w-2xl">
 					「何を頼めばいいかまだ分からない」という状態での相談で大丈夫です。まず話を聞いて、何から手をつけると変わりそうかを一緒に整理します。
 				</p>
 			</LpSection>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { CtaBlock } from "@/components/lp/CtaBlock";
+import { anton, notoSansJp } from "@/components/lp/fonts";
 import { LpSection } from "@/components/lp/LpSection";
 import { PageHero } from "@/components/lp/PageHero";
 
@@ -12,7 +13,8 @@ export const metadata: Metadata = {
 
 const menus = [
 	{
-		number: "01",
+		id: "web",
+		en: "Web",
 		title: "Webサイト改善の見直し",
 		body: [
 			"古くなったサイトの情報整理、問い合わせ導線の確認、スマホ表示・ページ速度の確認、GA4の導入状況の確認と改善提案をします。",
@@ -26,7 +28,8 @@ const menus = [
 		],
 	},
 	{
-		number: "02",
+		id: "ai",
+		en: "AI",
 		title: "AI業務改善のミニ相談",
 		body: [
 			"業務を聞き取って、AIで置き換えられる作業・置き換えない方がいい作業を整理します。「とりあえずAIを入れれば効率化できる」ということはなく、業務に合った使い方がそれぞれあります。",
@@ -40,7 +43,8 @@ const menus = [
 		],
 	},
 	{
-		number: "03",
+		id: "tools",
+		en: "Tools",
 		title: "小規模業務ツールの開発",
 		body: [
 			"「大きなシステムは不要だけど、Excelや紙での管理をもう少し整理したい」という場合に対応します。認証・管理画面・データ出力のある小さなWebツールを作ります。",
@@ -56,71 +60,89 @@ const menus = [
 
 export default function ServicePage() {
 	return (
-		<div className="container mx-auto max-w-5xl px-4">
+		<div className={`${notoSansJp.className} container mx-auto max-w-5xl px-4`}>
 			<PageHero
-				label="SERVICE"
+				label="What we can do"
+				english="Service"
 				title="できること ─ ご相談メニュー"
 				lead={
 					"Web改善の見直し、AI業務改善の整理、小さな業務ツールづくり。\nどれも「まず話を聞いてから」始めます。小さく始められます。"
 				}
+				pills={[
+					{ label: "Webサイト改善", href: "#web" },
+					{ label: "AI業務改善", href: "#ai" },
+					{ label: "業務ツール開発", href: "#tools" },
+				]}
 			/>
 
-			<LpSection title="ご相談できること">
-				<p className="text-base lg:text-lg leading-relaxed max-w-2xl mb-12">
-					TANEBI CREATIVEで対応していることを、3つのメニューとして整理しました。いずれも「決めてから依頼する」ではなく、「まず話してみる」から始められます。
+			<LpSection eyebrow="Menu" title="ご相談できること">
+				<p className="text-base lg:text-lg leading-loose max-w-2xl mb-14 lg:mb-20">
+					TANEBI
+					CREATIVEで対応していることを、3つのメニューとして整理しました。いずれも「決めてから依頼する」ではなく、「まず話してみる」から始められます。
 				</p>
-				<div className="space-y-12 lg:space-y-16">
+				<div className="space-y-16 lg:space-y-24">
 					{menus.map((menu) => (
-						<div
-							key={menu.number}
-							className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-12"
-						>
-							<div>
-								<p className="text-sm font-bold tracking-[0.2em] text-muted-foreground mb-2">
-									{menu.number}
-								</p>
-								<h3 className="text-xl lg:text-2xl font-bold mb-4">
-									{menu.title}
-								</h3>
-								{menu.body.map((paragraph) => (
-									<p
-										key={paragraph}
-										className="text-sm lg:text-base leading-relaxed mb-3 last:mb-0"
-									>
-										{paragraph}
-									</p>
-								))}
+						<div key={menu.id} id={menu.id} className="scroll-mt-8">
+							<p
+								className={`${anton.className} text-5xl lg:text-7xl leading-none uppercase tracking-tight text-foreground/10 mb-3`}
+							>
+								{menu.en}
+							</p>
+							<div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-12">
+								<div>
+									<h3 className="text-2xl lg:text-3xl font-black mb-5">
+										{menu.title}
+										<span className="inline-block h-[0.16em] w-[0.16em] rounded-full bg-[#e8590c] ml-[0.15em]" />
+									</h3>
+									{menu.body.map((paragraph) => (
+										<p
+											key={paragraph}
+											className="text-sm lg:text-base leading-relaxed mb-3 last:mb-0"
+										>
+											{paragraph}
+										</p>
+									))}
+								</div>
+								<div className="self-start flex flex-wrap gap-2.5 content-start">
+									{menu.items.map((item) => (
+										<span
+											key={item}
+											className="rounded-full border border-border bg-background px-4 py-2 text-xs lg:text-sm font-bold leading-relaxed"
+										>
+											{item}
+										</span>
+									))}
+								</div>
 							</div>
-							<ul className="self-start rounded-2xl bg-secondary p-6 space-y-3">
-								{menu.items.map((item) => (
-									<li
-										key={item}
-										className="text-sm leading-relaxed pl-4 relative before:content-[''] before:absolute before:left-0 before:top-[0.55em] before:h-1.5 before:w-1.5 before:rounded-full before:bg-foreground"
-									>
-										{item}
-									</li>
-								))}
-							</ul>
 						</div>
 					))}
 				</div>
-				<p className="mt-12 text-sm lg:text-base text-muted-foreground">
-					自社でも同じ進め方でツールを作り、毎日使っています。
-					<Link href="/works" className="underline hover:text-foreground">
-						→ 実際の取り組みはこちら
+				<p className="mt-14 text-sm lg:text-base text-muted-foreground">
+					自社でも同じ進め方でツールを作り、毎日使っています。{" "}
+					<Link
+						href="/works"
+						className="group inline-flex items-center gap-2 rounded-full border border-foreground px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-foreground hover:text-background ml-1"
+					>
+						実際の取り組みはこちら
+						<span
+							aria-hidden
+							className="transition-transform group-hover:translate-x-0.5"
+						>
+							→
+						</span>
 					</Link>
 				</p>
 			</LpSection>
 
-			<LpSection title="価格について">
+			<LpSection eyebrow="Price" title="価格について">
 				<div className="max-w-2xl space-y-4">
-					<p className="text-base lg:text-lg leading-relaxed">
+					<p className="text-base lg:text-lg leading-loose">
 						初回の相談は無料です。正式な費用は業務の内容をお聞きしてから提案します。
 					</p>
-					<p className="text-base lg:text-lg leading-relaxed">
+					<p className="text-base lg:text-lg leading-loose">
 						小さな相談・小さなツールには小さな価格で対応しています（数万円からが目安です）。大手企業向けの価格設定ではなく、地元の小さな事業者に合わせた相談をしています。
 					</p>
-					<p className="text-base lg:text-lg leading-relaxed">
+					<p className="text-base lg:text-lg leading-loose">
 						「高いものを勧めるつもりはありません。今あるものを活かして、必要な分だけ整理します。」
 					</p>
 				</div>
