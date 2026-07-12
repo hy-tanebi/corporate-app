@@ -16,12 +16,12 @@ export function LpSection({ id, eyebrow, title, children }: LpSectionProps) {
 		>
 			{eyebrow && (
 				<p
-					className={`${anton.className} text-sm tracking-[0.3em] uppercase text-[#e8590c] mb-3`}
+					className={`${anton.className} text-center text-sm tracking-[0.3em] uppercase text-[#e8590c] mb-3`}
 				>
 					{eyebrow}
 				</p>
 			)}
-			<h2 className="text-3xl lg:text-5xl font-black tracking-tight mb-8 lg:mb-12">
+			<h2 className="text-center text-3xl lg:text-5xl font-black tracking-tight mb-8 lg:mb-12">
 				{title}
 			</h2>
 			{children}

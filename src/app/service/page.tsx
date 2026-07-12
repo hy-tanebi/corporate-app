@@ -123,7 +123,7 @@ export default function ServicePage() {
 			/>
 
 			<LpSection eyebrow="Menu" title="ご相談できること">
-				<p className="text-base lg:text-lg leading-loose max-w-2xl mb-14 lg:mb-20">
+				<p className="mx-auto text-center text-base lg:text-lg leading-loose max-w-2xl mb-14 lg:mb-20">
 					TANEBI
 					CREATIVEで対応していることを、3つのメニューとして整理しました。いずれも「決めてから依頼する」ではなく、「まず話してみる」から始められます。
 				</p>
@@ -200,7 +200,7 @@ export default function ServicePage() {
 			</LpSection>
 
 			<LpSection eyebrow="Flow" title="ご相談の流れ">
-				<p className="text-base lg:text-lg leading-loose max-w-2xl mb-10 lg:mb-14">
+				<p className="mx-auto text-center text-base lg:text-lg leading-loose max-w-2xl mb-10 lg:mb-14">
 					どのメニューも、進め方は同じです。全部揃ってから始めなくて大丈夫です。
 				</p>
 				<ol className="grid grid-cols-1 md:grid-cols-5 gap-9 md:gap-4">

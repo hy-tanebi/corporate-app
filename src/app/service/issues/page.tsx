@@ -97,7 +97,7 @@ export default function ServiceIssuesPage() {
 			</LpSection>
 
 			<LpSection eyebrow="Start small" title="小さく相談できます">
-				<p className="text-base lg:text-lg leading-loose max-w-2xl">
+				<p className="mx-auto text-center text-base lg:text-lg leading-loose max-w-2xl">
 					「何を頼めばいいかまだ分からない」という状態での相談で大丈夫です。まず話を聞いて、何から手をつけると変わりそうかを一緒に整理します。
 				</p>
 			</LpSection>
