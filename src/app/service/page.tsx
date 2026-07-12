@@ -102,20 +102,26 @@ export default function ServicePage() {
 										</p>
 									))}
 								</div>
-								<div className="self-start rounded-2xl border border-border overflow-hidden">
-									<p className="px-5 py-3 text-xs font-bold tracking-widest uppercase text-muted-foreground bg-secondary">
-										対応内容
+								<div className="self-start lg:pt-1">
+									<p className="text-xs font-bold tracking-widest text-muted-foreground mb-3">
+										例えばこんなこと
 									</p>
-									<ul className="divide-y divide-border">
+									<ul>
 										{menu.items.map((item) => (
 											<li
 												key={item}
-												className="px-5 py-3.5 text-sm font-medium leading-relaxed"
+												className="flex gap-3 py-3 border-t border-border text-sm leading-relaxed"
 											>
+												<span aria-hidden className="text-[#e8590c]">
+													—
+												</span>
 												{item}
 											</li>
 										))}
 									</ul>
+									<p className="mt-4 text-xs text-muted-foreground">
+										ここにない内容も、まず聞かせてください。
+									</p>
 								</div>
 							</div>
 						</div>
