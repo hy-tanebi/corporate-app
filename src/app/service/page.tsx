@@ -21,7 +21,7 @@ const menus = [
 			"「どこから手をつければいいか分からない」という状態でも大丈夫です。まず現状を一緒に整理するところから始めます。全ページをリニューアルしなくても、優先度の高い箇所だけを直すことで費用を抑えることもできます。",
 		],
 		items: [
-			"古い情報・営業時間・電話番号の整理",
+			"ABテストによる導線・文言の改善検証",
 			"問い合わせ導線の確認・改善提案",
 			"スマホ表示・ページ速度の確認",
 			"GA4の導入・活用状況のチェック",
@@ -58,6 +58,39 @@ const menus = [
 	},
 ];
 
+const steps = [
+	{
+		number: "1",
+		title: "まず話を聞く",
+		description:
+			"現状の困りごとをそのまま伺います。資料の準備は不要です。初回の相談は無料です。",
+	},
+	{
+		number: "2",
+		title: "現状の整理",
+		description:
+			"業務やサイトを一緒に見ながら、何から手をつけると変わりそうかを整理します。",
+	},
+	{
+		number: "3",
+		title: "提案・お見積もり",
+		description:
+			"必要な分だけの内容と費用を提案します。ここまでは費用がかかりません。",
+	},
+	{
+		number: "4",
+		title: "小さく着手",
+		description:
+			"優先度の高いところから小さく始めます。既存の業務を止めずに進めます。",
+	},
+	{
+		number: "5",
+		title: "使いながら調整",
+		description:
+			"使ってみて分かったことをもとに、必要なものだけを足していきます。",
+	},
+];
+
 export default function ServicePage() {
 	return (
 		<div className={`${notoSansJp.className} container mx-auto max-w-5xl px-4`}>
@@ -88,7 +121,7 @@ export default function ServicePage() {
 							>
 								{menu.en}
 							</p>
-							<div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-12">
+							<div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 lg:gap-12">
 								<div>
 									<h3 className="text-2xl lg:text-3xl font-black mb-5">
 										{menu.title}
@@ -102,46 +135,96 @@ export default function ServicePage() {
 										</p>
 									))}
 								</div>
-								<div className="self-start lg:pt-1">
-									<p className="text-xs font-bold tracking-widest text-muted-foreground mb-3">
+								<div className="self-start rounded-2xl bg-secondary p-6 lg:p-7">
+									<p className="text-xs font-bold tracking-widest text-muted-foreground mb-4">
 										例えばこんなこと
 									</p>
-									<ul>
+									<ul className="space-y-3">
 										{menu.items.map((item) => (
 											<li
 												key={item}
-												className="flex gap-3 py-3 border-t border-border text-sm leading-relaxed"
+												className="flex items-start gap-3 text-sm font-medium leading-relaxed"
 											>
-												<span aria-hidden className="text-[#e8590c]">
-													—
-												</span>
+												<span
+													aria-hidden
+													className="mt-[0.45em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#e8590c]"
+												/>
 												{item}
 											</li>
 										))}
 									</ul>
-									<p className="mt-4 text-xs text-muted-foreground">
-										ここにない内容も、まず聞かせてください。
-									</p>
 								</div>
 							</div>
 						</div>
 					))}
 				</div>
-				<p className="mt-14 text-sm lg:text-base text-muted-foreground">
-					自社でも同じ進め方でツールを作り、毎日使っています。{" "}
-					<Link
-						href="/works"
-						className="group inline-flex items-center gap-2 rounded-full border border-foreground px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-foreground hover:text-background ml-1"
-					>
-						実際の取り組みはこちら
-						<span
-							aria-hidden
-							className="transition-transform group-hover:translate-x-0.5"
+				<div className="mt-14 flex flex-col items-start gap-4 text-sm lg:text-base text-muted-foreground">
+					<p>
+						自社でも同じ進め方でツールを作り、毎日使っています。{" "}
+						<Link
+							href="/works"
+							className="group inline-flex items-center gap-2 rounded-full border border-foreground px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-foreground hover:text-background ml-1"
 						>
-							→
-						</span>
-					</Link>
+							実際の取り組みはこちら
+							<span
+								aria-hidden
+								className="transition-transform group-hover:translate-x-0.5"
+							>
+								→
+							</span>
+						</Link>
+					</p>
+					<p>
+						その他、課題に感じていることがありましたら、{" "}
+						<Link
+							href="/#contact"
+							className="group inline-flex items-center gap-2 rounded-full border border-foreground px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-foreground hover:text-background ml-1"
+						>
+							お気軽にご相談ください
+							<span
+								aria-hidden
+								className="transition-transform group-hover:translate-x-0.5"
+							>
+								→
+							</span>
+						</Link>
+					</p>
+				</div>
+			</LpSection>
+
+			<LpSection eyebrow="Flow" title="ご相談の流れ">
+				<p className="text-base lg:text-lg leading-loose max-w-2xl mb-10 lg:mb-14">
+					どのメニューも、進め方は同じです。全部揃ってから始めなくて大丈夫です。
 				</p>
+				<ol>
+					{steps.map((step) => (
+						<li
+							key={step.number}
+							className="grid grid-cols-[72px_1fr] lg:grid-cols-[120px_1fr] gap-5 lg:gap-10 items-center py-7 lg:py-9 border-t border-border last:border-b"
+						>
+							<div className="text-center">
+								<p
+									className={`${anton.className} text-[10px] tracking-[0.3em] uppercase text-muted-foreground`}
+								>
+									Step
+								</p>
+								<p
+									className={`${anton.className} text-4xl lg:text-5xl leading-none`}
+								>
+									{step.number}
+								</p>
+							</div>
+							<div>
+								<h3 className="text-lg lg:text-xl font-black mb-1.5">
+									{step.title}
+								</h3>
+								<p className="text-sm lg:text-base leading-relaxed text-muted-foreground">
+									{step.description}
+								</p>
+							</div>
+						</li>
+					))}
+				</ol>
 			</LpSection>
 
 			<LpSection eyebrow="Price" title="価格について">
