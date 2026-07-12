@@ -1,3 +1,10 @@
+import {
+	FileText,
+	MessageCircle,
+	RefreshCw,
+	SearchCheck,
+	Sprout,
+} from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { CtaBlock } from "@/components/lp/CtaBlock";
@@ -21,7 +28,7 @@ const menus = [
 			"「どこから手をつければいいか分からない」という状態でも大丈夫です。まず現状を一緒に整理するところから始めます。全ページをリニューアルしなくても、優先度の高い箇所だけを直すことで費用を抑えることもできます。",
 		],
 		items: [
-			"ABテストによる導線・文言の改善検証",
+			"ABテストで問い合わせ・成約につながる導線と文言を検証",
 			"問い合わせ導線の確認・改善提案",
 			"スマホ表示・ページ速度の確認",
 			"GA4の導入・活用状況のチェック",
@@ -48,10 +55,12 @@ const menus = [
 		title: "小規模業務ツールの開発",
 		body: [
 			"「大きなシステムは不要だけど、Excelや紙での管理をもう少し整理したい」という場合に対応します。認証・管理画面・データ出力のある小さなWebツールを作ります。",
+			"複数のSaaSを別々に契約して使い分けている場合は、業務に合わせてカスタマイズしたツールに一元化する開発も行います。ツールの数と月々の費用を、まとめて見直せます。",
 			"作って終わりではなく、使い続けられる設計にします。",
 		],
 		items: [
 			"紙・Excel管理の簡易Webツール化",
+			"複数SaaS契約の整理・ツール一元化",
 			"管理画面・CSV出力・担当者別の権限設定",
 			"既存業務を止めずに少しずつ移行",
 		],
@@ -61,30 +70,35 @@ const menus = [
 const steps = [
 	{
 		number: "1",
+		icon: MessageCircle,
 		title: "まず話を聞く",
 		description:
 			"現状の困りごとをそのまま伺います。資料の準備は不要です。初回の相談は無料です。",
 	},
 	{
 		number: "2",
+		icon: SearchCheck,
 		title: "現状の整理",
 		description:
 			"業務やサイトを一緒に見ながら、何から手をつけると変わりそうかを整理します。",
 	},
 	{
 		number: "3",
+		icon: FileText,
 		title: "提案・お見積もり",
 		description:
 			"必要な分だけの内容と費用を提案します。ここまでは費用がかかりません。",
 	},
 	{
 		number: "4",
+		icon: Sprout,
 		title: "小さく着手",
 		description:
 			"優先度の高いところから小さく始めます。既存の業務を止めずに進めます。",
 	},
 	{
 		number: "5",
+		icon: RefreshCw,
 		title: "使いながら調整",
 		description:
 			"使ってみて分かったことをもとに、必要なものだけを足していきます。",
@@ -152,8 +166,9 @@ export default function ServicePage() {
 											</li>
 										))}
 									</ul>
-									<p className="mt-4 text-xs text-muted-foreground">
+									<p className="mt-4 text-xs leading-relaxed text-muted-foreground">
 										その他、課題に感じていることがありましたら、
+										<br />
 										<Link
 											href="/#contact"
 											className="font-bold text-foreground underline underline-offset-4 hover:text-[#e8590c] transition-colors"
@@ -188,29 +203,35 @@ export default function ServicePage() {
 				<p className="text-base lg:text-lg leading-loose max-w-2xl mb-10 lg:mb-14">
 					どのメニューも、進め方は同じです。全部揃ってから始めなくて大丈夫です。
 				</p>
-				<ol>
-					{steps.map((step) => (
+				<ol className="grid grid-cols-1 md:grid-cols-5 gap-9 md:gap-4">
+					{steps.map((step, index) => (
 						<li
 							key={step.number}
-							className="grid grid-cols-[72px_1fr] lg:grid-cols-[120px_1fr] gap-5 lg:gap-10 items-center py-7 lg:py-9 border-t border-border last:border-b"
+							className="relative flex md:flex-col items-start md:items-center gap-5 md:gap-0 md:text-center"
 						>
-							<div className="text-center">
-								<p
-									className={`${anton.className} text-[10px] tracking-[0.3em] uppercase text-muted-foreground`}
-								>
-									Step
-								</p>
-								<p
-									className={`${anton.className} text-4xl lg:text-5xl leading-none`}
-								>
-									{step.number}
-								</p>
+							{index < steps.length - 1 && (
+								<span
+									aria-hidden
+									className="hidden md:block absolute top-7 left-[calc(50%+2.5rem)] w-[calc(100%-5rem)] h-px bg-border"
+								/>
+							)}
+							<div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-foreground bg-background">
+								<step.icon
+									className="h-6 w-6"
+									strokeWidth={1.5}
+									aria-hidden
+								/>
 							</div>
-							<div>
-								<h3 className="text-lg lg:text-xl font-black mb-1.5">
+							<div className="md:mt-5">
+								<p
+									className={`${anton.className} text-xs tracking-[0.25em] uppercase text-[#e8590c] mb-1`}
+								>
+									Step {step.number}
+								</p>
+								<h3 className="text-base lg:text-lg font-black mb-1.5">
 									{step.title}
 								</h3>
-								<p className="text-sm lg:text-base leading-relaxed text-muted-foreground">
+								<p className="text-xs lg:text-sm leading-relaxed text-muted-foreground">
 									{step.description}
 								</p>
 							</div>
