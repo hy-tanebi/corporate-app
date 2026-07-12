@@ -75,10 +75,9 @@ export function PageHero({
 					</p>
 					<h1 className="mb-3">
 						<span
-							className={`${anton.className} block text-6xl lg:text-8xl leading-[0.95] uppercase tracking-tight`}
+							className={`${anton.className} block text-6xl lg:text-8xl leading-[0.95] uppercase tracking-[0.04em]`}
 						>
 							{english}
-							<span className="inline-block h-[0.14em] w-[0.14em] rounded-full bg-[#e8590c] ml-[0.1em]" />
 						</span>
 						<span className="mt-4 block text-xl lg:text-2xl font-black tracking-wide">
 							{title}

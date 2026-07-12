@@ -84,7 +84,7 @@ export default function ServicePage() {
 					{menus.map((menu) => (
 						<div key={menu.id} id={menu.id} className="scroll-mt-8">
 							<p
-								className={`${anton.className} text-5xl lg:text-7xl leading-none uppercase tracking-tight text-foreground/10 mb-3`}
+								className={`${anton.className} text-5xl lg:text-7xl leading-none uppercase tracking-[0.04em] text-foreground/10 mb-3`}
 							>
 								{menu.en}
 							</p>
@@ -92,7 +92,6 @@ export default function ServicePage() {
 								<div>
 									<h3 className="text-2xl lg:text-3xl font-black mb-5">
 										{menu.title}
-										<span className="inline-block h-[0.16em] w-[0.16em] rounded-full bg-[#e8590c] ml-[0.15em]" />
 									</h3>
 									{menu.body.map((paragraph) => (
 										<p
@@ -103,15 +102,20 @@ export default function ServicePage() {
 										</p>
 									))}
 								</div>
-								<div className="self-start flex flex-wrap gap-2.5 content-start">
-									{menu.items.map((item) => (
-										<span
-											key={item}
-											className="rounded-full border border-border bg-background px-4 py-2 text-xs lg:text-sm font-bold leading-relaxed"
-										>
-											{item}
-										</span>
-									))}
+								<div className="self-start rounded-2xl border border-border overflow-hidden">
+									<p className="px-5 py-3 text-xs font-bold tracking-widest uppercase text-muted-foreground bg-secondary">
+										対応内容
+									</p>
+									<ul className="divide-y divide-border">
+										{menu.items.map((item) => (
+											<li
+												key={item}
+												className="px-5 py-3.5 text-sm font-medium leading-relaxed"
+											>
+												{item}
+											</li>
+										))}
+									</ul>
 								</div>
 							</div>
 						</div>

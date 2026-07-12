@@ -23,7 +23,6 @@ export function LpSection({ id, eyebrow, title, children }: LpSectionProps) {
 			)}
 			<h2 className="text-3xl lg:text-5xl font-black tracking-tight mb-8 lg:mb-12">
 				{title}
-				<span className="inline-block h-[0.14em] w-[0.14em] rounded-full bg-[#e8590c] ml-[0.12em]" />
 			</h2>
 			{children}
 		</section>
