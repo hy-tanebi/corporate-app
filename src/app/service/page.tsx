@@ -123,7 +123,7 @@ export default function ServicePage() {
 			/>
 
 			<LpSection eyebrow="Menu" title="ご相談できること">
-				<p className="mx-auto text-center text-base lg:text-lg leading-loose max-w-2xl mb-14 lg:mb-20">
+				<p className="mx-auto text-left text-base lg:text-lg leading-loose max-w-2xl mb-14 lg:mb-20">
 					TANEBI
 					CREATIVEで対応していることを、3つのメニューとして整理しました。いずれも「決めてから依頼する」ではなく、「まず話してみる」から始められます。
 				</p>
@@ -200,40 +200,48 @@ export default function ServicePage() {
 			</LpSection>
 
 			<LpSection eyebrow="Flow" title="ご相談の流れ">
-				<p className="mx-auto text-center text-base lg:text-lg leading-loose max-w-2xl mb-10 lg:mb-14">
+				<p className="mx-auto text-left text-base lg:text-lg leading-loose max-w-2xl mb-10 lg:mb-14">
 					どのメニューも、進め方は同じです。全部揃ってから始めなくて大丈夫です。
 				</p>
-				<ol className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 lg:gap-5">
-					{steps.map((step) => (
+				<ol className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-4 lg:gap-5">
+					{steps.map((step, index) => (
 						<li
 							key={step.number}
-							className="flex flex-col items-center text-center rounded-2xl border border-border bg-background p-6 lg:p-7 transition-shadow hover:shadow-md"
+							className="relative flex flex-col items-center text-center"
 						>
-							<div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary mb-5">
+							{index < steps.length - 1 && (
+								<span
+									aria-hidden
+									className="hidden md:block absolute top-7 left-[calc(50%+1.75rem)] w-[calc(100%-3.5rem)] border-t-2 border-dashed border-border"
+								/>
+							)}
+							<div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-foreground bg-background">
 								<step.icon
 									className="h-6 w-6"
 									strokeWidth={1.5}
 									aria-hidden
 								/>
 							</div>
-							<p
-								className={`${anton.className} text-xs tracking-[0.25em] uppercase text-[#e8590c] mb-1.5`}
-							>
-								Step {step.number}
-							</p>
-							<h3 className="text-base lg:text-lg font-black mb-2">
-								{step.title}
-							</h3>
-							<p className="text-xs lg:text-sm leading-relaxed text-muted-foreground">
-								{step.description}
-							</p>
+							<div className="mt-4 w-full flex-1 rounded-2xl border border-border bg-background p-5 lg:p-6 transition-shadow hover:shadow-md">
+								<p
+									className={`${anton.className} text-xs tracking-[0.25em] uppercase text-[#e8590c] mb-1.5`}
+								>
+									Step {step.number}
+								</p>
+								<h3 className="text-base lg:text-lg font-black mb-2">
+									{step.title}
+								</h3>
+								<p className="text-xs lg:text-sm leading-relaxed text-muted-foreground">
+									{step.description}
+								</p>
+							</div>
 						</li>
 					))}
 				</ol>
 			</LpSection>
 
 			<LpSection eyebrow="Price" title="価格について">
-				<div className="mx-auto max-w-2xl space-y-4 text-center">
+				<div className="mx-auto max-w-2xl space-y-4 text-left">
 					<p className="text-base lg:text-lg leading-loose">
 						初回の相談は無料です。正式な費用は業務の内容をお聞きしてから提案します。
 					</p>
