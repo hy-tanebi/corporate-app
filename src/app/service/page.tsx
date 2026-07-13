@@ -203,45 +203,37 @@ export default function ServicePage() {
 				<p className="mx-auto text-center text-base lg:text-lg leading-loose max-w-2xl mb-10 lg:mb-14">
 					どのメニューも、進め方は同じです。全部揃ってから始めなくて大丈夫です。
 				</p>
-				<ol className="grid grid-cols-1 md:grid-cols-5 gap-9 md:gap-4">
-					{steps.map((step, index) => (
+				<ol className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 lg:gap-5">
+					{steps.map((step) => (
 						<li
 							key={step.number}
-							className="relative flex md:flex-col items-start md:items-center gap-5 md:gap-0 md:text-center"
+							className="flex flex-col items-center text-center rounded-2xl border border-border bg-background p-6 lg:p-7 transition-shadow hover:shadow-md"
 						>
-							{index < steps.length - 1 && (
-								<span
-									aria-hidden
-									className="hidden md:block absolute top-7 left-[calc(50%+2.5rem)] w-[calc(100%-5rem)] h-px bg-border"
-								/>
-							)}
-							<div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-foreground bg-background">
+							<div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary mb-5">
 								<step.icon
 									className="h-6 w-6"
 									strokeWidth={1.5}
 									aria-hidden
 								/>
 							</div>
-							<div className="md:mt-5">
-								<p
-									className={`${anton.className} text-xs tracking-[0.25em] uppercase text-[#e8590c] mb-1`}
-								>
-									Step {step.number}
-								</p>
-								<h3 className="text-base lg:text-lg font-black mb-1.5">
-									{step.title}
-								</h3>
-								<p className="text-xs lg:text-sm leading-relaxed text-muted-foreground">
-									{step.description}
-								</p>
-							</div>
+							<p
+								className={`${anton.className} text-xs tracking-[0.25em] uppercase text-[#e8590c] mb-1.5`}
+							>
+								Step {step.number}
+							</p>
+							<h3 className="text-base lg:text-lg font-black mb-2">
+								{step.title}
+							</h3>
+							<p className="text-xs lg:text-sm leading-relaxed text-muted-foreground">
+								{step.description}
+							</p>
 						</li>
 					))}
 				</ol>
 			</LpSection>
 
 			<LpSection eyebrow="Price" title="価格について">
-				<div className="max-w-2xl space-y-4">
+				<div className="mx-auto max-w-2xl space-y-4 text-center">
 					<p className="text-base lg:text-lg leading-loose">
 						初回の相談は無料です。正式な費用は業務の内容をお聞きしてから提案します。
 					</p>
