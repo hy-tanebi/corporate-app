@@ -57,7 +57,7 @@ export function StarParticles({
 	particleTexture.wrapS = THREE.ClampToEdgeWrapping;
 	particleTexture.wrapT = THREE.ClampToEdgeWrapping;
 	particleTexture.premultiplyAlpha = true;
-const particles = useMemo(() => {
+	const particles = useMemo(() => {
 		// ★パフォーマンス最適化: 星の数を削減（デスクトップ 3000→1500、モバイル 1200→800）
 		const count = isMobile ? 800 : 1500;
 		const positions = new Float32Array(count * 3);
@@ -69,12 +69,12 @@ const particles = useMemo(() => {
 		// Type: [Probability Threshold, Color Hex, Base Size]
 		const starTypes = [
 			{ threshold: 0.001, color: "#9bb0ff", size: 2.0 }, // O - Blue (Very rare)
-			{ threshold: 0.01, color: "#aabfff", size: 1.6 },  // B - Blue-white
-			{ threshold: 0.05, color: "#cad7ff", size: 1.4 },  // A - White
-			{ threshold: 0.15, color: "#f8f7ff", size: 1.2 },  // F - Yellow-white
-			{ threshold: 0.40, color: "#fff4ea", size: 1.0 },  // G - Yellow (Sun-like)
-			{ threshold: 0.80, color: "#ffd2a1", size: 0.8 },  // K - Orange
-			{ threshold: 1.00, color: "#ffcc6f", size: 0.6 }   // M - Red (Common, small)
+			{ threshold: 0.01, color: "#aabfff", size: 1.6 }, // B - Blue-white
+			{ threshold: 0.05, color: "#cad7ff", size: 1.4 }, // A - White
+			{ threshold: 0.15, color: "#f8f7ff", size: 1.2 }, // F - Yellow-white
+			{ threshold: 0.4, color: "#fff4ea", size: 1.0 }, // G - Yellow (Sun-like)
+			{ threshold: 0.8, color: "#ffd2a1", size: 0.8 }, // K - Orange
+			{ threshold: 1.0, color: "#ffcc6f", size: 0.6 }, // M - Red (Common, small)
 		];
 
 		const getStarData = (r: number) => {
@@ -96,7 +96,11 @@ const particles = useMemo(() => {
 			color.set(type.color);
 
 			// Slight random variation per star to avoid uniformity
-			color.offsetHSL(0, (Math.random() - 0.5) * 0.1, (Math.random() - 0.5) * 0.1);
+			color.offsetHSL(
+				0,
+				(Math.random() - 0.5) * 0.1,
+				(Math.random() - 0.5) * 0.1,
+			);
 
 			colors[i * 3] = color.r;
 			colors[i * 3 + 1] = color.g;

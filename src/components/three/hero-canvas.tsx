@@ -101,7 +101,7 @@ interface HeroSceneProps {
 	transitionProgress: number;
 	shouldSnapAnimation: boolean;
 	isCardHovering: boolean;
-    isMobile: boolean;
+	isMobile: boolean;
 }
 
 function HeroScene({
@@ -114,13 +114,13 @@ function HeroScene({
 	transitionProgress,
 	shouldSnapAnimation,
 	isCardHovering,
-    isMobile,
+	isMobile,
 }: HeroSceneProps) {
 	// biome-ignore lint/suspicious/noExplicitAny: Custom shader material
 	const heroMatRef = useRef<any>(null);
 	const starGroupRef = useRef<THREE.Group>(null);
-    const nebulaGroupRef = useRef<THREE.Group>(null); // Nebula also uses separate group to avoid rotation on mobile
-    const astronautGroupRef = useRef<THREE.Group>(null); // Astronaut uses separate group to avoid background rotation
+	const nebulaGroupRef = useRef<THREE.Group>(null); // Nebula also uses separate group to avoid rotation on mobile
+	const astronautGroupRef = useRef<THREE.Group>(null); // Astronaut uses separate group to avoid background rotation
 	const triangleGroupRef = useRef<THREE.Group>(null);
 	const triangleVisibleMeshRef = useRef<THREE.Mesh>(null);
 	const lineSegmentsRef = useRef<THREE.LineSegments>(null);
@@ -137,48 +137,48 @@ function HeroScene({
 	// 紫色のガスのランダム配置（リロード時に1回だけ生成）
 	const nebulaPositions = useMemo(() => {
 		const positions = [];
-        // ★パフォーマンス最適化: デスクトップのガス数を2→1に削減
-        // Mobile: 4 clouds for coverage. Desktop: 1 is enough (was 2).
-        const count = isMobile ? 4 : 1;
+		// ★パフォーマンス最適化: デスクトップのガス数を2→1に削減
+		// Mobile: 4 clouds for coverage. Desktop: 1 is enough (was 2).
+		const count = isMobile ? 4 : 1;
 
 		for (let i = 0; i < count; i++) {
 			let x: number, y: number, z: number, opacity: number, scale: number;
-            if (isMobile) {
-                // Mobile: "Partial" but "Overall" Look
-                // Increased X range to -20~20 to cover full width (avoids left bias).
-                x = Math.random() * 40 - 20;
-                y = Math.random() * 80 - 40;
-                z = Math.random() * 25 - 30;  // -30 ~ -5
-                opacity = Math.random() * 0.3 + 0.4;
-                scale = Math.random() * 25 + 25;
-            } else {
-                 // Desktop: Wide Spread & Subtle
-			    x = Math.random() * 80 - 40;
-			    y = Math.random() * 80 - 40;
-                z = Math.random() * 20 - 50;
-                opacity = Math.random() * 0.15 + 0.15;
-                scale = Math.random() * 40 + 50; // 50 ~ 90 (Large)
-            }
+			if (isMobile) {
+				// Mobile: "Partial" but "Overall" Look
+				// Increased X range to -20~20 to cover full width (avoids left bias).
+				x = Math.random() * 40 - 20;
+				y = Math.random() * 80 - 40;
+				z = Math.random() * 25 - 30; // -30 ~ -5
+				opacity = Math.random() * 0.3 + 0.4;
+				scale = Math.random() * 25 + 25;
+			} else {
+				// Desktop: Wide Spread & Subtle
+				x = Math.random() * 80 - 40;
+				y = Math.random() * 80 - 40;
+				z = Math.random() * 20 - 50;
+				opacity = Math.random() * 0.15 + 0.15;
+				scale = Math.random() * 40 + 50; // 50 ~ 90 (Large)
+			}
 			const rotation = Math.random() * Math.PI * 2; // 0 ~ 2π
 			positions.push({ x, y, z, scale, opacity, rotation });
 		}
 		return positions;
 	}, [isMobile]);
 
-    // 宇宙飛行士の初期位置（モバイルの場合は右上に寄せる）
-    const astronautInitialPos = useMemo(() => {
-        if (isMobile) {
-             // Mobile: Strong Top-Right Bias
-             // X: 1.2 to 1.8 (Strong Right) -> Bounded motion will ensure safety.
-             // Y: 2.0 to 3.5 (Up - Unchanged)
-            return [
-                Math.random() * 0.6 + 1.2,    // 1.2 ~ 1.8 (Right)
-                Math.random() * 1.5 + 2.0,    // 2.0 ~ 3.5 (Up)
-                -5
-            ] as [number, number, number];
-        }
-        return [0, 0, -5] as [number, number, number];
-    }, [isMobile]);
+	// 宇宙飛行士の初期位置（モバイルの場合は右上に寄せる）
+	const astronautInitialPos = useMemo(() => {
+		if (isMobile) {
+			// Mobile: Strong Top-Right Bias
+			// X: 1.2 to 1.8 (Strong Right) -> Bounded motion will ensure safety.
+			// Y: 2.0 to 3.5 (Up - Unchanged)
+			return [
+				Math.random() * 0.6 + 1.2, // 1.2 ~ 1.8 (Right)
+				Math.random() * 1.5 + 2.0, // 2.0 ~ 3.5 (Up)
+				-5,
+			] as [number, number, number];
+		}
+		return [0, 0, -5] as [number, number, number];
+	}, [isMobile]);
 
 	// 黒円マテリアル
 	const featherMat = useMemo(() => {
@@ -258,7 +258,7 @@ function HeroScene({
 			// Combined check: Must be hovering card (for interaction feel) OR simply active in space
 			// User requested "Effect applies", assuming interaction-based wobbly effect.
 			// Ideally interaction-based:
-            /*
+			/*
              Revert note: The user wants "wobbly effect".
              Original logic was: if (isCardHoveringRef.current && scrollProgressRef.current < 0.8)
              New logic: Keep interaction requirement but extend valid zones.
@@ -367,7 +367,8 @@ function HeroScene({
 		// - アイドル時: 3フレームに1回更新（約66%のGPU負荷削減）
 		frameCountRef.current++;
 		const isHoverActive = hoverStrength.current > 0.1;
-		const shouldUpdateFbo = isHoverActive || (frameCountRef.current - lastFboUpdateRef.current >= 3);
+		const shouldUpdateFbo =
+			isHoverActive || frameCountRef.current - lastFboUpdateRef.current >= 3;
 
 		if (fluidRef.current && !isMobileFrame && shouldUpdateFbo) {
 			lastFboUpdateRef.current = frameCountRef.current;
@@ -638,72 +639,72 @@ function HeroScene({
 
 				// Sync Background Opacity (Star & Astronaut)
 				let targetOpacity = 1.0;
-                let shouldShowBg = true;
+				let shouldShowBg = true;
 
-                if (isContactVisible || transitionProgress > 0) {
-                     targetOpacity = spaceOpacity;
-                     if (targetOpacity < 0.05) shouldShowBg = false;
-                } else {
-                     if (growT >= HIDE_BG_AT_T) shouldShowBg = false;
-                }
+				if (isContactVisible || transitionProgress > 0) {
+					targetOpacity = spaceOpacity;
+					if (targetOpacity < 0.05) shouldShowBg = false;
+				} else {
+					if (growT >= HIDE_BG_AT_T) shouldShowBg = false;
+				}
 
-                // Star Group
+				// Star Group
 				if (starGroupRef.current) {
-                    starGroupRef.current.visible = shouldShowBg;
-                    if (shouldShowBg) {
-                        starGroupRef.current.traverse((obj) => {
-                            // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
-                            const m = (obj as any).material;
-                            if (m && m.userData.originalOpacity !== undefined) {
-                                m.opacity = m.userData.originalOpacity;
-                            }
-                        });
-                    }
-                }
+					starGroupRef.current.visible = shouldShowBg;
+					if (shouldShowBg) {
+						starGroupRef.current.traverse((obj) => {
+							// biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+							const m = (obj as any).material;
+							if (m && m.userData.originalOpacity !== undefined) {
+								m.opacity = m.userData.originalOpacity;
+							}
+						});
+					}
+				}
 
-                // Sync Astronaut Group Opacity (Fade Effect)
-                if (astronautGroupRef.current) {
-                    if (isContactVisible || transitionProgress > 0) {
-                        if (spaceOpacity < 0.05) {
-                            astronautGroupRef.current.visible = false;
-                        } else {
-                            astronautGroupRef.current.visible = true;
-                            astronautGroupRef.current.traverse((obj) => {
-                                // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
-                                const m = (obj as any).material;
-                                if (m) {
-                                    m.transparent = true;
-                                    if (m.userData.originalOpacity === undefined) {
-                                        m.userData.originalOpacity = m.opacity || 1;
-                                    }
-                                    m.opacity = m.userData.originalOpacity * spaceOpacity;
-                                }
-                            });
-                        }
-                    }
-                }
+				// Sync Astronaut Group Opacity (Fade Effect)
+				if (astronautGroupRef.current) {
+					if (isContactVisible || transitionProgress > 0) {
+						if (spaceOpacity < 0.05) {
+							astronautGroupRef.current.visible = false;
+						} else {
+							astronautGroupRef.current.visible = true;
+							astronautGroupRef.current.traverse((obj) => {
+								// biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+								const m = (obj as any).material;
+								if (m) {
+									m.transparent = true;
+									if (m.userData.originalOpacity === undefined) {
+										m.userData.originalOpacity = m.opacity || 1;
+									}
+									m.opacity = m.userData.originalOpacity * spaceOpacity;
+								}
+							});
+						}
+					}
+				}
 
-                // Sync Nebula Group Opacity (Fade Effect)
-                if (nebulaGroupRef.current) {
-                    if (isContactVisible || transitionProgress > 0) {
-                        if (spaceOpacity < 0.05) {
-                            nebulaGroupRef.current.visible = false;
-                        } else {
-                            nebulaGroupRef.current.visible = true;
-                            nebulaGroupRef.current.traverse((obj) => {
-                                // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
-                                const m = (obj as any).material;
-                                if (m) {
-                                    m.transparent = true;
-                                    if (m.userData.originalOpacity === undefined) {
-                                        m.userData.originalOpacity = m.opacity || 1;
-                                    }
-                                    m.opacity = m.userData.originalOpacity * spaceOpacity;
-                                }
-                            });
-                        }
-                    }
-                }
+				// Sync Nebula Group Opacity (Fade Effect)
+				if (nebulaGroupRef.current) {
+					if (isContactVisible || transitionProgress > 0) {
+						if (spaceOpacity < 0.05) {
+							nebulaGroupRef.current.visible = false;
+						} else {
+							nebulaGroupRef.current.visible = true;
+							nebulaGroupRef.current.traverse((obj) => {
+								// biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+								const m = (obj as any).material;
+								if (m) {
+									m.transparent = true;
+									if (m.userData.originalOpacity === undefined) {
+										m.userData.originalOpacity = m.opacity || 1;
+									}
+									m.opacity = m.userData.originalOpacity * spaceOpacity;
+								}
+							});
+						}
+					}
+				}
 			} else {
 				circleRef.current.visible = false;
 				circleRef.current.scale.set(0.001, 0.001, 1);
@@ -722,26 +723,26 @@ function HeroScene({
 						}
 					});
 				}
-                if (astronautGroupRef.current) {
-                    astronautGroupRef.current.visible = true;
-                    astronautGroupRef.current.traverse((obj) => {
-                        // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
-                        const m = (obj as any).material;
-                        if (m && m.userData.originalOpacity !== undefined) {
-                            m.opacity = m.userData.originalOpacity;
-                        }
-                    });
-                }
-                if (nebulaGroupRef.current) {
-                    nebulaGroupRef.current.visible = true;
-                    nebulaGroupRef.current.traverse((obj) => {
-                        // biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
-                        const m = (obj as any).material;
-                        if (m && m.userData.originalOpacity !== undefined) {
-                            m.opacity = m.userData.originalOpacity;
-                        }
-                    });
-                }
+				if (astronautGroupRef.current) {
+					astronautGroupRef.current.visible = true;
+					astronautGroupRef.current.traverse((obj) => {
+						// biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+						const m = (obj as any).material;
+						if (m && m.userData.originalOpacity !== undefined) {
+							m.opacity = m.userData.originalOpacity;
+						}
+					});
+				}
+				if (nebulaGroupRef.current) {
+					nebulaGroupRef.current.visible = true;
+					nebulaGroupRef.current.traverse((obj) => {
+						// biome-ignore lint/suspicious/noExplicitAny: Accessing material property on Object3D
+						const m = (obj as any).material;
+						if (m && m.userData.originalOpacity !== undefined) {
+							m.opacity = m.userData.originalOpacity;
+						}
+					});
+				}
 			}
 		}
 
@@ -766,14 +767,18 @@ function HeroScene({
 				<group ref={starGroupRef}>
 					{/* 1. 背景（即座に表示されるべきもの: 軽量） */}
 					<Suspense fallback={null}>
-						<StarParticles selfRotate={false} position={[0, 0, -10]} isMobile={isMobile} />
+						<StarParticles
+							selfRotate={false}
+							position={[0, 0, -10]}
+							isMobile={isMobile}
+						/>
 						<ShootingStars interval={3500} duration={4000} />
 					</Suspense>
 				</group>
 
-                {/* Nebula Group (Detached from rotation for partial/random feel) */}
-                <group ref={nebulaGroupRef}>
-                    <Suspense fallback={null}>
+				{/* Nebula Group (Detached from rotation for partial/random feel) */}
+				<group ref={nebulaGroupRef}>
+					<Suspense fallback={null}>
 						{/* 紫色のガス状の雲（ランダム配置） */}
 						{nebulaPositions.map((pos, index) => (
 							<PurpleNebula
@@ -786,20 +791,20 @@ function HeroScene({
 								rotation={[0, 0, pos.rotation]}
 							/>
 						))}
-                    </Suspense>
-                </group>
+					</Suspense>
+				</group>
 
-                {/* 宇宙飛行士 (独立したグループに入れることで背景回転の影響を受けないようにする) */}
-                <group ref={astronautGroupRef}>
-                    <Suspense fallback={null}>
+				{/* 宇宙飛行士 (独立したグループに入れることで背景回転の影響を受けないようにする) */}
+				<group ref={astronautGroupRef}>
+					<Suspense fallback={null}>
 						{/* 宇宙飛行士 (Topページ & 最後の宇宙エリアで表示) */}
 						<Astronaut
 							position={astronautInitialPos}
 							scale={2}
 							isMobile={isMobile}
 						/>
-                    </Suspense>
-                </group>
+					</Suspense>
+				</group>
 
 				{/* テトラ */}
 				<group ref={triangleGroupRef} position={[0, 0, 0]}>
@@ -872,30 +877,30 @@ function HeroScene({
 			</group>
 
 			{/* ===== 画面の液体屈折（ヒーロー内のみ作用） ===== */}
-            {/* Mobile: Disable fluid effect for performance */}
-            {!isMobile && (
-			<mesh
-				ref={fluidRef}
-				renderOrder={10000}
-				frustumCulled={false}
-				raycast={() => null}
-			>
-				<planeGeometry args={[2, 2, 1, 1]} />
-				<hoverFluidMaterial
-					ref={hoverMatRef}
-					attach="material"
-					transparent={true}
-					depthTest={false}
-					depthWrite={false}
-					// biome-ignore lint/suspicious/noExplicitAny: Blending type
-					blending={THREE.NoBlending as any}
-					toneMapped={false}
-					uTexture={fbo.texture}
-					uMouse={mouseFiltered.current}
-					uStrength={0} // 初期値
-				/>
-			</mesh>
-            )}
+			{/* Mobile: Disable fluid effect for performance */}
+			{!isMobile && (
+				<mesh
+					ref={fluidRef}
+					renderOrder={10000}
+					frustumCulled={false}
+					raycast={() => null}
+				>
+					<planeGeometry args={[2, 2, 1, 1]} />
+					<hoverFluidMaterial
+						ref={hoverMatRef}
+						attach="material"
+						transparent={true}
+						depthTest={false}
+						depthWrite={false}
+						// biome-ignore lint/suspicious/noExplicitAny: Blending type
+						blending={THREE.NoBlending as any}
+						toneMapped={false}
+						uTexture={fbo.texture}
+						uMouse={mouseFiltered.current}
+						uStrength={0} // 初期値
+					/>
+				</mesh>
+			)}
 		</>
 	);
 }
@@ -935,16 +940,16 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
     const [shouldSnapAnimation, setShouldSnapAnimation] = useState(false);
     */
 
-    // Mobile check for performance optimization
-    // HeroCanvas is client-side only (ssr: false), so we can check window immediately
-    const [isMobile, setIsMobile] = useState(() =>
-        typeof window !== "undefined" ? window.innerWidth < 768 : false
-    );
-    useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768);
-        window.addEventListener("resize", checkMobile);
-        return () => window.removeEventListener("resize", checkMobile);
-    }, []);
+	// Mobile check for performance optimization
+	// HeroCanvas is client-side only (ssr: false), so we can check window immediately
+	const [isMobile, setIsMobile] = useState(() =>
+		typeof window !== "undefined" ? window.innerWidth < 768 : false,
+	);
+	useEffect(() => {
+		const checkMobile = () => setIsMobile(window.innerWidth < 768);
+		window.addEventListener("resize", checkMobile);
+		return () => window.removeEventListener("resize", checkMobile);
+	}, []);
 
 	const handleCardClick = (slide: VideoSlide, index: number) => {
 		setSelectedCard({ slide, index });
@@ -967,7 +972,6 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 		handleScroll();
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
-
 
 	return (
 		// Canvas内からContextにアクセスするのは難しいため、Props経由でSceneに渡す、
@@ -1020,7 +1024,7 @@ const HeroCanvas = ({ videoSlides, heroState }: HeroCanvasProps) => {
 					transitionProgress={heroState.transitionProgress}
 					shouldSnapAnimation={heroState.shouldSnapAnimation}
 					isCardHovering={isCardHovering} // Pass prop
-                    isMobile={isMobile}
+					isMobile={isMobile}
 				/>
 			</Canvas>
 

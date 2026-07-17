@@ -19,10 +19,7 @@ export async function POST(request: NextRequest) {
 	// microCMS の署名を検証
 	const signature = request.headers.get("X-MICROCMS-Signature");
 	if (!signature) {
-		return NextResponse.json(
-			{ message: "Missing signature" },
-			{ status: 401 },
-		);
+		return NextResponse.json({ message: "Missing signature" }, { status: 401 });
 	}
 
 	const expectedSignature = crypto

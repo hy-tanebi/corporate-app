@@ -160,7 +160,8 @@ export const DEFAULT_METADATA: Metadata = {
 		template: `%s | ${SITE_CONFIG.name}`,
 	},
 	description: SITE_CONFIG.description,
-	keywords: "奥州市 AI事業者, 岩手県 AI導入支援, 奥州市 Web制作, 岩手県 DX支援, AI業務効率化, ホームページ制作 岩手, TANEBI CREATIVE, タネビ クリエイティブ",
+	keywords:
+		"奥州市 AI事業者, 岩手県 AI導入支援, 奥州市 Web制作, 岩手県 DX支援, AI業務効率化, ホームページ制作 岩手, TANEBI CREATIVE, タネビ クリエイティブ",
 	authors: [{ name: SITE_CONFIG.author }],
 	creator: SITE_CONFIG.author,
 	openGraph: {

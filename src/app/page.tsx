@@ -15,7 +15,11 @@ export default function Home() {
 								"@type": ["ProfessionalService", "LocalBusiness"],
 								"@id": "https://tanebi-net.com/#organization",
 								name: "TANEBI CREATIVE（タネビ クリエイティブ）- 奥州市のAI事業者",
-								alternateName: ["タネビ クリエイティブ", "TANEBI CREATIVE", "奥州市 AI事業者"],
+								alternateName: [
+									"タネビ クリエイティブ",
+									"TANEBI CREATIVE",
+									"奥州市 AI事業者",
+								],
 								url: "https://tanebi-net.com",
 								image: "https://tanebi-net.com/images/ogp.jpg",
 								description:

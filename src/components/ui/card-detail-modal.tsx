@@ -124,7 +124,11 @@ export function CardDetailModal({
 											// 内部リンクは同一タブで遷移させる（"//"はプロトコル相対URLのため除外）
 											window.location.assign(slide.liveUrl);
 										} else {
-											window.open(slide.liveUrl, "_blank", "noopener,noreferrer");
+											window.open(
+												slide.liveUrl,
+												"_blank",
+												"noopener,noreferrer",
+											);
 										}
 									}
 								}}

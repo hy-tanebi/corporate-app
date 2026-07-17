@@ -113,7 +113,10 @@ export const getBlogPosts = async (
 };
 
 // 特定のブログ記事を取得
-export const getBlogPost = async (id: string, draftKey?: string): Promise<BlogPost> => {
+export const getBlogPost = async (
+	id: string,
+	draftKey?: string,
+): Promise<BlogPost> => {
 	if (useMock) {
 		const post = getMockBlogPost(id);
 		if (!post) throw new Error(`Mock post not found: ${id}`);
@@ -151,4 +154,3 @@ export const getAuthorProfile = async (): Promise<AuthorProfile> => {
 	});
 	return response;
 };
-
