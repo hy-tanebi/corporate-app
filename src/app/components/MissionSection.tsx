@@ -117,7 +117,11 @@ function MissionSection(
 			// --- 1. Calculate Target based on Window Scroll ---
 			let rawTarget = 0;
 			if (isCircleFullyExpanded) {
-				rawTarget = remap01(scrollProgressRef.current, SECTION_START, SECTION_END);
+				rawTarget = remap01(
+					scrollProgressRef.current,
+					SECTION_START,
+					SECTION_END,
+				);
 			}
 
 			// Determine direction
@@ -174,28 +178,30 @@ function MissionSection(
 			const descriptionThreshold = isMobile ? 0.75 : 0.85;
 			const showDescription = cur >= descriptionThreshold;
 			const showSection = isCircleFullyExpanded;
-            // Note: showSection uses prop, but checking here for style updates
+			// Note: showSection uses prop, but checking here for style updates
 
 			// Update Container Opacity/PointerEvents
 			if (containerRef.current) {
-                // Opacity is simpler via class or style, but here we drive it
+				// Opacity is simpler via class or style, but here we drive it
 				const opacity = showSection ? "1" : "0";
-                if(containerRef.current.style.opacity !== opacity) {
-                    containerRef.current.style.opacity = opacity;
-                    containerRef.current.style.pointerEvents = showSection ? "auto" : "none";
-                }
+				if (containerRef.current.style.opacity !== opacity) {
+					containerRef.current.style.opacity = opacity;
+					containerRef.current.style.pointerEvents = showSection
+						? "auto"
+						: "none";
+				}
 
-                // Toggle overflow class / scrollability
-                if (showDescription !== showDescriptionStateRef.current) {
-                    showDescriptionStateRef.current = showDescription;
-                    if (showDescription) {
-                        containerRef.current.classList.remove("overflow-hidden");
-                        containerRef.current.classList.add("overflow-y-auto");
-                    } else {
-                        containerRef.current.classList.add("overflow-hidden");
-                        containerRef.current.classList.remove("overflow-y-auto");
-                    }
-                }
+				// Toggle overflow class / scrollability
+				if (showDescription !== showDescriptionStateRef.current) {
+					showDescriptionStateRef.current = showDescription;
+					if (showDescription) {
+						containerRef.current.classList.remove("overflow-hidden");
+						containerRef.current.classList.add("overflow-y-auto");
+					} else {
+						containerRef.current.classList.add("overflow-hidden");
+						containerRef.current.classList.remove("overflow-y-auto");
+					}
+				}
 			}
 
 			// Update MISSION Title
@@ -244,7 +250,7 @@ function MissionSection(
 			}
 			if (descriptionInnerRef.current) {
 				// Inner wrapper duplicates the effect in original code, so valid to update both or remove one.
-                // Updating both to stay 1:1 with original logic.
+				// Updating both to stay 1:1 with original logic.
 				descriptionInnerRef.current.style.opacity = showDescription ? "1" : "0";
 				descriptionInnerRef.current.style.transform = `translateY(${showDescription ? 0 : 30}px)`;
 			}
@@ -262,7 +268,6 @@ function MissionSection(
 		PROGRESS_SPEED_BACKWARD,
 		SMOOTH_ALPHA,
 	]);
-
 
 	// グラデーション遷移セクションのスクロール進捗を追跡 (Ref化して再レンダリング防止)
 	const gradientProgressRef = useRef(0);
@@ -300,7 +305,7 @@ function MissionSection(
 				// Physicsを即座に完了させて、内部スクロール(overflow-y-auto)を有効化する
 				currentRef.current = 1.0;
 				targetRef.current = 1.0;
-                // Note: DOM updates will be picked up by RAF loop next frame
+				// Note: DOM updates will be picked up by RAF loop next frame
 			}
 		},
 		scrollToMission: () => {
@@ -336,6 +341,12 @@ function MissionSection(
 				isAutoScrollingToContact.current = true;
 				setIsContactVisible(true);
 				setIsContactInView(true);
+
+				// overflow-hidden のままだと scrollTo が効かないため、
+				// RAFの進行度がしきい値に達するのを待たず即座にスクロール可能にする
+				showDescriptionStateRef.current = true;
+				containerRef.current.classList.remove("overflow-hidden");
+				containerRef.current.classList.add("overflow-y-auto");
 
 				const top = contactFormRef.current.offsetTop;
 				containerRef.current.scrollTo({
@@ -399,16 +410,16 @@ function MissionSection(
 	// スクロールイベント (Inner Overlay Scroll)
 	useEffect(() => {
 		const container = containerRef.current;
-        // showDescriptionStateRef.current is the source of truth for "active scroll listener"?
-        // Wait, originally this listener was active if `showDescription` (state) was true.
-        // We now rely on RAF to enable pointer events and overflow.
-        // The listener is attached to container. If container has pointer-events: none, user can't scroll it?
-        // But invalidation logic relies on checking `showDescription`.
+		// showDescriptionStateRef.current is the source of truth for "active scroll listener"?
+		// Wait, originally this listener was active if `showDescription` (state) was true.
+		// We now rely on RAF to enable pointer events and overflow.
+		// The listener is attached to container. If container has pointer-events: none, user can't scroll it?
+		// But invalidation logic relies on checking `showDescription`.
 		if (!container) return;
 
 		const handleScroll = () => {
-            // Check if we "should" be processing. Matches original `if (!showDescription) return`
-            if (!showDescriptionStateRef.current) return;
+			// Check if we "should" be processing. Matches original `if (!showDescription) return`
+			if (!showDescriptionStateRef.current) return;
 
 			const windowHeight = window.innerHeight;
 			const currentScrollTop = container.scrollTop;
@@ -540,13 +551,13 @@ function MissionSection(
 		irisTransitionProgress,
 		isMobile,
 		updateBackgroundColor,
-        // showDescription dependency is removed as we check ref inside
+		// showDescription dependency is removed as we check ref inside
 	]);
 
 	// オーバーレイでのスクロールをメインウィンドウに伝播させる処理
 	useEffect(() => {
 		const container = containerRef.current;
-        // showSection dependency check
+		// showSection dependency check
 		if (!container || !isCircleFullyExpanded) return;
 
 		let touchStartY = 0;
@@ -611,10 +622,10 @@ function MissionSection(
 
 			currentRef.current = 0;
 			targetRef.current = 0;
-            // setSectionProgress(0); // Removed state set
+			// setSectionProgress(0); // Removed state set
 			prevRawTargetRef.current = 0;
 			isGoingForwardRef.current = true;
-            showDescriptionStateRef.current = false; // Reset internal state ref
+			showDescriptionStateRef.current = false; // Reset internal state ref
 
 			gradientProgressRef.current = 0; // Ref Reset
 			setIrisTransitionProgress(0);
@@ -624,9 +635,11 @@ function MissionSection(
 			setTransitionProgress(0);
 			updateBackgroundColor(0, 0, false); // Direct Update
 
-            // Clean up DOM styles that RAF might not catch if raf stops or loop logic depends on isCircleFullyExpanded
-            if (missionTitleRef.current) { missionTitleRef.current.style.opacity = "0"; }
-            // ... (RAF loop will naturally effectively zero these if running, but resetting explicitly is safer if logic pauses)
+			// Clean up DOM styles that RAF might not catch if raf stops or loop logic depends on isCircleFullyExpanded
+			if (missionTitleRef.current) {
+				missionTitleRef.current.style.opacity = "0";
+			}
+			// ... (RAF loop will naturally effectively zero these if running, but resetting explicitly is safer if logic pauses)
 		}
 	}, [
 		isCircleFullyExpanded, // Replaces showSection
@@ -647,7 +660,6 @@ function MissionSection(
 				transition: "opacity 0.5s ease-out",
 			}}
 		>
-
 			{/* MISSION + CREATIVE THINKING エリア */}
 			<div className="h-[100dvh] flex flex-col items-center justify-center gap-4 md:gap-8 px-8">
 				<h2

@@ -6,8 +6,7 @@ import dynamic from "next/dynamic";
 import MissionSection, { type MissionSidebarHandle } from "./MissionSection";
 
 const SidebarMenu = dynamic(
-	() =>
-		import("@/components/ui/sidebar-menu").then((mod) => mod.SidebarMenu),
+	() => import("@/components/ui/sidebar-menu").then((mod) => mod.SidebarMenu),
 	{ ssr: false },
 );
 import ContactSection from "./ContactSection";
@@ -100,17 +99,40 @@ export default function HomeClient() {
 		}
 	};
 
-	// 他ページ（LPのCTAなど）から `/#contact` でアクセスされた場合、
-	// Contactセクションまでスクロールする（サイドバーの「/contact」遷移と同じロジックを再利用）
-	// biome-ignore lint/correctness/useExhaustiveDependencies: 初回マウント時のみ実行したいため handleNavigate は依存に含めない
+	// 他ページ（LPのCTAなど）から `/#contact` でアクセスされた場合、Contactセクションへ直行する。
+	// smoothスクロールだと1000vh分の移動が不安定なため、/mission と同じスナップ方式で瞬時に移動する。
+	// また、LoadingScreen表示中は body が overflow:hidden でスクロールできないため、解除されるまで待つ。
+	// biome-ignore lint/correctness/useExhaustiveDependencies: 初回マウント時のみ実行したいため依存に含めない
 	useEffect(() => {
-		if (window.location.hash === "#contact") {
-			// 3Dシーンやレイアウトの初期化を待ってから実行（/aboutの遅延パターンに合わせる）
-			const timer = setTimeout(() => {
-				handleNavigate("/contact");
-			}, 500);
-			return () => clearTimeout(timer);
-		}
+		if (window.location.hash !== "#contact") return;
+
+		let cancelled = false;
+
+		const jumpToContact = () => {
+			if (cancelled) return;
+			if (document.body.style.overflow === "hidden") {
+				// LoadingScreenがスクロールをロックしている間はリトライ
+				setTimeout(jumpToContact, 300);
+				return;
+			}
+			setIsCircleFullyExpanded(true);
+			setShouldSnapAnimation(true);
+			window.scrollTo({
+				top: document.documentElement.scrollHeight,
+				behavior: "auto",
+			});
+			// MissionSectionが展開レンダリングされた後でないと内部スクロールが空振りするため遅延
+			setTimeout(() => {
+				missionRef.current?.scrollToContact();
+				setShouldSnapAnimation(false);
+			}, 300);
+		};
+
+		const timer = setTimeout(jumpToContact, 500);
+		return () => {
+			cancelled = true;
+			clearTimeout(timer);
+		};
 	}, []);
 
 	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
@@ -158,7 +180,10 @@ export default function HomeClient() {
 			// Multiplier ~14 (1/0.07) for 7% range
 			const text1Start = isMobile ? 0.03 : 0.08;
 			const text1End = isMobile ? 0.23 : 0.28;
-			const text1FadeIn = Math.max(0, Math.min(1, (scrolled - text1Start) * 14));
+			const text1FadeIn = Math.max(
+				0,
+				Math.min(1, (scrolled - text1Start) * 14),
+			);
 			const text1FadeOut = Math.max(0, Math.min(1, (text1End - scrolled) * 16));
 			const text1Opacity = Math.min(text1FadeIn, text1FadeOut);
 
@@ -181,7 +206,10 @@ export default function HomeClient() {
 			// Desktop: In 28-35%, Out 76-80% (Starts as Text 1 fades out)
 			// Mobile: In 13-20%, Out 76-80% (Earlier to reduce scroll)
 			const text2Start = isMobile ? 0.13 : 0.28;
-			const text2FadeIn = Math.max(0, Math.min(1, (scrolled - text2Start) * 14));
+			const text2FadeIn = Math.max(
+				0,
+				Math.min(1, (scrolled - text2Start) * 14),
+			);
 			const text2FadeOut = Math.max(0, Math.min(1, (0.8 - scrolled) * 25));
 			const text2Opacity = Math.min(text2FadeIn, text2FadeOut);
 
