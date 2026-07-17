@@ -40,7 +40,8 @@ export function PageHero({
 				</Link>
 			</nav>
 
-			<div className="grid grid-cols-1 lg:grid-cols-[5fr_6fr] gap-10 lg:gap-16 items-center">
+			{/* min-h はリード文が最長のページ(/service/issues)基準。全ページで第一画面の高さを揃える */}
+			<div className="grid grid-cols-1 lg:grid-cols-[5fr_6fr] gap-10 lg:gap-16 items-center lg:min-h-[540px]">
 				{/* ビジュアル枠（画像支給までは種火プレースホルダー） */}
 				<div className="order-2 lg:order-1">
 					{visual ? (
@@ -57,11 +58,27 @@ export function PageHero({
 							aria-hidden
 							className="relative aspect-[4/3] rounded-3xl bg-secondary overflow-hidden flex items-center justify-center"
 						>
-							<span
-								className={`${anton.className} select-none text-[26vw] lg:text-[11rem] leading-none uppercase text-foreground/[0.06]`}
+							{/* 単語の文字数に関係なく同じ幅にフィットさせるためSVGで描画 */}
+							<svg
+								viewBox="0 0 100 30"
+								className="w-[88%] select-none text-foreground/[0.06]"
+								role="presentation"
 							>
-								{english}
-							</span>
+								<text
+									x="50"
+									y="15"
+									textAnchor="middle"
+									dominantBaseline="central"
+									textLength="100"
+									lengthAdjust="spacingAndGlyphs"
+									className={anton.className}
+									fontSize="26"
+									fill="currentColor"
+									style={{ textTransform: "uppercase" }}
+								>
+									{english}
+								</text>
+							</svg>
 							<span className="absolute bottom-8 right-8 h-4 w-4 rounded-full bg-[#e8590c]" />
 						</div>
 					)}
@@ -83,27 +100,34 @@ export function PageHero({
 							{title}
 						</span>
 					</h1>
-					<p className="mt-6 text-base lg:text-lg leading-loose text-muted-foreground max-w-xl whitespace-pre-line">
+					<p className="mt-6 text-base lg:text-lg leading-loose text-foreground max-w-xl whitespace-pre-line">
 						{lead}
 					</p>
 
 					{pills && pills.length > 0 && (
 						<div className="mt-8 flex flex-wrap gap-3">
-							{pills.map((pill) => (
-								<Link
-									key={pill.href}
-									href={pill.href}
-									className="group inline-flex items-center gap-2 rounded-full border border-foreground px-5 py-2.5 text-sm font-bold transition-colors hover:bg-foreground hover:text-background"
-								>
-									{pill.label}
-									<span
-										aria-hidden
-										className="transition-transform group-hover:translate-x-0.5"
+							{pills.map((pill) => {
+								const isAnchor = pill.href.startsWith("#");
+								return (
+									<Link
+										key={pill.href}
+										href={pill.href}
+										className="group inline-flex items-center gap-2 rounded-full border border-foreground px-5 py-2.5 text-sm font-bold transition-colors hover:bg-foreground hover:text-background"
 									>
-										→
-									</span>
-								</Link>
-							))}
+										{pill.label}
+										<span
+											aria-hidden
+											className={
+												isAnchor
+													? "transition-transform group-hover:translate-y-0.5"
+													: "transition-transform group-hover:translate-x-0.5"
+											}
+										>
+											{isAnchor ? "↓" : "→"}
+										</span>
+									</Link>
+								);
+							})}
 						</div>
 					)}
 				</div>

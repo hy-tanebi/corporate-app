@@ -17,9 +17,9 @@ export default function WorksPage() {
 			<PageHero
 				label="Small start, real use"
 				english="Works"
-				title="実際の取り組み ─ 自社の業務を、自作ツールで改善した話"
+				title="実際の取り組み"
 				lead={
-					"待機確認の業務を、自作のWebツールに置き換えました。今も毎日使っています。\n何に困り、何を整理し、どう作ったか。順番にお見せします。"
+					"自社の業務を、自作ツールで改善した話です。待機確認の業務を自作のWebツールに置き換え、今も毎日使っています。\n何に困り、何を整理し、どう作ったか。順番にお見せします。"
 				}
 				pills={[
 					{ label: "できることを見る", href: "/service" },

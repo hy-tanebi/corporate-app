@@ -131,7 +131,7 @@ export default function ServicePage() {
 					{menus.map((menu) => (
 						<div key={menu.id} id={menu.id} className="scroll-mt-8">
 							<p
-								className={`${anton.className} text-5xl lg:text-7xl leading-none uppercase tracking-[0.04em] text-foreground/10 mb-3`}
+								className={`${anton.className} font-bold text-5xl lg:text-7xl leading-none uppercase tracking-[0.04em] text-foreground/10 mb-3`}
 							>
 								{menu.en}
 							</p>
@@ -216,11 +216,7 @@ export default function ServicePage() {
 								/>
 							)}
 							<div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-foreground bg-background">
-								<step.icon
-									className="h-6 w-6"
-									strokeWidth={1.5}
-									aria-hidden
-								/>
+								<step.icon className="h-6 w-6" strokeWidth={1.5} aria-hidden />
 							</div>
 							<div className="mt-4 w-full flex-1 rounded-2xl border border-border bg-background p-5 lg:p-6 transition-shadow hover:shadow-md">
 								<p
