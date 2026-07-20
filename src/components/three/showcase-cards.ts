@@ -30,6 +30,6 @@ export const SHOWCASE_CARDS: VideoSlide[] = [
 		description:
 			"待機確認の業務を自作のWebツールに置き換えました。今も毎日使っています。",
 		category: "事例",
-		liveUrl: "/works",
+		// ページ再設計中のためリンクは一時的に外している（/works 本体は残置）
 	},
 ];

@@ -183,19 +183,7 @@ export default function ServicePage() {
 					))}
 				</div>
 				<p className="mt-14 text-sm lg:text-base text-muted-foreground">
-					自社でも同じ進め方でツールを作り、毎日使っています。{" "}
-					<Link
-						href="/works"
-						className="group inline-flex items-center gap-2 rounded-full border border-foreground px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-foreground hover:text-background ml-1"
-					>
-						実際の取り組みはこちら
-						<span
-							aria-hidden
-							className="transition-transform group-hover:translate-x-0.5"
-						>
-							→
-						</span>
-					</Link>
+					自社でも同じ進め方でツールを作り、毎日使っています。
 				</p>
 			</LpSection>
 

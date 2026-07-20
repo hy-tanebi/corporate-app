@@ -59,10 +59,7 @@ export default function ServiceIssuesPage() {
 				lead={
 					"古いホームページのまま何年も経っている。Excel管理が自分にしか分からない状態になっている。AIが気になってはいるけど、何から手をつけていいか分からない。\nそういう「何とかしたいとは思っているけど、後回しにしてしまっている」ことに、一緒に手をつける仕事をしています。"
 				}
-				pills={[
-					{ label: "できることを見る", href: "/service" },
-					{ label: "実際の取り組み", href: "/works" },
-				]}
+				pills={[{ label: "できることを見る", href: "/service" }]}
 			/>
 
 			<LpSection eyebrow="Issues" title="よくあるお悩み">

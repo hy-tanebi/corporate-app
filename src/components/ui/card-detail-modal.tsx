@@ -110,32 +110,34 @@ export function CardDetailModal({
 							{slide.description || "No description available."}
 						</p>
 
-						<div className="mt-auto pt-4">
-							<button
-								type="button"
-								className="group relative inline-flex items-center justify-center px-6 py-2.5 bg-white text-[#1c50a1] font-bold rounded-full overflow-hidden transition-all hover:bg-white/90 hover:scale-[1.02] active:scale-95 uppercase tracking-widest text-xs w-full"
-								onClick={(e) => {
-									e.stopPropagation();
-									if (slide.liveUrl) {
-										if (
-											slide.liveUrl.startsWith("/") &&
-											!slide.liveUrl.startsWith("//")
-										) {
-											// 内部リンクは同一タブで遷移させる（"//"はプロトコル相対URLのため除外）
-											window.location.assign(slide.liveUrl);
-										} else {
-											window.open(
-												slide.liveUrl,
-												"_blank",
-												"noopener,noreferrer",
-											);
+						{slide.liveUrl && (
+							<div className="mt-auto pt-4">
+								<button
+									type="button"
+									className="group relative inline-flex items-center justify-center px-6 py-2.5 bg-white text-[#1c50a1] font-bold rounded-full overflow-hidden transition-all hover:bg-white/90 hover:scale-[1.02] active:scale-95 uppercase tracking-widest text-xs w-full"
+									onClick={(e) => {
+										e.stopPropagation();
+										if (slide.liveUrl) {
+											if (
+												slide.liveUrl.startsWith("/") &&
+												!slide.liveUrl.startsWith("//")
+											) {
+												// 内部リンクは同一タブで遷移させる（"//"はプロトコル相対URLのため除外）
+												window.location.assign(slide.liveUrl);
+											} else {
+												window.open(
+													slide.liveUrl,
+													"_blank",
+													"noopener,noreferrer",
+												);
+											}
 										}
-									}
-								}}
-							>
-								<span className="relative z-10">Read More</span>
-							</button>
-						</div>
+									}}
+								>
+									<span className="relative z-10">Read More</span>
+								</button>
+							</div>
+						)}
 					</div>
 				</Dialog.Content>
 			</Dialog.Portal>
