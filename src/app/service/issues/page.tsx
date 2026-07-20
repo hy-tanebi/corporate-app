@@ -1,3 +1,4 @@
+import { Bot, Clock, FileSpreadsheet, Globe } from "lucide-react";
 import type { Metadata } from "next";
 import { CtaBlock } from "@/components/lp/CtaBlock";
 import { anton, notoSansJp } from "@/components/lp/fonts";
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 const issues = [
 	{
 		tag: "WEB",
+		icon: Globe,
 		title: "ホームページが古いまま、問い合わせも来ない",
 		summary: "サイトはあるのに、そこから問い合わせが来た記憶がない。",
 		body: [
@@ -22,6 +24,7 @@ const issues = [
 	},
 	{
 		tag: "EXCEL",
+		icon: FileSpreadsheet,
 		title: "Excel・紙の管理が属人化していてしんどい",
 		summary: "その担当者しか分からない。引き継ぎができない。",
 		body: [
@@ -31,6 +34,7 @@ const issues = [
 	},
 	{
 		tag: "OPS",
+		icon: Clock,
 		title: "事務作業・資料作成に時間がかかっている",
 		summary: "毎月同じ資料を手で作っている。議事録が地味に大変。",
 		body: [
@@ -40,6 +44,7 @@ const issues = [
 	},
 	{
 		tag: "AI",
+		icon: Bot,
 		title: "AIが気になるけど、何から始めればいいか分からない",
 		summary: "ChatGPTは触ってみたけど、業務への活かし方が分からない。",
 		body: [
@@ -69,11 +74,20 @@ export default function ServiceIssuesPage() {
 							key={issue.tag}
 							className="rounded-3xl bg-secondary p-7 lg:p-9"
 						>
-							<p
-								className={`${anton.className} text-xs tracking-[0.3em] uppercase text-[#e8590c] mb-3`}
-							>
-								{issue.tag}
-							</p>
+							<div className="flex items-center gap-3 mb-4">
+								<div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-foreground bg-background">
+									<issue.icon
+										className="h-5 w-5"
+										strokeWidth={1.5}
+										aria-hidden
+									/>
+								</div>
+								<p
+									className={`${anton.className} text-xs tracking-[0.3em] uppercase text-[#e8590c]`}
+								>
+									{issue.tag}
+								</p>
+							</div>
 							<h3 className="text-lg lg:text-xl font-black leading-snug mb-2">
 								{issue.title}
 							</h3>

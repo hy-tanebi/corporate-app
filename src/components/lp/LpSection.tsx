@@ -21,7 +21,7 @@ export function LpSection({ id, eyebrow, title, children }: LpSectionProps) {
 					{eyebrow}
 				</p>
 			)}
-			<h2 className="text-center text-3xl lg:text-5xl font-black tracking-tight mb-8 lg:mb-12">
+			<h2 className="text-center text-2xl lg:text-4xl font-black tracking-tight mb-8 lg:mb-12">
 				{title}
 			</h2>
 			{children}

@@ -9,7 +9,7 @@ export function CtaBlock() {
 			>
 				Contact
 			</p>
-			<h2 className="text-3xl lg:text-5xl font-black tracking-tight mb-5">
+			<h2 className="text-2xl lg:text-4xl font-black tracking-tight mb-5">
 				まずは話を聞いてみる
 			</h2>
 			<p className="text-white/75 leading-loose mb-10">
