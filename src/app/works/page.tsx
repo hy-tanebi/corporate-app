@@ -9,6 +9,8 @@ export const metadata: Metadata = {
 		"実際の取り組み ─ 自社の業務を、自作ツールで改善した話 | TANEBI CREATIVE",
 	description:
 		"待機確認の業務を自作のWebツールに置き換え、今も毎日使っています。何に困り、何を整理し、どう作ったか。小さく作って使いながら育てる進め方を紹介します。",
+	// ページ再設計中のため検索エンジンには載せない（再公開時にこの robots を削除する）
+	robots: { index: false, follow: false },
 };
 
 export default function WorksPage() {
