@@ -18,7 +18,7 @@ export const SHOWCASE_CARDS: VideoSlide[] = [
 		mediaType: "image",
 		imageSrc: "/images/hero_human_app.webp",
 		description:
-			"Web改善の見直し、AI業務改善の整理、小さな業務ツールづくり。どれも「まず話を聞いてから」始めます。",
+			"Webサイトの制作・改善、AI活用の相談、業務ツールの開発。どれも「まず話を聞いてから」始めます。",
 		category: "サービス",
 		liveUrl: "/service",
 	},

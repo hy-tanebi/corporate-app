@@ -10,6 +10,9 @@ interface HeroPill {
 interface HeroVisual {
 	src: string;
 	alt: string;
+	/** 画像の実寸。縦横比がずれると読み込み時にレイアウトが動くため、必ず元画像の値を渡す */
+	width: number;
+	height: number;
 }
 
 interface PageHeroProps {
@@ -48,8 +51,9 @@ export function PageHero({
 						<Image
 							src={visual.src}
 							alt={visual.alt}
-							width={880}
-							height={660}
+							width={visual.width}
+							height={visual.height}
+							sizes="(min-width: 1024px) 45vw, 100vw"
 							className="w-full h-auto rounded-3xl"
 							priority
 						/>

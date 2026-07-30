@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { CtaBlock } from "@/components/lp/CtaBlock";
 import { anton, notoSansJp } from "@/components/lp/fonts";
 import { LpSection } from "@/components/lp/LpSection";
@@ -15,55 +16,96 @@ import { PageHero } from "@/components/lp/PageHero";
 export const metadata: Metadata = {
 	title: "できること ─ ご相談メニュー | TANEBI CREATIVE",
 	description:
-		"Webサイト改善の見直し、AI業務改善のミニ相談、小規模業務ツールの開発。どれも「まず話を聞いてから」小さく始められます。初回相談は無料です。",
+		"Webサイトの制作・改善、AI活用の相談、業務ツールの開発。どれも「まず話を聞いてから」始められます。初回相談は無料です。",
 };
 
-const menus = [
+type Menu = {
+	id: string;
+	en: string;
+	title: string;
+	body: string[];
+	items: string[];
+	/** 他メニューへの案内。リンクを含むため本文とは別枠で扱う */
+	crossRef?: ReactNode;
+};
+
+const menus: Menu[] = [
 	{
 		id: "web",
 		en: "Web",
-		title: "Webサイト改善の見直し",
+		title: "Webサイトの制作・改善",
 		body: [
-			"古くなったサイトの情報整理、問い合わせ導線の確認、スマホ表示・ページ速度の確認、GA4の導入状況の確認と改善提案をします。",
-			"「どこから手をつければいいか分からない」という状態でも大丈夫です。まず現状を一緒に整理するところから始めます。全ページをリニューアルしなくても、優先度の高い箇所だけを直すことで費用を抑えることもできます。",
+			"これから新しくサイトをつくる場合も、すでにあるサイトを直す場合も対応します。新規制作では、何を載せるかの整理から、デザイン・実装・公開後の運用まで通して引き受けます。",
+			"「古くなったサイトを、どこから手をつければいいか分からない」という状態でも大丈夫です。情報の整理、問い合わせ導線、スマホ表示・ページ速度、GA4の状況を見て、優先度の高いところから直します。全ページをつくり直さなくても変わることはあります。",
+			"ネットで商品を売りたい場合は、ECサイトの制作にも対応します。既存のサービスを使って早く始める形と、自社に合わせてつくり込む形のどちらも選べるので、扱う商品数や送料・決済の条件を聞いたうえで、合う方を提案します。すでにECを運営している場合は、カートで離脱している箇所の見直しから入ることもできます。",
+			"「予約を受けられるようにしたい」「会員向けのページが必要」など、サイトだけでは足りない仕組みが必要な場合は、アプリの制作もご相談ください。スマートフォンアプリにも対応します。サイトだけで足りるなら、無理にアプリは作りません。",
 		],
 		items: [
+			"新しいサイトの制作（構成の整理からデザイン・公開まで）",
+			"既存サイトの情報整理・問い合わせ導線の改善",
+			"ECサイトの制作・カートでの離脱の見直し",
 			"ABテストで問い合わせ・成約につながる導線と文言を検証",
-			"問い合わせ導線の確認・改善提案",
-			"スマホ表示・ページ速度の確認",
-			"GA4の導入・活用状況のチェック",
+			"スマホ表示・ページ速度・GA4の状況の確認",
+			"予約・会員ページなどのアプリ制作（スマートフォンアプリも対応）",
 		],
+		crossRef: (
+			<>
+				社内で使う業務ツールは、
+				<Link
+					href="#tools"
+					className="font-bold text-foreground underline underline-offset-4 hover:text-[#e8590c] transition-colors"
+				>
+					業務ツールの開発
+				</Link>
+				で対応しています。
+			</>
+		),
 	},
 	{
 		id: "ai",
 		en: "AI",
-		title: "AI業務改善のミニ相談",
+		title: "AI活用の相談",
 		body: [
-			"業務を聞き取って、AIで置き換えられる作業・置き換えない方がいい作業を整理します。「とりあえずAIを入れれば効率化できる」ということはなく、業務に合った使い方がそれぞれあります。",
+			"AIの使い道は、作業を自動化することだけではありません。事業の進め方を考えるときの相談相手にもなりますし、頭の中にある段取りを整理する道具にもなります。まずは業務を聞き取って、AIが向いていること・向いていないことを一緒に見極めます。",
+			"「Claude CodeやCodexのようなAIツールを使って、開発や事務作業を効率化してみたい。でも周りに詳しい人がいない」という場合もご相談ください。何にどう使えるかを、実際の業務内容を見ながら一緒に考えます。",
 			"いきなりシステムを入れるのではなく、まず現状の業務を整理することから始めます。そのうえで、小さく試せるところがあれば一緒に試します。",
 		],
 		items: [
-			"繰り返し作業の洗い出し（文書作成・転記・集計など）",
-			"AIで置き換えられる作業・できない作業の整理",
-			"ツールの選定・導入支援（ChatGPT、Dify等）",
-			"「やらない方がいいAI導入」の整理",
+			"新しいサービスや事業の進め方を、AIを相手に壁打ちしながら形にしていく",
+			"頭の中にしかない段取りや判断の基準を言葉にして、人が変わっても回る仕組みにする",
+			"社内のマニュアルや過去の問い合わせをAIに読ませて、質問に答える仕組みをつくる",
+			"Claude Code・Codexを使った開発・事務作業の効率化",
+			"毎回手で書いている書類（見積書・報告書・議事録）の下書きを自動化",
+			"社内でAIを使うときのルールづくり（入力してよい情報・だめな情報の線引き）",
 		],
 	},
 	{
 		id: "tools",
 		en: "Tools",
-		title: "小規模業務ツールの開発",
+		title: "業務ツールの開発",
 		body: [
-			"「大きなシステムは不要だけど、Excelや紙での管理をもう少し整理したい」という場合に対応します。認証・管理画面・データ出力のある小さなWebツールを作ります。",
-			"複数のSaaSを別々に契約して使い分けている場合は、業務に合わせてカスタマイズしたツールに一元化する開発も行います。ツールの数と月々の費用を、まとめて見直せます。",
+			"「この作業に時間がかかっている」「この管理を何とかしたい」という課題に合わせて、社内で使うツールやアプリを開発します。認証・管理画面・データ出力など、必要な機能を業務に沿って組み立てます。",
+			"複数のSaaSを別々に契約して使い分けている場合は、まず現状を整理したうえで、業務に合わせたツールに一元化する開発を行います。ツールの数と月々にかかっている費用を、まとめて見直せます。",
 			"作って終わりではなく、使い続けられる設計にします。",
 		],
 		items: [
-			"紙・Excel管理の簡易Webツール化",
-			"複数SaaS契約の整理・ツール一元化",
+			"業務の課題に合わせたツールの設計・開発",
+			"複数SaaS契約の整理・一元化による月々の費用の見直し",
 			"管理画面・CSV出力・担当者別の権限設定",
-			"既存業務を止めずに少しずつ移行",
+			"既存業務を止めずに段階的に移行",
 		],
+		crossRef: (
+			<>
+				お客さま向けの予約・会員などのアプリは、
+				<Link
+					href="#web"
+					className="font-bold text-foreground underline underline-offset-4 hover:text-[#e8590c] transition-colors"
+				>
+					Webサイトの制作・改善
+				</Link>
+				で対応しています。
+			</>
+		),
 	},
 ];
 
@@ -112,12 +154,18 @@ export default function ServicePage() {
 				label="What we can do"
 				english="Service"
 				title="できること ─ ご相談メニュー"
+				visual={{
+					src: "/images/service_fv.jpeg",
+					alt: "手元の道具やアイデアを見せ合いながら、業務の進め方を話し合っている人たちのイラスト",
+					width: 1024,
+					height: 1024,
+				}}
 				lead={
-					"Web改善の見直し、AI業務改善の整理、小さな業務ツールづくり。\nどれも「まず話を聞いてから」始めます。小さく始められます。"
+					"Webサイトの制作・改善、AI活用の相談、業務ツールの開発。\nどれも「まず話を聞いてから」始めます。"
 				}
 				pills={[
-					{ label: "Webサイト改善", href: "#web" },
-					{ label: "AI業務改善", href: "#ai" },
+					{ label: "Webサイト制作・改善", href: "#web" },
+					{ label: "AI活用", href: "#ai" },
 					{ label: "業務ツール開発", href: "#tools" },
 				]}
 			/>
@@ -148,6 +196,11 @@ export default function ServicePage() {
 											{paragraph}
 										</p>
 									))}
+									{menu.crossRef && (
+										<p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+											{menu.crossRef}
+										</p>
+									)}
 								</div>
 								<div className="self-start lg:pt-1">
 									<p className="text-xs font-bold tracking-widest text-muted-foreground mb-3">
@@ -183,7 +236,7 @@ export default function ServicePage() {
 					))}
 				</div>
 				<p className="mt-14 text-sm lg:text-base text-muted-foreground">
-					自社でも同じ進め方でツールを作り、毎日使っています。
+					企業さまの現場では、ツールをつくって終わりではなく、導入から運用、業務の進め方の見直しまで一緒に進めています。自分の開発でもAIツールを日常的に使っていますし、自社の業務も自作ツールに置き換えて、今も毎日使っています。
 				</p>
 			</LpSection>
 
@@ -224,16 +277,16 @@ export default function ServicePage() {
 				</ol>
 			</LpSection>
 
-			<LpSection eyebrow="Price" title="価格について">
+			<LpSection eyebrow="Plans" title="ご契約について">
 				<div className="mx-auto max-w-2xl space-y-4 text-left">
 					<p className="text-base lg:text-lg leading-loose">
-						初回の相談は無料です。正式な費用は業務の内容をお聞きしてから提案します。
+						初回の相談は無料です。費用は業務の内容をお聞きしてから提案します。
 					</p>
 					<p className="text-base lg:text-lg leading-loose">
-						小さな相談・小さなツールには小さな価格で対応しています（数万円からが目安です）。大手企業向けの価格設定ではなく、地元の小さな事業者に合わせた相談をしています。
+						お付き合いの形は一つではありません。1つのプロジェクトとして区切って対応することもできますし、社内で回せるようになるまで伴走する月額プランでの対応も行っています。どの形が合いそうかも含めて、相談しながら決められます。
 					</p>
 					<p className="text-base lg:text-lg leading-loose">
-						「高いものを勧めるつもりはありません。今あるものを活かして、必要な分だけ整理します。」
+						今あるものを活かして、必要な分だけ整理します。
 					</p>
 				</div>
 			</LpSection>
