@@ -64,6 +64,24 @@
 		--input: 217.2 32.6% 17.5%;
 		--ring: 212.7 26.8% 83.9%;
 	}
+
+	/* LPページ（/service, /service/issues, /works）専用のライト固定スコープ。
+	   FV画像がクリーム背景の描き下ろしイラストで、これらのページにはテーマ切替ボタンも
+	   置いていないため、html に .dark が付いていてもライトのトークンで描画する。
+	   これを付けないと、bg-secondary が濃紺・text-foreground がほぼ白に切り替わり、
+	   白背景に白文字（本文が消える）という状態になる。 */
+	.lp-light {
+		--background: 0 0% 100%;
+		--foreground: 222.2 84% 4.9%;
+
+		--secondary: 210 40% 96.1%;
+		--secondary-foreground: 222.2 47.4% 11.2%;
+
+		--muted: 210 40% 96.1%;
+		--muted-foreground: 215.4 16.3% 46.9%;
+
+		--border: 214.3 31.8% 91.4%;
+	}
 }
 
 body {
