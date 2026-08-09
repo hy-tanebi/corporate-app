@@ -10,7 +10,7 @@ export function CtaBlock() {
 				Contact
 			</p>
 			<h2 className="text-2xl lg:text-4xl font-black tracking-tight mb-5">
-				まずは話を聞いてみる
+				お気軽にご相談ください
 			</h2>
 			<p className="text-white/75 leading-loose mb-10">
 				「何を頼めばいいかまだ分からない」という状態での相談で大丈夫です。

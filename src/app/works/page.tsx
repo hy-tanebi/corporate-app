@@ -25,7 +25,7 @@ export default function WorksPage() {
 				}
 				pills={[
 					{ label: "できることを見る", href: "/service" },
-					{ label: "お悩みから探す", href: "/service/issues" },
+					{ label: "課題から探す", href: "/service/issues" },
 				]}
 			/>
 

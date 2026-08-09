@@ -4,11 +4,11 @@ import type { VideoSlide } from "../../types/content";
 export const SHOWCASE_CARDS: VideoSlide[] = [
 	{
 		id: "service-issues",
-		title: "こんなお悩み、ありませんか",
+		title: "その課題、ここから伸ばせます",
 		mediaType: "image",
 		imageSrc: "/images/hero_dx_support.webp",
 		description:
-			"古いホームページ、属人化したExcel管理、AIの使いどころ。「何とかしたい」に一緒に手をつけます。",
+			"作って終わりのホームページ、伸びないネット販売、社内の手間、AIの使いどころ。「こうしたい」から一緒に進めます。",
 		category: "サービス",
 		liveUrl: "/service/issues",
 	},
