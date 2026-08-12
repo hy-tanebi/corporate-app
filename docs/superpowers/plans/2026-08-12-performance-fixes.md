@@ -22,7 +22,8 @@
 - **`feature/dify-chatbot-widget` はマージしない**（ユーザー指示・保留中のため）
 - **コミットメッセージは Conventional Commits、接頭辞は英語・説明文は日本語**（`CLAUDE.md` 2.2）
 - **各ブランチのプッシュ前に `pnpm lint` と `pnpm build` をエラー0件で通す**（`CLAUDE.md` 2.3.4）
-- **`doc/progress.md` を作業のたびに更新する**（`CLAUDE.md` 1.4）
+- **`doc/progress.md` を作業のたびに更新する**（`CLAUDE.md` 1.4）。ただし **`doc/` は gitignore 済み**（`.gitignore:61` の `/doc/`）なので、**更新はするがコミットはしない**。各タスクの「進捗を記録する」ステップにある `git add doc/progress.md` は実行できないので飛ばすこと
+- **ブランチ3・4は、`feature/service-lp-pages` が dev にマージされてから切る。** この計画のベースライン（`/` 417 KB、`/blog` 378 KB、`/service` 257 KB）と全タスクの行番号は `feature/service-lp-pages` 上で計測・確認したもの。dev との差は44ファイル/4045行あり、dev から切ると行番号がずれ、後でマージしたときに `Providers.tsx` / `HeroCanvasWrapper.tsx` / `hero-canvas.tsx` / `Astronaut.tsx` / `sitemap.ts` がコンフリクトする。特に Task 11 が削除する `/#contact` の待機処理は dev には存在せず、LP 側のマージで復活してしまう。**マージ後に必ずベースラインを取り直すこと**
 - **ブラウザ自動化は使わない。** 表示確認はユーザーが行う（`doc/progress.md` 2026-08-09 の方針）
 
 ---
@@ -93,10 +94,12 @@ git checkout -b fix/blog-sitemap-exclude
 
 ```bash
 pnpm exec dotenvx run -f .env.local -- pnpm exec next build
-grep -c "/blog" .next/server/app/sitemap.xml.body
+grep -c "<loc>https://tanebi-net.com/blog</loc>" .next/server/app/sitemap.xml.body
 ```
 
-Expected: 1以上（`https://tanebi-net.com/blog` が含まれている）
+Expected: `1`（一覧ページのURLが含まれている）
+
+**厳密一致で数えること。** `grep -c "tanebi-net.com/blog"` だと記事URL（`/blog/xxx`）も数えてしまい判定できない。またローカルは `USE_MOCK_BLOG=true` なので、記事URLとして mock記事3件（`mock-nextjs-app-router` 等）が必ず出る。これは正常。
 
 - [ ] **Step 3: `/blog` のエントリを削除する**
 
@@ -119,10 +122,11 @@ Expected: 1以上（`https://tanebi-net.com/blog` が含まれている）
 pnpm lint
 pnpm exec tsc --noEmit
 pnpm exec dotenvx run -f .env.local -- pnpm exec next build
-grep -c "tanebi-net.com/blog" .next/server/app/sitemap.xml.body
+grep -c "<loc>https://tanebi-net.com/blog</loc>" .next/server/app/sitemap.xml.body
+grep -o "<loc>[^<]*</loc>" .next/server/app/sitemap.xml.body
 ```
 
-Expected: `0`。またビルドが13ページ生成で成功すること。
+Expected: 1つ目は `0`（一覧URLが消えている）。2つ目の一覧にトップと mock記事3件だけが並び、`<loc>https://tanebi-net.com/blog</loc>` が無いこと。ビルドが成功すること。
 
 - [ ] **Step 5: コミット**
 
