@@ -13,9 +13,10 @@ import dynamic from "next/dynamic";
 import AboutSection from "./AboutSection";
 import { useHeroState } from "../../contexts/HeroStateContext";
 
-const MissionContent = dynamic(() => import("./MissionContent"), {
-	ssr: false,
-});
+// ssr:false にしない。MISSIONの本文（事業説明の中核）は SEO 上 HTML に存在する必要がある。
+// ssr:false だと初期HTMLに一切出力されず、Google のレンダリング待ちに依存してしまう。
+// コード分割は dynamic のまま維持しているので、チャンクは分かれる。
+const MissionContent = dynamic(() => import("./MissionContent"));
 
 // お問い合わせフォームと Toaster を遅延読み込みする。
 // これにより zod / react-hook-form / radix / sonner がトップの初期バンドルから外れる。
