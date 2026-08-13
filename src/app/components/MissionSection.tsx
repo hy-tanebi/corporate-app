@@ -751,9 +751,14 @@ function MissionSection(
 				<AboutSection transitionProgress={irisTransitionProgress} />
 			</div>
 
+			{/* id="contact" は /#contact（LPのCTA・グローバルナビ・llms.txt が配布するURL）の着地点。
+			    これまで id が無く、到達は完全にJS依存だった。JS無効時・ページ内検索・支援技術のために付与する。
+			    tabIndex={-1} はプログラム的なフォーカス移動を可能にするため（キーボード操作の順序は変えない） */}
 			<div
+				id="contact"
 				ref={contactRef}
-				className={`w-full flex items-center justify-center relative z-30 ${
+				tabIndex={-1}
+				className={`w-full flex items-center justify-center relative z-30 outline-none ${
 					isMobile ? "h-[50vh]" : "h-[50vh]"
 				}`}
 			>
