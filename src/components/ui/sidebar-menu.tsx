@@ -257,8 +257,10 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 
 							{/* SPは中央寄せ(元の挙動のまま)、PCだけ上詰め。
 						    CONTACTとUFOボタン(ChatWidget)の衝突は中央寄せの変更ではなく
-						    Menu Content Container の pb-28（下部クリアランス）で対処している */}
-						<nav className="flex flex-col space-y-4 md:space-y-6 flex-1 justify-center items-center md:justify-start md:items-start w-full">
+						    Menu Content Container の pb-28（下部クリアランス）で対処している。
+						    PCの項目間隔(gap)は画面の高さに応じて可変（詳細はitem labelのコメント参照）。
+						    画面高さ800px以上では md:space-y-6 相当(24px)のまま、それより低い画面では縮む */}
+						<nav className="flex flex-col space-y-4 md:space-y-[clamp(0.5rem,2dvh_+_0.25rem,1.5rem)] flex-1 justify-center items-center md:justify-start md:items-start w-full">
 								{menuItems.map((item, i) => (
 									<motion.div
 										key={item.href}
@@ -315,7 +317,12 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 												</div>
 
 												{/* Label */}
-												<span className="text-4xl md:text-5xl font-bold tracking-wider font-sans md:group-hover:mb-2 transition-all duration-300">
+												{/* PC(md:)は画面の高さに応じて文字サイズが可変。項目が6個になり、低い画面高さでは
+												    text-5xl(48px)固定だと下スクロールが発生しうるため、
+												    clamp(下限28px, 4dvh+16px, 上限48px=text-5xl相当) にした。
+												    画面高さ800px以上ではこれまで通り48pxのまま、低い画面だけ縮んで
+												    常に画面内(下スクロール無し)に収まるようにしている。SPには影響しない */}
+												<span className="text-4xl md:text-[clamp(1.75rem,4dvh_+_1rem,3rem)] font-bold tracking-wider font-sans md:group-hover:mb-2 transition-all duration-300">
 													{item.label}
 												</span>
 
