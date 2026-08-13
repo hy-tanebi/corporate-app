@@ -321,8 +321,12 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 												    text-5xl(48px)固定だと下スクロールが発生しうるため、
 												    clamp(下限28px, 4dvh+16px, 上限48px=text-5xl相当) にした。
 												    画面高さ800px以上ではこれまで通り48pxのまま、低い画面だけ縮んで
-												    常に画面内(下スクロール無し)に収まるようにしている。SPには影響しない */}
-												<span className="text-4xl md:text-[clamp(1.75rem,4dvh_+_1rem,3rem)] font-bold tracking-wider font-sans md:group-hover:mb-2 transition-all duration-300">
+												    常に画面内(下スクロール無し)に収まるようにしている。SPには影響しない。
+												    md:leading-none が必須。text-5xl 等の既定クラスは font-size と line-height が
+												    セットで定義されるが、text-[clamp(...)] のようなアービトラリ値は font-size しか
+												    指定されず、html の line-height:1.5 を継承してしまう（48px想定が実際72pxになり、
+												    計算上収まるはずの高さでも下スクロールが発生していた） */}
+												<span className="text-4xl md:text-[clamp(1.75rem,4dvh_+_1rem,3rem)] md:leading-none font-bold tracking-wider font-sans md:group-hover:mb-2 transition-all duration-300">
 													{item.label}
 												</span>
 
