@@ -22,17 +22,17 @@ export default function LoadingScreen({
 	const handleStart = useCallback(() => {
 		setHasStarted(true);
 		document.body.style.overflow = "unset";
-		// フェードアウト(transition-opacity duration-1000)を再生しきってから親に完了を伝える。
+		// フェードアウト(transition-opacity duration-500)を再生しきってから親に完了を伝える。
 		// 以前は 0ms で通知していたため、親が即座に unmount しフェードが走っていなかった。
 		setTimeout(() => {
 			onLoadingComplete();
-		}, 1000);
+		}, 500);
 	}, [onLoadingComplete]);
 
-	// 約2秒で完了するプログレスシミュレーション
+	// 約0.7秒で完了するプログレスシミュレーション
 	useEffect(() => {
 		const start = performance.now();
-		const duration = 2000;
+		const duration = 700;
 		let frame: number;
 
 		const tick = () => {
@@ -56,16 +56,13 @@ export default function LoadingScreen({
 	// 100%到達で完了
 	useEffect(() => {
 		if (progress === 100) {
-			const timer = setTimeout(() => {
-				handleStart();
-			}, 500);
-			return () => clearTimeout(timer);
+			handleStart();
 		}
 	}, [progress, handleStart]);
 
 	return (
 		<div
-			className={`fixed inset-0 z-50 bg-black transition-opacity duration-1000 ${
+			className={`fixed inset-0 z-50 bg-black transition-opacity duration-500 ${
 				hasStarted ? "opacity-0 pointer-events-none" : "opacity-100"
 			}`}
 		>
