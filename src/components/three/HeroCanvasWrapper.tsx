@@ -20,8 +20,12 @@ export default function HeroCanvasWrapper({
 	const heroState = useHeroState();
 	const [ready, setReady] = useState(false);
 
-	// 初期ロード（LoadingScreen等）が落ち着いてからCanvasをマウント
-	// これによりThree.js初期化がメインスレッドの初期処理と競合しなくなり、TBTが改善
+	// 初期ロード（LoadingScreen等）が落ち着いてからCanvasをマウントする。
+	// これはあくまでマウントの遅延であり、チャンクのダウンロード自体は止められない。
+	// トップの初期HTMLに three-vendor が出力される原因は
+	// AboutSection -> AboutThreeImage の静的インポート側にある（このファイルではない）。
+	// 動的インポートを試したが、Canvas が描画されず About の背景が白くなるため戻した。
+	// （2026-08 の調査。詳細は docs/superpowers/specs/2026-08-12-performance-fixes-design.md）
 	useEffect(() => {
 		if ("requestIdleCallback" in window) {
 			const id = window.requestIdleCallback(() => setReady(true));

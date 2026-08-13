@@ -4,7 +4,9 @@
 
 **Goal:** ブログ全ページから Three.js を、LP からフォント CSS の重複を、トップから初期ロードの不要なパース負荷を取り除き、実測で `/blog` 378 KB → 140 KB、LP のレンダーブロッキング CSS 135 KB → 44 KB、トップの本文到達 2.5 秒 → 0.7 秒前後にする。
 
-**Architecture:** 4本のブランチに分ける。まず `/blog` を sitemap から外す（1行）。次に LP のフォント設定を進行中ブランチで直す。次に見た目が変わらない削減（計測スクリプト・middleware 削除・動的インポート2件）。最後に見た目が変わる変更（DOM カーソル・LoadingScreen）。各ブランチは前のブランチのマージを待つ（1と2のみ並行可）。
+**Architecture:** 5本のブランチに分ける。まず `/blog` を sitemap から外す（1行）。次に LP のフォント設定を進行中ブランチで直す。次に見た目が変わらない削減（計測スクリプト・middleware 削除・動的インポート2件）。最後に見た目が変わる変更を、緊急度の違いで2本に割る（LoadingScreen が先、blog のカーソルが後）。
+
+**ブランチ4を2本に割る理由:** LoadingScreen の2.5秒はトップに来る全員が今この瞬間も踏んでいるが、blog のカーソルは記事が0件で誰にも届いていない。緊急度が正反対なので同居させない。あわせて `/#contact` の回帰確認という神経を使う作業を、カーソルの見た目確認と混ぜずに済む。
 
 **Tech Stack:** Next.js 15.5.16 (App Router) / React 19.1.7 / TypeScript / Tailwind CSS v3 / Biome / pnpm / dotenvx / Vercel
 
@@ -779,11 +781,24 @@ git commit -m "docs: 初期バンドル削減の実測値を記録"
 
 ---
 
-# ブランチ4: `feature/perf-blog-cursor-loading`
+# ブランチ4・5（この節のタスクは2本のブランチに分かれる）
 
-見た目・体験が変わる変更。ブランチ3がマージされてから開始する。
+見た目・体験が変わる変更。どちらもブランチ3がマージされてから開始する。
 
-## Task 8: blog のカーソルを DOM 実装に置き換える
+**2本に割る理由:** LoadingScreen の2.5秒はトップに来る全員が今この瞬間も踏んでいるが、blog のカーソルは記事が0件で誰にも届いていない。緊急度が正反対なので同居させない。あわせて `/#contact` の回帰確認という神経を使う作業を、カーソルの見た目確認と混ぜずに済む。
+
+| ブランチ | タスク | 順 |
+|---|---|---|
+| `feature/perf-loading-screen` | Task 9 → 10 → 11 | 先 |
+| `feature/perf-blog-cursor` | Task 8 | 後 |
+
+**Task 12（HeroCanvasWrapper のコメント訂正）はブランチ3に移した。** 内容が Task 7（AboutThreeImage の動的インポート）についての説明なので、同じブランチにあるほうが読み手に筋が通る。この節の末尾に本文が残っているが、実行はブランチ3で行うこと。
+
+4と5の間に依存はない。どちらもブランチ3の計測スクリプトを使うため、3より前には出せない。
+
+以降のタスク本文では「ブランチを作る」ステップのブランチ名を上表に読み替えること。
+
+## Task 8: blog のカーソルを DOM 実装に置き換える（ブランチ `feature/perf-blog-cursor`）
 
 **Files:**
 - Create: `src/components/blog/blog-cursor.tsx`
@@ -960,7 +975,7 @@ git add src/components/blog/blog-cursor.tsx src/app/blog/layout.tsx
 git commit -m "perf(blog): カーソル演出をThree.jsからDOM実装に置き換え"
 ```
 
-## Task 9: LoadingScreen の不具合を直す（挙動は変えない）
+## Task 9: LoadingScreen の不具合を直す（挙動は変えない）（ブランチ `feature/perf-loading-screen`）
 
 **Files:**
 - Modify: `src/components/loading/LoadingScreen.tsx:13-30,73-81`
@@ -1194,7 +1209,7 @@ git add src/components/loading/LoadingScreen.tsx src/app/components/HomeClient.t
 git commit -m "perf: LoadingScreenのスクロール封鎖を撤去し /#contact の待機処理を整理"
 ```
 
-## Task 12: HeroCanvasWrapper のコメントを訂正する
+## Task 12: HeroCanvasWrapper のコメントを訂正する（ブランチ `feature/perf-bundle-trim` で実行する）
 
 **Files:**
 - Modify: `src/components/three/HeroCanvasWrapper.tsx:26-28`

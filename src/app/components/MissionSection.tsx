@@ -10,7 +10,6 @@ import {
 	useImperativeHandle,
 } from "react";
 import dynamic from "next/dynamic";
-import { ContactForm } from "@/components/contact/contact-form";
 import AboutSection from "./AboutSection";
 import { useHeroState } from "../../contexts/HeroStateContext";
 
@@ -18,10 +17,20 @@ const MissionContent = dynamic(() => import("./MissionContent"), {
 	ssr: false,
 });
 
-// フォームセクションコンポーネント
-function ContactFormSection() {
-	return <ContactForm />;
-}
+// お問い合わせフォームと Toaster を遅延読み込みする。
+// これにより zod / react-hook-form / radix / sonner がトップの初期バンドルから外れる。
+// 親が min-h-[calc(100dvh+1px)] で1画面分の高さを確保しているためレイアウトは動かないが、
+// 読み込み中にセクションが空に見えないようプレースホルダを置く。
+const ContactExperience = dynamic(
+	() =>
+		import("@/components/contact/contact-experience").then(
+			(mod) => mod.ContactExperience,
+		),
+	{
+		ssr: false,
+		loading: () => <div className="min-h-[560px] w-full" aria-hidden />,
+	},
+);
 
 interface MissionSectionProps {
 	// scrollProgress: number; // Removed - internal tracking
@@ -758,7 +767,7 @@ function MissionSection(
 
 			<div className="w-full min-h-[calc(100dvh+1px)] flex items-center justify-center p-4">
 				<div ref={contactFormRef} className="max-w-2xl w-full">
-					<ContactFormSection />
+					<ContactExperience />
 				</div>
 			</div>
 
