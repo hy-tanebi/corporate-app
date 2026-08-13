@@ -1,8 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 
-import AboutThreeImage from "./AboutThreeImage";
+// AboutThreeImage は @react-three/fiber / drei / three を静的に読む。
+// AboutSection -> MissionSection -> HomeClient と静的につながっているため、
+// 静的インポートのままだとトップの初期HTMLに three-vendor(生766KB)が
+// <script async> として出力され、4xCPUスロットル下で約4.2秒のJS実行になっていた。
+// この要素は absolute inset-0 で配置され、ページ最下部の About セクションにしか
+// 出ないため、動的インポートで初期のクリティカルパスから外す。
+//
+// 過去に一度この変更で Canvas が描画されなくなり revert したが、原因は
+// AboutThreeImage の Canvas 内に Suspense 境界が無く、useTexture のサスペンドが
+// この dynamic の境界まで伝播して Canvas ごとアンマウントされていたため。
+// 前コミットで Canvas 内に Suspense を追加して解消済み。
+const AboutThreeImage = dynamic(() => import("./AboutThreeImage"), {
+	ssr: false,
+	loading: () => <div className="absolute inset-0" aria-hidden />,
+});
 
 interface AboutSectionProps {
 	transitionProgress?: number; // 0 -> 1 during Iris Close
