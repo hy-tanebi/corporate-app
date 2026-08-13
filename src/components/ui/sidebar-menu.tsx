@@ -228,8 +228,10 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 						/>
 
 						{/* Menu Content Container */}
+						{/* pb-28 は ChatWidget の UFOボタン(bottom-6 right-6, 64px四方)との衝突を避けるための下部クリアランス。
+						    overflow-y-auto は項目数が増えた場合の保険（100dvh に収まらなくても隠れずスクロールできる） */}
 						<div
-							className="fixed top-0 right-0 w-full max-w-[450px] z-50 flex flex-col p-8 md:p-12 pointer-events-auto"
+							className="fixed top-0 right-0 w-full max-w-[450px] z-50 flex flex-col overflow-y-auto p-8 pb-28 md:p-12 md:pb-28 pointer-events-auto"
 							style={{ height: "100dvh" }} // モバイルアドレスバー対応
 						>
 							{/* Close Button Area */}
@@ -249,7 +251,10 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 								</button>
 							</div>
 
-							<nav className="flex flex-col space-y-4 md:space-y-6 flex-1 justify-center items-center md:items-start md:justify-start md:flex-initial w-full">
+							{/* デスクトップも中央寄せに統一。以前は md:items-start md:justify-start（上詰め）だったが、
+						    項目を4→6個に増やした際に上に偏って見えたため。中央寄せなら項目数が変わっても
+						    自動でバランスが取れる */}
+						<nav className="flex flex-col space-y-4 md:space-y-6 flex-1 justify-center items-center w-full">
 								{menuItems.map((item, i) => (
 									<motion.div
 										key={item.href}
