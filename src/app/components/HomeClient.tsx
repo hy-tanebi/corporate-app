@@ -99,30 +99,49 @@ export default function HomeClient() {
 		}
 	};
 
-	// 他ページ（LPのCTAなど）から `/#contact` でアクセスされた場合、Contactセクションへ直行する。
-	// smoothスクロールだと1000vh分の移動が不安定なため、/mission と同じスナップ方式で瞬時に移動する。
+	// 他ページ（LPのCTAやグローバルナビなど）から `/#contact` `/#mission` `/#about` で
+	// アクセスされた場合、該当セクションへ直行する。
+	// トップは1000vhのスクロール演出ページで、セクションの表示はスクロール量に紐づくため、
+	// ブラウザ標準のアンカージャンプでは演出の状態が追いつかず到達できない。
+	// smoothスクロールも1000vh分の移動が不安定なため、スナップ方式で瞬時に移動する。
 	// biome-ignore lint/correctness/useExhaustiveDependencies: 初回マウント時のみ実行したいため依存に含めない
 	useEffect(() => {
-		if (window.location.hash !== "#contact") return;
+		const hash = window.location.hash;
+		if (hash !== "#contact" && hash !== "#mission" && hash !== "#about") return;
 
 		let cancelled = false;
 
-		const jumpToContact = () => {
+		const jumpToSection = () => {
 			if (cancelled) return;
 			setIsCircleFullyExpanded(true);
 			setShouldSnapAnimation(true);
+
+			if (hash === "#mission") {
+				// handleNavigate("/mission") と同じ位置（スクロール可能域の終端手前）へスナップ
+				const docHeight =
+					document.documentElement.scrollHeight - window.innerHeight;
+				window.scrollTo({ top: docHeight * 0.999, behavior: "auto" });
+				missionRef.current?.scrollToMission();
+				setTimeout(() => setShouldSnapAnimation(false), 100);
+				return;
+			}
+
 			window.scrollTo({
 				top: document.documentElement.scrollHeight,
 				behavior: "auto",
 			});
 			// MissionSectionが展開レンダリングされた後でないと内部スクロールが空振りするため遅延
 			setTimeout(() => {
-				missionRef.current?.scrollToContact();
+				if (hash === "#about") {
+					missionRef.current?.scrollToAbout();
+				} else {
+					missionRef.current?.scrollToContact();
+				}
 				setShouldSnapAnimation(false);
 			}, 300);
 		};
 
-		const timer = setTimeout(jumpToContact, 500);
+		const timer = setTimeout(jumpToSection, 500);
 		return () => {
 			cancelled = true;
 			clearTimeout(timer);
