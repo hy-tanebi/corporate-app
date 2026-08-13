@@ -10,24 +10,24 @@ export default function LoadingScreen({
 	const [progress, setProgress] = useState(0);
 	const [hasStarted, setHasStarted] = useState(false);
 
-	// スクロール無効化
+	// スクロール無効化。unmount 時に必ず戻す
+	// （cleanup がないと、遷移や例外で unmount したときスクロールが戻らなくなる）
 	useEffect(() => {
 		document.body.style.overflow = "hidden";
+		return () => {
+			document.body.style.overflow = "unset";
+		};
 	}, []);
 
-	const handleStart = useCallback(
-		(immediate = false) => {
-			setHasStarted(true);
-			document.body.style.overflow = "unset";
-			setTimeout(
-				() => {
-					onLoadingComplete();
-				},
-				immediate ? 0 : 1000,
-			);
-		},
-		[onLoadingComplete],
-	);
+	const handleStart = useCallback(() => {
+		setHasStarted(true);
+		document.body.style.overflow = "unset";
+		// フェードアウト(transition-opacity duration-1000)を再生しきってから親に完了を伝える。
+		// 以前は 0ms で通知していたため、親が即座に unmount しフェードが走っていなかった。
+		setTimeout(() => {
+			onLoadingComplete();
+		}, 1000);
+	}, [onLoadingComplete]);
 
 	// 約2秒で完了するプログレスシミュレーション
 	useEffect(() => {
@@ -57,7 +57,7 @@ export default function LoadingScreen({
 	useEffect(() => {
 		if (progress === 100) {
 			const timer = setTimeout(() => {
-				handleStart(true);
+				handleStart();
 			}, 500);
 			return () => clearTimeout(timer);
 		}
