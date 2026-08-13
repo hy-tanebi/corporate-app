@@ -3,7 +3,16 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X, Home, Rocket, User, Bird } from "lucide-react";
+import {
+	Menu,
+	X,
+	Home,
+	Rocket,
+	User,
+	Bird,
+	Wrench,
+	Lightbulb,
+} from "lucide-react";
 import gsap from "gsap";
 
 interface SidebarMenuProps {
@@ -26,22 +35,38 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 		setIsClosing(false);
 	};
 
+	// /mission, /about, /contact はトップページ内のセクションで、実URLとしては存在しない。
+	// href はハッシュ形式にしておくことで、LP等の別ページから開いたときも
+	// 通常のリンクとして /#hash 経由でトップの該当セクションへ飛べるようにする。
+	// トップページ上での挙動（スムーズスクロール）は onClick 側で別途インターセプトする。
 	const menuItems = [
 		{ href: "/", label: "TOP", icon: Home, description: "トップページ" },
 		{
-			href: "/mission",
+			href: "/service",
+			label: "SERVICE",
+			icon: Wrench,
+			description: "できること・ご相談メニュー",
+		},
+		{
+			href: "/service/issues",
+			label: "ISSUES",
+			icon: Lightbulb,
+			description: "その課題、ここから伸ばせます",
+		},
+		{
+			href: "/#mission",
 			label: "MISSION",
 			icon: Rocket,
 			description: "目指すもの",
 		},
 		{
-			href: "/about",
+			href: "/#about",
 			label: "ABOUT",
 			icon: User,
 			description: "TANEBI CREATIVEについて",
 		},
 		{
-			href: "/contact",
+			href: "/#contact",
 			label: "CONTACT",
 			icon: Bird,
 			description: "お気軽にお問い合わせください",
@@ -249,14 +274,18 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 											href={item.href}
 											onClick={(e) => {
 												if (onNavigate) {
-													if (
-														item.href === "/" ||
-														item.href === "/about" ||
-														item.href === "/mission" ||
-														item.href === "/contact"
-													) {
+													// トップページ上でのみ、これらはスムーズスクロールにインターセプトする。
+													// onNavigate 側は従来どおり /about 等の非ハッシュ形式で判定しているため、
+													// ここで # を外してから渡す（LP側の href 自体はハッシュ形式のまま維持する）
+													const topPageTargets = [
+														"/",
+														"/#mission",
+														"/#about",
+														"/#contact",
+													];
+													if (topPageTargets.includes(item.href)) {
 														e.preventDefault();
-														onNavigate(item.href);
+														onNavigate(item.href.replace(/^\/#/, "/"));
 													}
 												}
 												setIsOpen(false);
