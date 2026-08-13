@@ -12,6 +12,13 @@ const SidebarMenu = dynamic(
 import ContactSection from "./ContactSection";
 import { useHeroState } from "@/contexts/HeroStateContext";
 
+// ハッシュ付きでトップに遷移してきたとき、スナップ完了までの中間状態を隠すためのフラグ。
+// sidebar-menu.tsx が LP 等でのクリック時に sessionStorage に立て、ここで消費する。
+// sessionStorage を経由するのは、SSR/直接アクセス時の hydration とずらすため
+// （直接アクセスはクリックを経ないのでフラグが無く、LoadingScreen が代わりに覆う）。
+export const HASH_JUMP_FLAG = "tanebi:hash-jump";
+const HASH_TARGETS: readonly string[] = ["#mission", "#about", "#contact"];
+
 export default function HomeClient() {
 	// Optimization: Removed scrollProgress state to prevent re-renders
 	const [isCircleFullyExpanded, setIsCircleFullyExpanded] = useState(false);
@@ -19,6 +26,18 @@ export default function HomeClient() {
 	const [isMobile, setIsMobile] = useState(false);
 	const missionRef = useRef<MissionSidebarHandle>(null);
 	const { setShouldSnapAnimation } = useHeroState();
+
+	// ハッシュ遷移中の黒カバー。"solid" = 全面表示 / "fading" = フェードアウト中 / "none" = 非表示。
+	// クライアント遷移（LPのナビ経由）では初回レンダリングから "solid" になるため中間状態が一切見えない。
+	// 直接アクセス（SSR + hydration）ではクリックを経ないためフラグが無く常に "none" で、
+	// SSR の HTML と一致し hydration mismatch を起こさない（その場合は LoadingScreen が覆う）。
+	const [hashCover, setHashCover] = useState<"none" | "solid" | "fading">(
+		() => {
+			if (typeof window === "undefined") return "none";
+			if (!HASH_TARGETS.includes(window.location.hash)) return "none";
+			return sessionStorage.getItem(HASH_JUMP_FLAG) ? "solid" : "none";
+		},
+	);
 
 	// Refs for direct DOM manipulation
 	const text1Ref = useRef<HTMLDivElement>(null);
@@ -107,9 +126,21 @@ export default function HomeClient() {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: 初回マウント時のみ実行したいため依存に含めない
 	useEffect(() => {
 		const hash = window.location.hash;
-		if (hash !== "#contact" && hash !== "#mission" && hash !== "#about") return;
+		if (!HASH_TARGETS.includes(hash)) return;
+		// フラグは1回のジャンプで使い切る（残すと直接アクセス時のhydrationに影響しうる）
+		sessionStorage.removeItem(HASH_JUMP_FLAG);
 
 		let cancelled = false;
+
+		// スナップ完了後、カバーをフェードで開いて片付ける
+		const revealAfterSnap = () => {
+			if (cancelled) return;
+			setShouldSnapAnimation(false);
+			setHashCover((prev) => (prev === "solid" ? "fading" : prev));
+			setTimeout(() => {
+				if (!cancelled) setHashCover("none");
+			}, 350);
+		};
 
 		const jumpToSection = () => {
 			if (cancelled) return;
@@ -122,7 +153,7 @@ export default function HomeClient() {
 					document.documentElement.scrollHeight - window.innerHeight;
 				window.scrollTo({ top: docHeight * 0.999, behavior: "auto" });
 				missionRef.current?.scrollToMission();
-				setTimeout(() => setShouldSnapAnimation(false), 100);
+				setTimeout(revealAfterSnap, 100);
 				return;
 			}
 
@@ -132,16 +163,19 @@ export default function HomeClient() {
 			});
 			// MissionSectionが展開レンダリングされた後でないと内部スクロールが空振りするため遅延
 			setTimeout(() => {
+				if (cancelled) return;
 				if (hash === "#about") {
 					missionRef.current?.scrollToAbout();
 				} else {
 					missionRef.current?.scrollToContact();
 				}
-				setShouldSnapAnimation(false);
+				revealAfterSnap();
 			}, 300);
 		};
 
-		const timer = setTimeout(jumpToSection, 500);
+		// 150ms はレイアウト確定を待つ最小限のマージン。
+		// 以前は 500ms だったが、カバーで中間状態を隠す前提なら長く待つ理由がない
+		const timer = setTimeout(jumpToSection, 150);
 		return () => {
 			cancelled = true;
 			clearTimeout(timer);
@@ -437,6 +471,18 @@ export default function HomeClient() {
 			>
 				{/* 空のコンテンツでスクロールを可能にする */}
 			</div>
+
+			{/* ハッシュ遷移（LPのナビ → /#mission 等）のスナップ完了までの中間状態を隠す黒カバー */}
+			{hashCover !== "none" && (
+				<div
+					aria-hidden
+					className={`fixed inset-0 z-[60] bg-black transition-opacity duration-300 ${
+						hashCover === "fading"
+							? "opacity-0 pointer-events-none"
+							: "opacity-100"
+					}`}
+				/>
+			)}
 		</main>
 	);
 }
