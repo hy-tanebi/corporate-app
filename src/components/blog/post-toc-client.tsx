@@ -104,26 +104,23 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, [headings]);
 
-	const handleHeadingClick = useCallback(
-		(id: string) => {
-			const element = document.getElementById(id);
+	const handleHeadingClick = useCallback((id: string) => {
+		const element = document.getElementById(id);
 
-			if (element) {
-				const headerOffset = 80;
-				const elementPosition = element.getBoundingClientRect().top;
-				const offsetPosition =
-					elementPosition + window.pageYOffset - headerOffset;
+		if (element) {
+			const headerOffset = 80;
+			const elementPosition = element.getBoundingClientRect().top;
+			const offsetPosition =
+				elementPosition + window.pageYOffset - headerOffset;
 
-				window.scrollTo({
-					top: offsetPosition,
-					behavior: "smooth",
-				});
-			}
+			window.scrollTo({
+				top: offsetPosition,
+				behavior: "smooth",
+			});
+		}
 
-			setMobileOpen(false);
-		},
-		[],
-	);
+		setMobileOpen(false);
+	}, []);
 
 	// モバイルメニュー開閉時にbodyスクロールを制御
 	useEffect(() => {
@@ -275,7 +272,11 @@ export function TableOfContentsClient({ profile }: TableOfContentsClientProps) {
 					</div>
 					{/* モバイル: スティッキーバー */}
 					{profile?.avatar?.url && (
-						<MobileStickyBar profile={profile} headings={[]} onTocToggle={() => {}} />
+						<MobileStickyBar
+							profile={profile}
+							headings={[]}
+							onTocToggle={() => {}}
+						/>
 					)}
 				</>
 			);

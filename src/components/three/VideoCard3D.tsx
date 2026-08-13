@@ -209,12 +209,12 @@ export default function VideoCard3D({
 			videoTexture.current?.dispose();
 			imageTexture.current?.dispose();
 
-            // Hover状態のクリーンアップ (重要: カードが消える時にカーソルが残り続けるのを防ぐ)
-            if (isHoveringRef.current) {
-                isHoveringRef.current = false;
-                document.body.style.cursor = "default";
-                onHoverChange?.(false);
-            }
+			// Hover状態のクリーンアップ (重要: カードが消える時にカーソルが残り続けるのを防ぐ)
+			if (isHoveringRef.current) {
+				isHoveringRef.current = false;
+				document.body.style.cursor = "default";
+				onHoverChange?.(false);
+			}
 		};
 	}, [videoSrc, imageSrc, mediaType, title, opacity, isActive, onHoverChange]); // opacity依存を追加: 表示されたらロード開始
 

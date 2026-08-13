@@ -1,9 +1,9 @@
-import HeroCanvasWithCMS from "@/components/three/HeroCanvasWithCMS";
+import HeroCanvasSection from "@/components/three/HeroCanvasSection";
 import HomeClient from "./components/HomeClient";
 
 export default function Home() {
 	return (
-		<HeroCanvasWithCMS>
+		<HeroCanvasSection>
 			<script
 				type="application/ld+json"
 				// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD
@@ -15,7 +15,11 @@ export default function Home() {
 								"@type": ["ProfessionalService", "LocalBusiness"],
 								"@id": "https://tanebi-net.com/#organization",
 								name: "TANEBI CREATIVE（タネビ クリエイティブ）- 奥州市のAI事業者",
-								alternateName: ["タネビ クリエイティブ", "TANEBI CREATIVE", "奥州市 AI事業者"],
+								alternateName: [
+									"タネビ クリエイティブ",
+									"TANEBI CREATIVE",
+									"奥州市 AI事業者",
+								],
 								url: "https://tanebi-net.com",
 								image: "https://tanebi-net.com/images/ogp.jpg",
 								description:
@@ -99,6 +103,6 @@ export default function Home() {
 			/>
 			{/* クライアント側のUIロジックをHomeClientに委譲 */}
 			<HomeClient />
-		</HeroCanvasWithCMS>
+		</HeroCanvasSection>
 	);
 }

@@ -8,6 +8,10 @@ import { Toaster } from "sonner";
 export default function Providers({ children }: { children: ReactNode }) {
 	const pathname = usePathname();
 	const isTopPage = pathname === "/";
+	// 初回ロードがトップページの場合のみローディング画面を出す。
+	// 下層ページからのクライアント遷移で後からマウントされると、
+	// 黒いオーバーレイ + body overflow:hidden で「トップに戻れない」状態になるため。
+	const [isInitialLandingTop] = useState(isTopPage);
 	const [isLoading, setIsLoading] = useState(true);
 
 	const handleLoadingComplete = () => {
@@ -16,7 +20,7 @@ export default function Providers({ children }: { children: ReactNode }) {
 
 	return (
 		<>
-			{isTopPage && isLoading && (
+			{isInitialLandingTop && isTopPage && isLoading && (
 				<LoadingScreen onLoadingComplete={handleLoadingComplete} />
 			)}
 			{children}

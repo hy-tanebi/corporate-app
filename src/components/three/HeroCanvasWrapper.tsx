@@ -35,4 +35,3 @@ export default function HeroCanvasWrapper({
 
 	return <HeroCanvas videoSlides={videoSlides} heroState={heroState} />;
 }
-

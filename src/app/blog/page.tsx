@@ -22,9 +22,7 @@ export default async function BlogPage() {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
 				<div className="text-center">
-					<p className="text-red-600 dark:text-red-400 text-xl mb-2">
-						{error}
-					</p>
+					<p className="text-red-600 dark:text-red-400 text-xl mb-2">{error}</p>
 					<p className="text-sm text-gray-500 dark:text-gray-400">
 						microCMSの設定を確認してください
 					</p>

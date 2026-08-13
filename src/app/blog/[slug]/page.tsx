@@ -81,16 +81,16 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 		<>
 			<Card>
 				<CardContent className="p-6 lg:p-8">
-					<div
-						className="prose dark:prose-invert max-w-none prose-lg prose-headings:font-bold prose-headings:tracking-tight prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-gray-200 dark:prose-h2:border-gray-700 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:mb-5 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:overflow-x-auto prose-pre:text-sm prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:text-gray-600 prose-img:rounded-lg prose-img:shadow-md prose-hr:my-8"
-					>
+					<div className="prose dark:prose-invert max-w-none prose-lg prose-headings:font-bold prose-headings:tracking-tight prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-gray-200 dark:prose-h2:border-gray-700 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:mb-5 prose-p:leading-relaxed prose-ul:mb-4 prose-ol:mb-4 prose-li:mb-2 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:overflow-x-auto prose-pre:text-sm prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:text-gray-600 prose-img:rounded-lg prose-img:shadow-md prose-hr:my-8">
 						{!post.content ? (
 							<p className="text-gray-500 dark:text-gray-400">
 								コンテンツは現在準備中です。
 							</p>
 						) : typeof post.content === "string" ? (
-							// biome-ignore lint/security/noDangerouslySetInnerHtml: microCMSコンテンツをDOMPurifyでサニタイズ済み
-							<div dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} />
+							<div
+								// biome-ignore lint/security/noDangerouslySetInnerHtml: microCMSコンテンツをDOMPurifyでサニタイズ済み
+								dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
+							/>
 						) : (
 							<pre className="not-prose whitespace-pre-wrap bg-gray-100 dark:bg-gray-800 p-4 rounded text-sm">
 								{JSON.stringify(post.content, null, 2)}
@@ -118,88 +118,88 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
 	return (
 		<>
-		<script
-			type="application/ld+json"
-			// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD（< はエスケープ済み）
-			dangerouslySetInnerHTML={{ __html: jsonLdHtml }}
-		/>
-		{isEnabled && (
-			<div className="fixed top-0 left-0 right-0 z-50 bg-yellow-400 text-yellow-900 text-center text-sm py-1 font-medium">
-				プレビューモード —{" "}
-				<a href={`/api/exit-preview?slug=${slug}`} className="underline">
-					終了する
-				</a>
-			</div>
-		)}
-		<div className="container mx-auto px-4 pt-16 lg:pt-8 py-8 max-w-5xl">
-			{/* ヘッダー部分（常に1カラム） */}
-			<nav className="mb-8 hidden lg:block">
-				<div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-					<Link
-						href="/"
-						className="hover:text-gray-900 dark:hover:text-gray-100"
-					>
-						ホーム
-					</Link>
-					<span className="mx-2">/</span>
-					<Link
-						href="/blog"
-						className="hover:text-gray-900 dark:hover:text-gray-100"
-					>
-						ブログ
-					</Link>
-					<span className="mx-2">/</span>
-					<span className="text-gray-900 dark:text-gray-100 truncate">
-						{post.title}
-					</span>
+			<script
+				type="application/ld+json"
+				// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD（< はエスケープ済み）
+				dangerouslySetInnerHTML={{ __html: jsonLdHtml }}
+			/>
+			{isEnabled && (
+				<div className="fixed top-0 left-0 right-0 z-50 bg-yellow-400 text-yellow-900 text-center text-sm py-1 font-medium">
+					プレビューモード —{" "}
+					<a href={`/api/exit-preview?slug=${slug}`} className="underline">
+						終了する
+					</a>
 				</div>
-			</nav>
-
-			<header className="mb-12 pb-12 border-b border-gray-200 dark:border-gray-700 text-center py-8">
-				<div className="flex items-center justify-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
-					<time dateTime={post.publishedAt}>
-						{new Date(post.publishedAt).toLocaleDateString("ja-JP", {
-							year: "numeric",
-							month: "long",
-							day: "numeric",
-							weekday: "long",
-						})}
-					</time>
-					{post.updatedAt !== post.publishedAt && (
-						<span>
-							（更新:{" "}
-							{new Date(post.updatedAt)
-								.toISOString()
-								.split("T")[0]
-								.replace(/-/g, "/")}
-							）
-						</span>
-					)}
-				</div>
-				<h1 className="text-2xl lg:text-4xl font-bold tracking-tight mb-6">
-					{post.title}
-				</h1>
-				{post.category && post.category.length > 0 && (
-					<div className="flex flex-wrap justify-center gap-2">
-						{post.category.map((cat) => (
-							<CategoryBadge key={cat} category={cat} />
-						))}
-					</div>
-				)}
-			</header>
-
-			{/* 本文部分 */}
-			{shouldShowToc ? (
-				<div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
-					<article>{renderArticleBody()}</article>
-					<TableOfContentsClient profile={profile || undefined} />
-				</div>
-			) : (
-				<article className="max-w-4xl mx-auto">{renderArticleBody()}</article>
 			)}
+			<div className="container mx-auto px-4 pt-16 lg:pt-8 py-8 max-w-5xl">
+				{/* ヘッダー部分（常に1カラム） */}
+				<nav className="mb-8 hidden lg:block">
+					<div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+						<Link
+							href="/"
+							className="hover:text-gray-900 dark:hover:text-gray-100"
+						>
+							ホーム
+						</Link>
+						<span className="mx-2">/</span>
+						<Link
+							href="/blog"
+							className="hover:text-gray-900 dark:hover:text-gray-100"
+						>
+							ブログ
+						</Link>
+						<span className="mx-2">/</span>
+						<span className="text-gray-900 dark:text-gray-100 truncate">
+							{post.title}
+						</span>
+					</div>
+				</nav>
 
-			<ScrollToTop />
-		</div>
+				<header className="mb-12 pb-12 border-b border-gray-200 dark:border-gray-700 text-center py-8">
+					<div className="flex items-center justify-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
+						<time dateTime={post.publishedAt}>
+							{new Date(post.publishedAt).toLocaleDateString("ja-JP", {
+								year: "numeric",
+								month: "long",
+								day: "numeric",
+								weekday: "long",
+							})}
+						</time>
+						{post.updatedAt !== post.publishedAt && (
+							<span>
+								（更新:{" "}
+								{new Date(post.updatedAt)
+									.toISOString()
+									.split("T")[0]
+									.replace(/-/g, "/")}
+								）
+							</span>
+						)}
+					</div>
+					<h1 className="text-2xl lg:text-4xl font-bold tracking-tight mb-6">
+						{post.title}
+					</h1>
+					{post.category && post.category.length > 0 && (
+						<div className="flex flex-wrap justify-center gap-2">
+							{post.category.map((cat) => (
+								<CategoryBadge key={cat} category={cat} />
+							))}
+						</div>
+					)}
+				</header>
+
+				{/* 本文部分 */}
+				{shouldShowToc ? (
+					<div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+						<article>{renderArticleBody()}</article>
+						<TableOfContentsClient profile={profile || undefined} />
+					</div>
+				) : (
+					<article className="max-w-4xl mx-auto">{renderArticleBody()}</article>
+				)}
+
+				<ScrollToTop />
+			</div>
 		</>
 	);
 }
