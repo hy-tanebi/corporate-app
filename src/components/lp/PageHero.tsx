@@ -45,8 +45,8 @@ export function PageHero({
 
 			{/* min-h はリード文が最長のページ(/service/issues)基準。全ページで第一画面の高さを揃える */}
 			<div className="grid grid-cols-1 lg:grid-cols-[5fr_6fr] gap-10 lg:gap-16 items-center lg:min-h-[540px]">
-				{/* ビジュアル枠（画像支給までは種火プレースホルダー） */}
-				<div className="order-2 lg:order-1">
+				{/* ビジュアル枠（画像支給までは種火プレースホルダー）。モバイルでも画像を先頭に出す */}
+				<div className="order-1">
 					{visual ? (
 						<Image
 							src={visual.src}
@@ -88,7 +88,7 @@ export function PageHero({
 					)}
 				</div>
 
-				<div className="order-1 lg:order-2">
+				<div className="order-2">
 					<p
 						className={`${anton.className} text-sm tracking-[0.3em] uppercase text-[#e8590c] mb-4`}
 					>

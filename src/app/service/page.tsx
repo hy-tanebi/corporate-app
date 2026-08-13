@@ -12,6 +12,7 @@ import { CtaBlock } from "@/components/lp/CtaBlock";
 import { anton, notoSansJp } from "@/components/lp/fonts";
 import { LpSection } from "@/components/lp/LpSection";
 import { PageHero } from "@/components/lp/PageHero";
+import { ExampleListAccordion } from "./components/example-list-accordion";
 
 export const metadata: Metadata = {
 	title: "できること ─ ご相談メニュー | TANEBI CREATIVE",
@@ -202,35 +203,7 @@ export default function ServicePage() {
 										</p>
 									)}
 								</div>
-								<div className="self-start lg:pt-1">
-									<p className="text-xs font-bold tracking-widest text-muted-foreground mb-3">
-										例えばこんなこと
-									</p>
-									<ul>
-										{menu.items.map((item) => (
-											<li
-												key={item}
-												className="flex gap-3 py-3 border-t border-border text-sm leading-relaxed"
-											>
-												<span aria-hidden className="text-[#e8590c]">
-													—
-												</span>
-												{item}
-											</li>
-										))}
-									</ul>
-									<p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-										その他、課題に感じていることがありましたら、
-										<br />
-										<Link
-											href="/#contact"
-											className="font-bold text-foreground underline underline-offset-4 hover:text-[#e8590c] transition-colors"
-										>
-											お気軽にご相談ください
-										</Link>
-										。
-									</p>
-								</div>
+								<ExampleListAccordion items={menu.items} />
 							</div>
 						</div>
 					))}
