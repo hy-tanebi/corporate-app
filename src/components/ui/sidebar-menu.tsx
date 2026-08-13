@@ -255,12 +255,14 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 								</button>
 							</div>
 
-							{/* SPは中央寄せ(元の挙動のまま)、PCだけ上詰め。
-						    CONTACTとUFOボタン(ChatWidget)の衝突は中央寄せの変更ではなく
-						    Menu Content Container の pb-28（下部クリアランス）で対処している。
-						    PCの項目間隔(gap)は画面の高さに応じて可変（詳細はitem labelのコメント参照）。
-						    画面高さ800px以上では md:space-y-6 相当(24px)のまま、それより低い画面では縮む */}
-						<nav className="flex flex-col space-y-4 md:space-y-[clamp(0.5rem,2dvh,1.5rem)] flex-1 justify-center items-center md:justify-start md:items-start w-full">
+							{/* SP・PCとも上下左右中央寄せ。
+						    justify-center は内容が溢れると上端が見切れて到達できなくなる懸念があるが、
+						    nav は flex-1（min-height:auto）なので内容が多い場合は nav 自体が伸び、
+						    親コンテナ側の overflow-y-auto によるスクロールになる。よって見切れは起きない。
+						    CONTACTとUFOボタン(ChatWidget)の衝突は Menu Content Container の
+						    pb-28（下部クリアランス）で対処している。
+						    PCの項目間隔(gap)は画面の高さに応じて可変（詳細はitem labelのコメント参照） */}
+						<nav className="flex flex-col space-y-4 md:space-y-[clamp(0.5rem,2dvh,1.5rem)] flex-1 justify-center items-center w-full">
 								{menuItems.map((item, i) => (
 									<motion.div
 										key={item.href}
