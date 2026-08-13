@@ -1,7 +1,7 @@
 // src/app/components/HomeClient.tsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import MissionSection, { type MissionSidebarHandle } from "./MissionSection";
 
@@ -56,7 +56,20 @@ export default function HomeClient() {
 		return () => window.removeEventListener("resize", checkMobile);
 	}, []);
 
+	// 経路3: トップページ上でのナビクリック。
+	// 到達処理（スムーズスクロール）は従来どおりで、URLの更新だけを足す。
+	// これまでURLを一切変えていなかったため、共有もブックマークも戻るボタンも効かなかった。
+	// popstate 側で navigateToHash を呼ぶので、戻る/進むでも位置が追従する。
 	const handleNavigate = (path: string) => {
+		// URLを履歴に積む。トップ(/)はハッシュを外す
+		const hash = path === "/" ? "" : `#${path.replace(/^\//, "")}`;
+		if (hash === "" || HASH_TARGETS.includes(hash)) {
+			const nextUrl = hash === "" ? window.location.pathname : hash;
+			if (window.location.hash !== hash) {
+				window.history.pushState(null, "", nextUrl);
+			}
+		}
+
 		if (path === "/about") {
 			// AboutセクションはMissionSectionの中にあるため、
 			// まずはメインのスクロールをMissionSectionが表示される位置（＝一番下）まで持っていく
@@ -118,37 +131,34 @@ export default function HomeClient() {
 		}
 	};
 
-	// 他ページ（LPのCTAやグローバルナビなど）から `/#contact` `/#mission` `/#about` で
-	// アクセスされた場合、該当セクションへ直行する。
+	// セクションへの到達処理をここ1箇所に集約する。
 	// トップは1000vhのスクロール演出ページで、セクションの表示はスクロール量に紐づくため、
 	// ブラウザ標準のアンカージャンプでは演出の状態が追いつかず到達できない。
 	// smoothスクロールも1000vh分の移動が不安定なため、スナップ方式で瞬時に移動する。
-	// biome-ignore lint/correctness/useExhaustiveDependencies: 初回マウント時のみ実行したいため依存に含めない
-	useEffect(() => {
-		const hash = window.location.hash;
-		if (!HASH_TARGETS.includes(hash)) return;
-		// フラグは1回のジャンプで使い切る（残すと直接アクセス時のhydrationに影響しうる）
-		sessionStorage.removeItem(HASH_JUMP_FLAG);
+	//
+	// pushState/replaceState は hashchange も popstate も発火しないため、
+	// 「クリック」「初回ロード」「戻る/進む(popstate)」の全経路からこの関数を呼ぶ必要がある。
+	const navigateToHash = useCallback(
+		(hash: string, options?: { withCover?: boolean }) => {
+			if (!HASH_TARGETS.includes(hash)) return;
 
-		let cancelled = false;
+			if (options?.withCover) {
+				setHashCover("solid");
+			}
 
-		// スナップ完了後、カバーをフェードで開いて片付ける
-		const revealAfterSnap = () => {
-			if (cancelled) return;
-			setShouldSnapAnimation(false);
-			setHashCover((prev) => (prev === "solid" ? "fading" : prev));
-			setTimeout(() => {
-				if (!cancelled) setHashCover("none");
-			}, 350);
-		};
+			// スナップ完了後、カバーが出ていればフェードで開いて片付ける
+			const revealAfterSnap = () => {
+				setShouldSnapAnimation(false);
+				setHashCover((prev) => (prev === "solid" ? "fading" : prev));
+				setTimeout(() => {
+					setHashCover((prev) => (prev === "fading" ? "none" : prev));
+				}, 350);
+			};
 
-		const jumpToSection = () => {
-			if (cancelled) return;
 			setIsCircleFullyExpanded(true);
 			setShouldSnapAnimation(true);
 
 			if (hash === "#mission") {
-				// handleNavigate("/mission") と同じ位置（スクロール可能域の終端手前）へスナップ
 				const docHeight =
 					document.documentElement.scrollHeight - window.innerHeight;
 				window.scrollTo({ top: docHeight * 0.999, behavior: "auto" });
@@ -163,7 +173,6 @@ export default function HomeClient() {
 			});
 			// MissionSectionが展開レンダリングされた後でないと内部スクロールが空振りするため遅延
 			setTimeout(() => {
-				if (cancelled) return;
 				if (hash === "#about") {
 					missionRef.current?.scrollToAbout();
 				} else {
@@ -171,16 +180,38 @@ export default function HomeClient() {
 				}
 				revealAfterSnap();
 			}, 300);
-		};
+		},
+		[setShouldSnapAnimation],
+	);
 
-		// 150ms はレイアウト確定を待つ最小限のマージン。
-		// 以前は 500ms だったが、カバーで中間状態を隠す前提なら長く待つ理由がない
-		const timer = setTimeout(jumpToSection, 150);
-		return () => {
-			cancelled = true;
-			clearTimeout(timer);
-		};
+	// 経路1: 初回ロード。他ページ（LPのCTAやグローバルナビ）から /#contact 等で来た場合
+	// biome-ignore lint/correctness/useExhaustiveDependencies: 初回マウント時のみ実行したいため依存に含めない
+	useEffect(() => {
+		const hash = window.location.hash;
+		if (!HASH_TARGETS.includes(hash)) return;
+		// フラグは1回のジャンプで使い切る（残すと直接アクセス時のhydrationに影響しうる）
+		sessionStorage.removeItem(HASH_JUMP_FLAG);
+
+		// 150ms はレイアウト確定を待つ最小限のマージン
+		const timer = setTimeout(() => navigateToHash(hash), 150);
+		return () => clearTimeout(timer);
 	}, []);
+
+	// 経路2: ブラウザの戻る/進む。pushStateで積んだ履歴を辿ったとき、
+	// これが無いとURLだけ変わって表示位置が追従しない
+	useEffect(() => {
+		const handlePopState = () => {
+			const hash = window.location.hash;
+			if (HASH_TARGETS.includes(hash)) {
+				navigateToHash(hash);
+			} else {
+				// ハッシュ無しの履歴項目（トップ）へ戻ったとき
+				window.scrollTo({ top: 0, behavior: "auto" });
+			}
+		};
+		window.addEventListener("popstate", handlePopState);
+		return () => window.removeEventListener("popstate", handlePopState);
+	}, [navigateToHash]);
 
 	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
 	const CIRCLE_START = 0.92;
