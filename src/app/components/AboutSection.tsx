@@ -1,18 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 
-// AboutThreeImage は @react-three/fiber / drei / three を静的に読む。
-// AboutSection -> MissionSection -> HomeClient と静的につながっているため、
-// このまま静的インポートするとトップの初期HTMLに three-vendor(生766KB)と
-// react-reconciler(生107KB)が出力され、HeroCanvasWrapper の requestIdleCallback による
-// 遅延が意味を持たなくなる。動的インポートにすることで初期のクリティカルパスから外す。
-// この要素は absolute inset-0 で配置されるためレイアウトには影響しない。
-const AboutThreeImage = dynamic(() => import("./AboutThreeImage"), {
-	ssr: false,
-	loading: () => <div className="absolute inset-0" aria-hidden />,
-});
+import AboutThreeImage from "./AboutThreeImage";
 
 interface AboutSectionProps {
 	transitionProgress?: number; // 0 -> 1 during Iris Close
