@@ -14,7 +14,11 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { brotliCompressSync, constants, gzipSync } from "node:zlib";
 
-const NEXT_DIR = ".next";
+// 第1引数でビルド出力ディレクトリを指定できる。省略時は .next。
+// dev サーバーを動かしたまま計測するときは、別ディレクトリにビルドして渡すこと:
+//   NEXT_DIST_DIR=.next-measure pnpm exec dotenvx run -f .env.local -- pnpm exec next build
+//   node scripts/measure-page-weight.mjs .next-measure
+const NEXT_DIR = process.argv[2] || ".next";
 const APP_DIR = join(NEXT_DIR, "server", "app");
 
 if (!existsSync(APP_DIR)) {

@@ -22,8 +22,9 @@ export default function HeroCanvasWrapper({
 
 	// 初期ロード（LoadingScreen等）が落ち着いてからCanvasをマウントする。
 	// これはあくまでマウントの遅延であり、チャンクのダウンロード自体は止められない。
-	// トップの初期HTMLに three-vendor が出力されていた原因は
-	// AboutSection -> AboutThreeImage の静的インポート側にあり、そちらは動的インポートに変更済み。
+	// トップの初期HTMLに three-vendor が出力される原因は
+	// AboutSection -> AboutThreeImage の静的インポート側にある（このファイルではない）。
+	// 動的インポートを試したが、Canvas が描画されず About の背景が白くなるため戻した。
 	// （2026-08 の調査。詳細は docs/superpowers/specs/2026-08-12-performance-fixes-design.md）
 	useEffect(() => {
 		if ("requestIdleCallback" in window) {
