@@ -101,7 +101,6 @@ export default function HomeClient() {
 
 	// 他ページ（LPのCTAなど）から `/#contact` でアクセスされた場合、Contactセクションへ直行する。
 	// smoothスクロールだと1000vh分の移動が不安定なため、/mission と同じスナップ方式で瞬時に移動する。
-	// また、LoadingScreen表示中は body が overflow:hidden でスクロールできないため、解除されるまで待つ。
 	// biome-ignore lint/correctness/useExhaustiveDependencies: 初回マウント時のみ実行したいため依存に含めない
 	useEffect(() => {
 		if (window.location.hash !== "#contact") return;
@@ -110,11 +109,6 @@ export default function HomeClient() {
 
 		const jumpToContact = () => {
 			if (cancelled) return;
-			if (document.body.style.overflow === "hidden") {
-				// LoadingScreenがスクロールをロックしている間はリトライ
-				setTimeout(jumpToContact, 300);
-				return;
-			}
 			setIsCircleFullyExpanded(true);
 			setShouldSnapAnimation(true);
 			window.scrollTo({
