@@ -4,27 +4,68 @@
 User-agent: *
 Allow: /
 
-# AI Crawlers (AIO対応)
+# ------------------------------------------------------------------
+# AI クローラ（AIO対応）
+# 事業方針として、AI検索・AIアシスタントから見つけてもらうことを狙うため
+# 学習用・検索用・ユーザー起点アクセスのいずれも明示的に許可する。
+# 名称は各社が変更するため、更新時は必ず公式ドキュメントで確認すること:
+#   OpenAI    https://developers.openai.com/api/docs/bots
+#   Anthropic https://support.claude.com/en/articles/8896518
+# ------------------------------------------------------------------
+
+# --- OpenAI / ChatGPT ---
+# 検索結果への掲載（ChatGPTのsearch機能）
+User-agent: OAI-SearchBot
+Allow: /
+
+# 基盤モデルの学習
 User-agent: GPTBot
 Allow: /
 
-User-agent: Claude-Web
+# ユーザーがChatGPT上でページを開いたとき
+User-agent: ChatGPT-User
 Allow: /
 
+# --- Anthropic / Claude ---
+# 検索結果の品質向上（Claudeの検索）
+User-agent: Claude-SearchBot
+Allow: /
+
+# 生成AIモデルの学習
+User-agent: ClaudeBot
+Allow: /
+
+# ユーザーがClaudeに質問した際のアクセス
+User-agent: Claude-User
+Allow: /
+
+# --- Perplexity ---
 User-agent: PerplexityBot
 Allow: /
 
-User-agent: Anthropic-AI
+User-agent: Perplexity-User
 Allow: /
 
+# --- Google (Gemini / AI Overviews 向けの利用可否制御) ---
 User-agent: Google-Extended
 Allow: /
 
-# llms.txtへの参照 (AIOプロトコル準拠)
+# --- Apple Intelligence ---
+User-agent: Applebot-Extended
+Allow: /
+
+# --- Common Crawl（多くのLLMが学習データ源として利用）---
+User-agent: CCBot
+Allow: /
+
+# --- Microsoft Copilot ---
+User-agent: bingbot
+Allow: /
+
+# ------------------------------------------------------------------
+# AI向けのサイト説明
 # https://tanebi-net.com/llms.txt
+# ------------------------------------------------------------------
 
 # サイトマップ
 Sitemap: https://tanebi-net.com/sitemap.xml
-
-# クロール遅延
-Crawl-delay: 1
