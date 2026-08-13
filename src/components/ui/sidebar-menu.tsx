@@ -229,13 +229,17 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 
 						{/* Menu Content Container */}
 						{/* pb-28 は ChatWidget の UFOボタン(bottom-6 right-6, 64px四方)との衝突を避けるための下部クリアランス。
-						    overflow-y-auto は項目数が増えた場合の保険（100dvh に収まらなくても隠れずスクロールできる） */}
+						    overflow-y-auto は項目数が増えた場合の保険（100dvh に収まらなくても隠れずスクロールできる）。
+						    md:p-12 は使わない。PCもSPと同じ2rem(p-8)にする（devtoolsでの確認・指示どおり） */}
 						<div
-							className="fixed top-0 right-0 w-full max-w-[450px] z-50 flex flex-col overflow-y-auto p-8 pb-28 md:p-12 md:pb-28 pointer-events-auto"
+							className="fixed top-0 right-0 w-full max-w-[450px] z-50 flex flex-col overflow-y-auto p-8 pb-28 pointer-events-auto"
 							style={{ height: "100dvh" }} // モバイルアドレスバー対応
 						>
-							{/* Close Button Area */}
-							<div className="absolute top-4 right-1 w-[50px] h-[50px] flex items-center justify-center z-50 md:static md:w-full md:h-auto md:block md:text-right md:mb-12">
+							{/* Close Button Area
+							    top-8 right-2 は SP(position:absolute)用。md:static になるPCでは
+							    position:static のため top/right は効かない。PC側の余白は md:mb-12 が
+							    作っていたが不要とのことなので削除した */}
+							<div className="absolute top-8 right-2 w-[50px] h-[50px] flex items-center justify-center z-50 md:static md:w-full md:h-auto md:block md:text-right">
 								<button
 									onClick={handleClose}
 									className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors text-white"
@@ -251,10 +255,10 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 								</button>
 							</div>
 
-							{/* 中央寄せは意図した見た目と違ったため上詰めに戻した。
-						    CONTACTとUFOボタン(ChatWidget)の衝突は、中央寄せではなく
-						    Menu Content Container の pb-28（下部クリアランス）で別途対処済み */}
-						<nav className="flex flex-col space-y-4 md:space-y-6 flex-1 justify-start items-center w-full">
+							{/* SPは中央寄せ(元の挙動のまま)、PCだけ上詰め。
+						    CONTACTとUFOボタン(ChatWidget)の衝突は中央寄せの変更ではなく
+						    Menu Content Container の pb-28（下部クリアランス）で対処している */}
+						<nav className="flex flex-col space-y-4 md:space-y-6 flex-1 justify-center items-center md:justify-start md:items-start w-full">
 								{menuItems.map((item, i) => (
 									<motion.div
 										key={item.href}
