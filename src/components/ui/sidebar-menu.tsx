@@ -235,7 +235,7 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 							style={{ height: "100dvh" }} // モバイルアドレスバー対応
 						>
 							{/* Close Button Area */}
-							<div className="absolute top-8 right-2 w-[50px] h-[50px] flex items-center justify-center z-50 md:static md:w-full md:h-auto md:block md:text-right md:mb-12">
+							<div className="absolute top-4 right-1 w-[50px] h-[50px] flex items-center justify-center z-50 md:static md:w-full md:h-auto md:block md:text-right md:mb-12">
 								<button
 									onClick={handleClose}
 									className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors text-white"
@@ -251,10 +251,10 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 								</button>
 							</div>
 
-							{/* デスクトップも中央寄せに統一。以前は md:items-start md:justify-start（上詰め）だったが、
-						    項目を4→6個に増やした際に上に偏って見えたため。中央寄せなら項目数が変わっても
-						    自動でバランスが取れる */}
-						<nav className="flex flex-col space-y-4 md:space-y-6 flex-1 justify-center items-center w-full">
+							{/* 中央寄せは意図した見た目と違ったため上詰めに戻した。
+						    CONTACTとUFOボタン(ChatWidget)の衝突は、中央寄せではなく
+						    Menu Content Container の pb-28（下部クリアランス）で別途対処済み */}
+						<nav className="flex flex-col space-y-4 md:space-y-6 flex-1 justify-start items-center w-full">
 								{menuItems.map((item, i) => (
 									<motion.div
 										key={item.href}
