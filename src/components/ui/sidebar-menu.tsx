@@ -260,7 +260,7 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 						    Menu Content Container の pb-28（下部クリアランス）で対処している。
 						    PCの項目間隔(gap)は画面の高さに応じて可変（詳細はitem labelのコメント参照）。
 						    画面高さ800px以上では md:space-y-6 相当(24px)のまま、それより低い画面では縮む */}
-						<nav className="flex flex-col space-y-4 md:space-y-[clamp(0.5rem,2dvh_+_0.25rem,1.5rem)] flex-1 justify-center items-center md:justify-start md:items-start w-full">
+						<nav className="flex flex-col space-y-4 md:space-y-[clamp(0.5rem,2dvh,1.5rem)] flex-1 justify-center items-center md:justify-start md:items-start w-full">
 								{menuItems.map((item, i) => (
 									<motion.div
 										key={item.href}
@@ -304,9 +304,13 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 											className="group relative block w-full md:w-[400px]"
 										>
 											{/* Desktop Hover Card: White Background, Icon Pops Up */}
+											{/* md:py-[clamp(...)] は p-6 の上下だけを打ち消す指定。
+											    p-6(上下24pxずつ=1項目あたり48px)を6項目ぶん固定で積むと、
+											    ノートPC相当の画面高さ(800px前後)でメニューが画面内に収まらなくなるため、
+											    上下パディングも画面の高さに応じて可変にしている。左右のpaddingはp-6のまま */}
 											<div
 												className="
-                                                hidden md:flex flex-col items-center justify-center p-6 rounded-xl transition-all duration-300
+                                                hidden md:flex flex-col items-center justify-center p-6 md:py-[clamp(0.375rem,1.5dvh,1.5rem)] rounded-xl transition-all duration-300
                                                 text-white
                                                 md:hover:text-[#60d5fa]
                                             "
@@ -326,7 +330,7 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 												    セットで定義されるが、text-[clamp(...)] のようなアービトラリ値は font-size しか
 												    指定されず、html の line-height:1.5 を継承してしまう（48px想定が実際72pxになり、
 												    計算上収まるはずの高さでも下スクロールが発生していた） */}
-												<span className="text-4xl md:text-[clamp(1.75rem,4dvh_+_1rem,3rem)] md:leading-none font-bold tracking-wider font-sans md:group-hover:mb-2 transition-all duration-300">
+												<span className="text-4xl md:text-[clamp(1.75rem,5dvh,3rem)] md:leading-none font-bold tracking-wider font-sans md:group-hover:mb-2 transition-all duration-300">
 													{item.label}
 												</span>
 
