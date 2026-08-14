@@ -10,29 +10,23 @@ export default function LoadingScreen({
 	const [progress, setProgress] = useState(0);
 	const [hasStarted, setHasStarted] = useState(false);
 
-	// スクロール無効化
-	useEffect(() => {
-		document.body.style.overflow = "hidden";
-	}, []);
+	// スクロールは封鎖しない。演出中でも読み始められるようにするため。
+	// 以前は document.body.style.overflow = "hidden" で止めていたが、
+	// 実ロードと無関係な演出のためにスクロールを奪う理由がない。
 
-	const handleStart = useCallback(
-		(immediate = false) => {
-			setHasStarted(true);
-			document.body.style.overflow = "unset";
-			setTimeout(
-				() => {
-					onLoadingComplete();
-				},
-				immediate ? 0 : 1000,
-			);
-		},
-		[onLoadingComplete],
-	);
+	const handleStart = useCallback(() => {
+		setHasStarted(true);
+		// フェードアウト(transition-opacity duration-500)を再生しきってから親に完了を伝える。
+		// 以前は 0ms で通知していたため、親が即座に unmount しフェードが走っていなかった。
+		setTimeout(() => {
+			onLoadingComplete();
+		}, 500);
+	}, [onLoadingComplete]);
 
-	// 約2秒で完了するプログレスシミュレーション
+	// 約0.7秒で完了するプログレスシミュレーション
 	useEffect(() => {
 		const start = performance.now();
-		const duration = 2000;
+		const duration = 700;
 		let frame: number;
 
 		const tick = () => {
@@ -56,16 +50,13 @@ export default function LoadingScreen({
 	// 100%到達で完了
 	useEffect(() => {
 		if (progress === 100) {
-			const timer = setTimeout(() => {
-				handleStart(true);
-			}, 500);
-			return () => clearTimeout(timer);
+			handleStart();
 		}
 	}, [progress, handleStart]);
 
 	return (
 		<div
-			className={`fixed inset-0 z-50 bg-black transition-opacity duration-1000 ${
+			className={`fixed inset-0 z-50 bg-black transition-opacity duration-500 ${
 				hasStarted ? "opacity-0 pointer-events-none" : "opacity-100"
 			}`}
 		>

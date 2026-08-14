@@ -9,7 +9,7 @@ import {
 } from "@react-three/fiber";
 import { shaderMaterial, useTexture } from "@react-three/drei";
 import * as THREE from "three";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, Suspense } from "react";
 
 // --- Shader Definition ---
 const AboutImageShaderMaterial = shaderMaterial(
@@ -263,7 +263,13 @@ export default function AboutThreeImage({
 					height: "100%",
 				}}
 			>
-				<ImageMesh imageSrc={imageSrc} scale={scale} offset={offset} />
+				{/* ImageMesh は useTexture でサスペンドする。Canvas の内側に境界を置かないと
+				    サスペンドが Canvas の外まで伝播し、外側の境界（動的インポートの Suspense 等）が
+				    fallback に切り替わった際に Canvas ごとアンマウントされて WebGL コンテキストが失われる。
+				    hero-canvas.tsx が Astronaut 等で同じ形を取っているのに合わせる */}
+				<Suspense fallback={null}>
+					<ImageMesh imageSrc={imageSrc} scale={scale} offset={offset} />
+				</Suspense>
 			</Canvas>
 		</div>
 	);

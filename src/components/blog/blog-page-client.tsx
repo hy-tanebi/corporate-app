@@ -50,9 +50,7 @@ function filterPosts(
 			const categoryMatch = post.category?.some((c) =>
 				c.toLowerCase().includes(term),
 			);
-			const contentMatch = stripHtml(post.content)
-				.toLowerCase()
-				.includes(term);
+			const contentMatch = stripHtml(post.content).toLowerCase().includes(term);
 			return titleMatch || categoryMatch || contentMatch;
 		}
 		return true;
@@ -95,10 +93,9 @@ export function BlogPageClient({ initialPosts }: BlogPageClientProps) {
 		const params = new URLSearchParams();
 		if (query) params.set("q", query);
 		if (category !== "all") params.set("category", category);
-		router.replace(
-			params.toString() ? `/blog?${params.toString()}` : "/blog",
-			{ scroll: false },
-		);
+		router.replace(params.toString() ? `/blog?${params.toString()}` : "/blog", {
+			scroll: false,
+		});
 	};
 
 	const handleSearch = (value: string) => {
@@ -258,10 +255,7 @@ function BlogListItem({ post }: { post: BlogPost }) {
 
 	return (
 		<article className="py-6 first:pt-0">
-			<Link
-				href={`/blog/${post.id}`}
-				className="group block"
-			>
+			<Link href={`/blog/${post.id}`} className="group block">
 				{/* 日付 + 読了時間 */}
 				<div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-2">
 					<time dateTime={post.publishedAt}>

@@ -57,67 +57,85 @@ export function Astronaut({
 	useFrame((state) => {
 		if (groupRef.current) {
 			const time = state.clock.elapsedTime;
-            // Robust check: Use prop, canvas width, OR Aspect Ratio (Portrait = Mobile).
+			// Robust check: Use prop, canvas width, OR Aspect Ratio (Portrait = Mobile).
 			// This catches high-res mobile devices where width > 768 but aspect < 1.
 			const isPortrait = state.size.width < state.size.height;
 			const isMobileFrame = isMobile || state.size.width < 768 || isPortrait;
 
 			if (isMobileFrame) {
 				// Mobile: Dynamic Viewport Constraints
-                // Calculate exact visible width at the current Z depth
-                // This ensures we NEVER go off-screen regardless of device or parallax.
+				// Calculate exact visible width at the current Z depth
+				// This ensures we NEVER go off-screen regardless of device or parallax.
 
-                // 1. Calculate Z (Base + Wobble)
-                const currentZ = position[2] - 1.0 - Math.abs(Math.sin(time * 0.5) * 0.5);
-                groupRef.current.position.z = currentZ;
+				// 1. Calculate Z (Base + Wobble)
+				const currentZ =
+					position[2] - 1.0 - Math.abs(Math.sin(time * 0.5) * 0.5);
+				groupRef.current.position.z = currentZ;
 
-                // 2. Get exact viewport width at this Z depth
-                const viewport = state.viewport.getCurrentViewport(state.camera, [0, 0, currentZ]);
-                const widthAtZ = viewport.width;
-                const heightAtZ = viewport.height;
+				// 2. Get exact viewport width at this Z depth
+				const viewport = state.viewport.getCurrentViewport(state.camera, [
+					0,
+					0,
+					currentZ,
+				]);
+				const widthAtZ = viewport.width;
+				const heightAtZ = viewport.height;
 
-                // 3. Define Dynamic Limit (Half Width - Margin for Model Radius)
-                // Model radius approx 0.8 ~ 1.0. Use 0.9 margin.
-                const limitX = widthAtZ / 2 - 0.9;
-                const limitY = heightAtZ / 2 - 1.2; // Top/Bottom margin
+				// 3. Define Dynamic Limit (Half Width - Margin for Model Radius)
+				// Model radius approx 0.8 ~ 1.0. Use 0.9 margin.
+				const limitX = widthAtZ / 2 - 0.9;
+				const limitY = heightAtZ / 2 - 1.2; // Top/Bottom margin
 
-                // 4. Calculate Phase ONCE (Stable start)
-                // We use a pseudo-hook-like stable value based on the PROP position.
-                // Assuming standard Z=-5 for the initial phase calc to determine "Top-Right-ness".
-                // We can't use refs easily inside this callback without init.
-                // Math.sin(0 + phase) = Initial / Limit.
-                // We want to calculate phase based on the Initial Position relative to the Initial Limit.
-                // Let's approximate the initial limit using the standard Z=-5.
-                // (This creates a consistent 'Rightness' regardless of instantaneous viewport)
-                const PH_Z = -5;
-                const vBase = state.viewport.getCurrentViewport(state.camera, [0,0,PH_Z]);
-                const baseLimitX = vBase.width / 2 - 0.9;
-                const baseLimitY = vBase.height / 2 - 1.2;
+				// 4. Calculate Phase ONCE (Stable start)
+				// We use a pseudo-hook-like stable value based on the PROP position.
+				// Assuming standard Z=-5 for the initial phase calc to determine "Top-Right-ness".
+				// We can't use refs easily inside this callback without init.
+				// Math.sin(0 + phase) = Initial / Limit.
+				// We want to calculate phase based on the Initial Position relative to the Initial Limit.
+				// Let's approximate the initial limit using the standard Z=-5.
+				// (This creates a consistent 'Rightness' regardless of instantaneous viewport)
+				const PH_Z = -5;
+				const vBase = state.viewport.getCurrentViewport(state.camera, [
+					0,
+					0,
+					PH_Z,
+				]);
+				const baseLimitX = vBase.width / 2 - 0.9;
+				const baseLimitY = vBase.height / 2 - 1.2;
 
-                const startX = THREE.MathUtils.clamp(position[0] / Math.max(0.1, baseLimitX), -0.95, 0.95);
-                const startY = THREE.MathUtils.clamp(position[1] / Math.max(0.1, baseLimitY), -0.95, 0.95);
+				const startX = THREE.MathUtils.clamp(
+					position[0] / Math.max(0.1, baseLimitX),
+					-0.95,
+					0.95,
+				);
+				const startY = THREE.MathUtils.clamp(
+					position[1] / Math.max(0.1, baseLimitY),
+					-0.95,
+					0.95,
+				);
 
-                const phaseX = Math.asin(startX);
-                const phaseY = Math.asin(startY);
+				const phaseX = Math.asin(startX);
+				const phaseY = Math.asin(startY);
 
 				// 5. Motion
 				// Use the DYNAMIC limitX/limitY.
-                // If screen narrows (parallax), limit shrinks, pulling astronaut in.
-                // Speed: Relatively fast to ensure "Bounce" is seen.
+				// If screen narrows (parallax), limit shrinks, pulling astronaut in.
+				// Speed: Relatively fast to ensure "Bounce" is seen.
 				const speedX = 0.4;
 				const speedY = 0.25;
 
-				groupRef.current.position.x = Math.sin(time * speedX + phaseX) * Math.max(0, limitX);
-				groupRef.current.position.y = Math.sin(time * speedY + phaseY) * Math.max(0, limitY);
+				groupRef.current.position.x =
+					Math.sin(time * speedX + phaseX) * Math.max(0, limitX);
+				groupRef.current.position.y =
+					Math.sin(time * speedY + phaseY) * Math.max(0, limitY);
 
 				// Rotation
 				groupRef.current.rotation.x = time * 0.15;
 				groupRef.current.rotation.y = time * 0.2;
 				groupRef.current.rotation.z = time * 0.1;
-
 			} else {
 				// Desktop: Original Logic
-                // Reducing range slightly just in case it's a small desktop/tablet
+				// Reducing range slightly just in case it's a small desktop/tablet
 				const rangeX = 8;
 				const rangeY = 6;
 
@@ -125,9 +143,12 @@ export function Astronaut({
 				groupRef.current.rotation.y = time * 0.2;
 				groupRef.current.rotation.z = time * 0.1;
 
-				groupRef.current.position.x = position[0] + Math.sin(time * 0.4) * rangeX;
-				groupRef.current.position.y = position[1] + Math.cos(time * 0.3) * rangeY;
-				groupRef.current.position.z = position[2] - 5 - Math.abs(Math.sin(time * 0.5) * 2);
+				groupRef.current.position.x =
+					position[0] + Math.sin(time * 0.4) * rangeX;
+				groupRef.current.position.y =
+					position[1] + Math.cos(time * 0.3) * rangeY;
+				groupRef.current.position.z =
+					position[2] - 5 - Math.abs(Math.sin(time * 0.5) * 2);
 			}
 		}
 	});

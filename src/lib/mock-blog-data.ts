@@ -138,10 +138,7 @@ const MOCK_POSTS: BlogPost[] = [
 	},
 ];
 
-export function getMockBlogPosts(
-	limit = 12,
-	offset = 0,
-): BlogPostsResponse {
+export function getMockBlogPosts(limit = 12, offset = 0): BlogPostsResponse {
 	const sliced = MOCK_POSTS.slice(offset, offset + limit);
 	return {
 		contents: sliced,

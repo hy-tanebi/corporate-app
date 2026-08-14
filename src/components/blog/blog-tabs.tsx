@@ -8,7 +8,5 @@ interface BlogTabsProps {
 }
 
 export function BlogTabs({ initialPosts }: BlogTabsProps) {
-	return (
-		<BlogPageClient initialPosts={initialPosts} />
-	);
+	return <BlogPageClient initialPosts={initialPosts} />;
 }

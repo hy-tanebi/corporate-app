@@ -1,17 +1,23 @@
 // src/app/components/HomeClient.tsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import MissionSection, { type MissionSidebarHandle } from "./MissionSection";
 
 const SidebarMenu = dynamic(
-	() =>
-		import("@/components/ui/sidebar-menu").then((mod) => mod.SidebarMenu),
+	() => import("@/components/ui/sidebar-menu").then((mod) => mod.SidebarMenu),
 	{ ssr: false },
 );
 import ContactSection from "./ContactSection";
 import { useHeroState } from "@/contexts/HeroStateContext";
+
+// ハッシュ付きでトップに遷移してきたとき、スナップ完了までの中間状態を隠すためのフラグ。
+// sidebar-menu.tsx が LP 等でのクリック時に sessionStorage に立て、ここで消費する。
+// sessionStorage を経由するのは、SSR/直接アクセス時の hydration とずらすため
+// （直接アクセスはクリックを経ないのでフラグが無く、LoadingScreen が代わりに覆う）。
+export const HASH_JUMP_FLAG = "tanebi:hash-jump";
+const HASH_TARGETS: readonly string[] = ["#mission", "#about", "#contact"];
 
 export default function HomeClient() {
 	// Optimization: Removed scrollProgress state to prevent re-renders
@@ -20,6 +26,18 @@ export default function HomeClient() {
 	const [isMobile, setIsMobile] = useState(false);
 	const missionRef = useRef<MissionSidebarHandle>(null);
 	const { setShouldSnapAnimation } = useHeroState();
+
+	// ハッシュ遷移中の黒カバー。"solid" = 全面表示 / "fading" = フェードアウト中 / "none" = 非表示。
+	// クライアント遷移（LPのナビ経由）では初回レンダリングから "solid" になるため中間状態が一切見えない。
+	// 直接アクセス（SSR + hydration）ではクリックを経ないためフラグが無く常に "none" で、
+	// SSR の HTML と一致し hydration mismatch を起こさない（その場合は LoadingScreen が覆う）。
+	const [hashCover, setHashCover] = useState<"none" | "solid" | "fading">(
+		() => {
+			if (typeof window === "undefined") return "none";
+			if (!HASH_TARGETS.includes(window.location.hash)) return "none";
+			return sessionStorage.getItem(HASH_JUMP_FLAG) ? "solid" : "none";
+		},
+	);
 
 	// Refs for direct DOM manipulation
 	const text1Ref = useRef<HTMLDivElement>(null);
@@ -38,7 +56,20 @@ export default function HomeClient() {
 		return () => window.removeEventListener("resize", checkMobile);
 	}, []);
 
+	// 経路3: トップページ上でのナビクリック。
+	// 到達処理（スムーズスクロール）は従来どおりで、URLの更新だけを足す。
+	// これまでURLを一切変えていなかったため、共有もブックマークも戻るボタンも効かなかった。
+	// popstate 側で navigateToHash を呼ぶので、戻る/進むでも位置が追従する。
 	const handleNavigate = (path: string) => {
+		// URLを履歴に積む。トップ(/)はハッシュを外す
+		const hash = path === "/" ? "" : `#${path.replace(/^\//, "")}`;
+		if (hash === "" || HASH_TARGETS.includes(hash)) {
+			const nextUrl = hash === "" ? window.location.pathname : hash;
+			if (window.location.hash !== hash) {
+				window.history.pushState(null, "", nextUrl);
+			}
+		}
+
 		if (path === "/about") {
 			// AboutセクションはMissionSectionの中にあるため、
 			// まずはメインのスクロールをMissionSectionが表示される位置（＝一番下）まで持っていく
@@ -100,6 +131,88 @@ export default function HomeClient() {
 		}
 	};
 
+	// セクションへの到達処理をここ1箇所に集約する。
+	// トップは1000vhのスクロール演出ページで、セクションの表示はスクロール量に紐づくため、
+	// ブラウザ標準のアンカージャンプでは演出の状態が追いつかず到達できない。
+	// smoothスクロールも1000vh分の移動が不安定なため、スナップ方式で瞬時に移動する。
+	//
+	// pushState/replaceState は hashchange も popstate も発火しないため、
+	// 「クリック」「初回ロード」「戻る/進む(popstate)」の全経路からこの関数を呼ぶ必要がある。
+	const navigateToHash = useCallback(
+		(hash: string, options?: { withCover?: boolean }) => {
+			if (!HASH_TARGETS.includes(hash)) return;
+
+			if (options?.withCover) {
+				setHashCover("solid");
+			}
+
+			// スナップ完了後、カバーが出ていればフェードで開いて片付ける
+			const revealAfterSnap = () => {
+				setShouldSnapAnimation(false);
+				setHashCover((prev) => (prev === "solid" ? "fading" : prev));
+				setTimeout(() => {
+					setHashCover((prev) => (prev === "fading" ? "none" : prev));
+				}, 350);
+			};
+
+			setIsCircleFullyExpanded(true);
+			setShouldSnapAnimation(true);
+
+			if (hash === "#mission") {
+				const docHeight =
+					document.documentElement.scrollHeight - window.innerHeight;
+				window.scrollTo({ top: docHeight * 0.999, behavior: "auto" });
+				missionRef.current?.scrollToMission();
+				setTimeout(revealAfterSnap, 100);
+				return;
+			}
+
+			window.scrollTo({
+				top: document.documentElement.scrollHeight,
+				behavior: "auto",
+			});
+			// MissionSectionが展開レンダリングされた後でないと内部スクロールが空振りするため遅延
+			setTimeout(() => {
+				if (hash === "#about") {
+					missionRef.current?.scrollToAbout();
+				} else {
+					missionRef.current?.scrollToContact();
+				}
+				revealAfterSnap();
+			}, 300);
+		},
+		[setShouldSnapAnimation],
+	);
+
+	// 経路1: 初回ロード。他ページ（LPのCTAやグローバルナビ）から /#contact 等で来た場合
+	// biome-ignore lint/correctness/useExhaustiveDependencies: 初回マウント時のみ実行したいため依存に含めない
+	useEffect(() => {
+		const hash = window.location.hash;
+		if (!HASH_TARGETS.includes(hash)) return;
+		// フラグは1回のジャンプで使い切る（残すと直接アクセス時のhydrationに影響しうる）
+		sessionStorage.removeItem(HASH_JUMP_FLAG);
+
+		// 150ms はレイアウト確定を待つ最小限のマージン
+		const timer = setTimeout(() => navigateToHash(hash), 150);
+		return () => clearTimeout(timer);
+	}, []);
+
+	// 経路2: ブラウザの戻る/進む。pushStateで積んだ履歴を辿ったとき、
+	// これが無いとURLだけ変わって表示位置が追従しない
+	useEffect(() => {
+		const handlePopState = () => {
+			const hash = window.location.hash;
+			if (HASH_TARGETS.includes(hash)) {
+				navigateToHash(hash);
+			} else {
+				// ハッシュ無しの履歴項目（トップ）へ戻ったとき
+				window.scrollTo({ top: 0, behavior: "auto" });
+			}
+		};
+		window.addEventListener("popstate", handlePopState);
+		return () => window.removeEventListener("popstate", handlePopState);
+	}, [navigateToHash]);
+
 	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
 	const CIRCLE_START = 0.92;
 	const CIRCLE_SCROLL_END = 0.97; // hero-canvas.tsxのCIRCLE_SCROLL_END
@@ -145,7 +258,10 @@ export default function HomeClient() {
 			// Multiplier ~14 (1/0.07) for 7% range
 			const text1Start = isMobile ? 0.03 : 0.08;
 			const text1End = isMobile ? 0.23 : 0.28;
-			const text1FadeIn = Math.max(0, Math.min(1, (scrolled - text1Start) * 14));
+			const text1FadeIn = Math.max(
+				0,
+				Math.min(1, (scrolled - text1Start) * 14),
+			);
 			const text1FadeOut = Math.max(0, Math.min(1, (text1End - scrolled) * 16));
 			const text1Opacity = Math.min(text1FadeIn, text1FadeOut);
 
@@ -168,7 +284,10 @@ export default function HomeClient() {
 			// Desktop: In 28-35%, Out 76-80% (Starts as Text 1 fades out)
 			// Mobile: In 13-20%, Out 76-80% (Earlier to reduce scroll)
 			const text2Start = isMobile ? 0.13 : 0.28;
-			const text2FadeIn = Math.max(0, Math.min(1, (scrolled - text2Start) * 14));
+			const text2FadeIn = Math.max(
+				0,
+				Math.min(1, (scrolled - text2Start) * 14),
+			);
 			const text2FadeOut = Math.max(0, Math.min(1, (0.8 - scrolled) * 25));
 			const text2Opacity = Math.min(text2FadeIn, text2FadeOut);
 
@@ -383,6 +502,18 @@ export default function HomeClient() {
 			>
 				{/* 空のコンテンツでスクロールを可能にする */}
 			</div>
+
+			{/* ハッシュ遷移（LPのナビ → /#mission 等）のスナップ完了までの中間状態を隠す黒カバー */}
+			{hashCover !== "none" && (
+				<div
+					aria-hidden
+					className={`fixed inset-0 z-[60] bg-black transition-opacity duration-300 ${
+						hashCover === "fading"
+							? "opacity-0 pointer-events-none"
+							: "opacity-100"
+					}`}
+				/>
+			)}
 		</main>
 	);
 }

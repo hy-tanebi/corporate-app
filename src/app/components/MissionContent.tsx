@@ -327,7 +327,9 @@ function MissionContentMobile({
 		[0, 0.2, 0.75, 0.85],
 		[0, 1, 1, 0],
 	);
-	const squareVisibility = useTransform(squareOpacity, (o) => o < 0.05 ? "hidden" : "visible");
+	const squareVisibility = useTransform(squareOpacity, (o) =>
+		o < 0.05 ? "hidden" : "visible",
+	);
 	const squareScale = useTransform(currentPhase, [0, 1], [0.95, 1.05]);
 	const squareRotate = useTransform(currentPhase, [0, 1], [0, 10]);
 
@@ -338,7 +340,9 @@ function MissionContentMobile({
 		[1, 1.2, 1.75, 1.85],
 		[0, 1, 1, 0],
 	);
-	const pairVisibility = useTransform(pairOpacity, (o) => o < 0.05 ? "hidden" : "visible");
+	const pairVisibility = useTransform(pairOpacity, (o) =>
+		o < 0.05 ? "hidden" : "visible",
+	);
 	const pairScale = useTransform(currentPhase, [1, 2], [0.95, 1.05]);
 	const pairGap = useTransform(currentPhase, [1, 2], [-30, 30]);
 
@@ -349,7 +353,9 @@ function MissionContentMobile({
 		[2, 2.2, 2.75, 2.85],
 		[0, 1, 1, 0],
 	);
-	const sanpoVisibility = useTransform(sanpoOpacity, (o) => o < 0.05 ? "hidden" : "visible");
+	const sanpoVisibility = useTransform(sanpoOpacity, (o) =>
+		o < 0.05 ? "hidden" : "visible",
+	);
 	const sanpoScale = useTransform(currentPhase, [2, 3], [0.95, 1.05]);
 	const sanpoOffset = useTransform(currentPhase, [2, 2.4], [60, 0]);
 	const centerScale = useTransform(currentPhase, [2.25, 2.45], [0, 1]);
@@ -417,7 +423,7 @@ function MissionContentMobile({
 									top: 20,
 									left: "50%",
 									marginLeft: -60,
-									y: useTransform(sanpoOffset, (v) => -v)
+									y: useTransform(sanpoOffset, (v) => -v),
 								}}
 							/>
 							{/* Bottom Left: Yellow (Society) */}
@@ -428,7 +434,7 @@ function MissionContentMobile({
 									left: "50%",
 									marginLeft: -100,
 									x: useTransform(sanpoOffset, (v) => -v),
-									y: sanpoOffset
+									y: sanpoOffset,
 								}}
 							/>
 							{/* Bottom Right: Blue (Buyer) */}
@@ -439,7 +445,7 @@ function MissionContentMobile({
 									left: "50%",
 									marginLeft: -20,
 									x: sanpoOffset,
-									y: sanpoOffset
+									y: sanpoOffset,
 								}}
 							/>
 							{/* Center Flower */}
@@ -501,12 +507,17 @@ function ScrollOpacityItemMobile({
 		[index, index + 0.2, index + 0.75, index + 0.85],
 		[0, 1, 1, 0],
 	);
-	const visibility = useTransform(opacity, (o) => o < 0.05 ? "hidden" : "visible");
+	const visibility = useTransform(opacity, (o) =>
+		o < 0.05 ? "hidden" : "visible",
+	);
 
 	const y = useTransform(phase, [index, index + 1], [30, -30]);
 
 	return (
-		<motion.div className="absolute inset-0 w-full" style={{ opacity, visibility, y }}>
+		<motion.div
+			className="absolute inset-0 w-full"
+			style={{ opacity, visibility, y }}
+		>
 			{index === 0 && (
 				<span className="block text-[#50B070] font-bold text-lg mb-2">01.</span>
 			)}
@@ -532,5 +543,3 @@ function ScrollOpacityItemMobile({
 		</motion.div>
 	);
 }
-
-
