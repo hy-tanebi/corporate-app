@@ -18,6 +18,10 @@ export const metadata: Metadata = {
 	title: "できること ─ ご相談メニュー | TANEBI CREATIVE",
 	description:
 		"問い合わせを取りこぼさないWebサイトの制作・改善、AI活用の相談、業務ツールの開発。受け取ったあとの社内の流れまで含めて設計します。どれも「まず話を聞いてから」始められます。初回相談は無料です。",
+	// 事業ポジショニングの見直しに伴いコピーを刷新中のため、確定するまで検索エンジンには載せない。
+	// パフォーマンス改善を先に本番へ出すための一時措置。
+	// 正式公開時にこの robots を削除し、sitemap.ts と showcase-cards.ts のリンクも戻すこと。
+	robots: { index: false, follow: false },
 };
 
 type Menu = {

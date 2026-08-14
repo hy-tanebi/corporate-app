@@ -10,8 +10,7 @@ import {
 	Rocket,
 	User,
 	Bird,
-	Wrench,
-	Lightbulb,
+	// Wrench / Lightbulb は SERVICE / ISSUES をナビに戻すときに再度使う
 } from "lucide-react";
 import gsap from "gsap";
 
@@ -39,20 +38,13 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 	// href はハッシュ形式にしておくことで、LP等の別ページから開いたときも
 	// 通常のリンクとして /#hash 経由でトップの該当セクションへ飛べるようにする。
 	// トップページ上での挙動（スムーズスクロール）は onClick 側で別途インターセプトする。
+	// SERVICE / ISSUES は事業ポジショニングの見直しに伴いコピーを刷新中のため、
+	// 確定するまでナビから外している（ページ本体は残置・noindex）。
+	// 正式公開時に下記を TOP の直後に戻すこと:
+	//   { href: "/service",        label: "SERVICE", icon: Wrench,    description: "できること・ご相談メニュー" },
+	//   { href: "/service/issues", label: "ISSUES",  icon: Lightbulb, description: "その課題、ここから伸ばせます" },
 	const menuItems = [
 		{ href: "/", label: "TOP", icon: Home, description: "トップページ" },
-		{
-			href: "/service",
-			label: "SERVICE",
-			icon: Wrench,
-			description: "できること・ご相談メニュー",
-		},
-		{
-			href: "/service/issues",
-			label: "ISSUES",
-			icon: Lightbulb,
-			description: "その課題、ここから伸ばせます",
-		},
 		{
 			href: "/#mission",
 			label: "MISSION",

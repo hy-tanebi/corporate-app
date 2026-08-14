@@ -10,7 +10,8 @@ export const SHOWCASE_CARDS: VideoSlide[] = [
 		description:
 			"作って終わりのホームページ、伸びないネット販売、社内の手間、AIの使いどころ。「こうしたい」から一緒に進めます。",
 		category: "サービス",
-		liveUrl: "/service/issues",
+		// コピー刷新中のためリンクは一時的に外している（/service/issues 本体は残置・noindex）
+		// 正式公開時に liveUrl: "/service/issues" を戻すこと
 	},
 	{
 		id: "service-menu",
@@ -20,7 +21,8 @@ export const SHOWCASE_CARDS: VideoSlide[] = [
 		description:
 			"Webサイトの制作・改善、AI活用の相談、業務ツールの開発。どれも「まず話を聞いてから」始めます。",
 		category: "サービス",
-		liveUrl: "/service",
+		// コピー刷新中のためリンクは一時的に外している（/service 本体は残置・noindex）
+		// 正式公開時に liveUrl: "/service" を戻すこと
 	},
 	{
 		id: "works-internal-tool",

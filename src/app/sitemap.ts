@@ -12,18 +12,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			changeFrequency: "weekly",
 			priority: 1,
 		},
-		{
-			url: `${SITE_URL}/service`,
-			lastModified: new Date(),
-			changeFrequency: "monthly",
-			priority: 0.8,
-		},
-		{
-			url: `${SITE_URL}/service/issues`,
-			lastModified: new Date(),
-			changeFrequency: "monthly",
-			priority: 0.8,
-		},
+		// /service と /service/issues は事業ポジショニングの見直しに伴いコピーを刷新中のため、
+		// 確定するまで noindex にしている（各ページの metadata.robots を参照）。
+		// noindex のページを sitemap に載せると Search Console で警告になるため、あわせて除外する。
+		// 正式公開時に下記を復活させること:
+		//   { url: `${SITE_URL}/service`,        lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+		//   { url: `${SITE_URL}/service/issues`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
 	];
 
 	// 動的ページ（ブログ記事）
