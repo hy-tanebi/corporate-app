@@ -1,6 +1,13 @@
 import type { VideoSlide } from "../../types/content";
 
-// トップの3D回転カード。CMSではなくコードで管理する。
+// トップの3D回転カードをサービス紹介に差し替えるための定数。
+//
+// 【現在このファイルは使われていない】
+// LPのコピー刷新に伴い /service 系を非公開にした結果、リンク先を持たないカードが
+// 並ぶ状態になったため、HeroCanvasSection は microCMS のブログ記事から
+// カードを生成する実装に戻してある。
+// LPを正式公開する際、カードをサービス紹介に戻すならこの定数を再利用できる
+// （その場合は liveUrl のコメントアウトも解除すること）。
 export const SHOWCASE_CARDS: VideoSlide[] = [
 	{
 		id: "service-issues",
