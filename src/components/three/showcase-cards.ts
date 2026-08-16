@@ -19,7 +19,7 @@ export const SHOWCASE_CARDS: VideoSlide[] = [
 		id: "about",
 		title: "TANEBI CREATIVEについて",
 		mediaType: "image",
-		imageSrc: "/images/hero_sync_human_app.webp",
+		imageSrc: "/images/tanebi.webp",
 		description:
 			"岩手県奥州市を拠点に、Webサイトの改善や業務の仕組みづくり、AI活用の相談を受けています。オンラインのほか、県内では訪問しての打ち合わせにも対応します。",
 		category: "About",
@@ -39,7 +39,7 @@ export const SHOWCASE_CARDS: VideoSlide[] = [
 		id: "service-menu",
 		title: "できること ─ ご相談メニュー",
 		mediaType: "image",
-		imageSrc: "/images/hero_human_app.webp",
+		imageSrc: "/images/hero_ai_new.webp",
 		description:
 			"Webサイトの改善、AIを使った業務の見直し、社内ツールの開発。集客から日々の仕事まで、使える仕組みに整えます。",
 		category: "サービス",
