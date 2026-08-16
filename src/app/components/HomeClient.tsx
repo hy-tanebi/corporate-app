@@ -178,10 +178,19 @@ export default function HomeClient() {
 		return () => clearTimeout(timer);
 	}, []);
 
-	// 経路2: ブラウザの戻る/進む。pushStateで積んだ履歴を辿ったとき、
-	// これが無いとURLだけ変わって表示位置が追従しない
+	// 経路2: ブラウザの戻る/進む（popstate）と、
+	// 経路4: トップページ上で location.assign 等によりハッシュだけが変わったとき（hashchange）。
+	//
+	// 経路4は3Dカードの詳細モーダルから ABOUT カードを開いたときに起きる。
+	// 同一ページ内のフラグメント変更はページ遷移にならないため、これが無いと
+	// URLが /#about になるだけで表示位置が動かない。
+	//
+	// 履歴を辿ったときは popstate → hashchange の順に両方発火するため、
+	// popstate で処理したことをフラグで記録して二重実行を防ぐ。
 	useEffect(() => {
-		const handlePopState = () => {
+		const handledByPopState = { current: false };
+
+		const goToCurrentHash = () => {
 			const hash = window.location.hash;
 			if (HASH_TARGETS.includes(hash)) {
 				navigateToHash(hash);
@@ -192,8 +201,27 @@ export default function HomeClient() {
 				syncScrollLerp();
 			}
 		};
+
+		const handlePopState = () => {
+			handledByPopState.current = true;
+			// 直後に発火する hashchange をやり過ごしたらフラグを戻す
+			setTimeout(() => {
+				handledByPopState.current = false;
+			}, 0);
+			goToCurrentHash();
+		};
+
+		const handleHashChange = () => {
+			if (handledByPopState.current) return;
+			goToCurrentHash();
+		};
+
 		window.addEventListener("popstate", handlePopState);
-		return () => window.removeEventListener("popstate", handlePopState);
+		window.addEventListener("hashchange", handleHashChange);
+		return () => {
+			window.removeEventListener("popstate", handlePopState);
+			window.removeEventListener("hashchange", handleHashChange);
+		};
 	}, [navigateToHash, syncScrollLerp]);
 
 	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
