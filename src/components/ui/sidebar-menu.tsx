@@ -14,6 +14,7 @@ import {
 	Lightbulb,
 } from "lucide-react";
 import gsap from "gsap";
+import { markHashJump } from "@/lib/hash-jump";
 
 interface SidebarMenuProps {
 	onNavigate?: (path: string) => void;
@@ -303,9 +304,8 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 												} else if (item.href.startsWith("/#")) {
 													// LP等の別ページからハッシュ付きでトップへ遷移するとき、
 													// HomeClient が初回レンダリングから黒カバーを出せるように
-													// フラグを立てる（スナップ完了までの中間状態を見せないため）。
-													// キーはHomeClient.tsxのHASH_JUMP_FLAGと一致させること
-													sessionStorage.setItem("tanebi:hash-jump", "1");
+													// フラグを立てる（スナップ完了までの中間状態を見せないため）
+													markHashJump();
 												}
 												setIsOpen(false);
 											}}

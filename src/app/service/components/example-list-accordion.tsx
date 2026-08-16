@@ -1,8 +1,8 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
+import { HashJumpLink } from "@/components/lp/hash-jump-link";
 
 interface ExampleListAccordionProps {
 	items: string[];
@@ -52,12 +52,12 @@ export function ExampleListAccordion({ items }: ExampleListAccordionProps) {
 				<p className="mt-4 text-xs leading-relaxed text-muted-foreground">
 					その他、課題に感じていることがありましたら、
 					<br />
-					<Link
+					<HashJumpLink
 						href="/#contact"
 						className="font-bold text-foreground underline underline-offset-4 hover:text-[#e8590c] transition-colors"
 					>
 						お気軽にご相談ください
-					</Link>
+					</HashJumpLink>
 					。
 				</p>
 			</div>
