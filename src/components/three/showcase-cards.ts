@@ -1,13 +1,16 @@
 import type { VideoSlide } from "../../types/content";
 
-// トップの3D回転カードをサービス紹介に差し替えるための定数。
+// トップの3D回転カード。
 //
-// 【現在このファイルは使われていない】
-// LPのコピー刷新に伴い /service 系を非公開にした結果、リンク先を持たないカードが
-// 並ぶ状態になったため、HeroCanvasSection は microCMS のブログ記事から
-// カードを生成する実装に戻してある。
-// LPを正式公開する際、カードをサービス紹介に戻すならこの定数を再利用できる
-// （その場合は liveUrl のコメントアウトも解除すること）。
+// 一時期 microCMS のブログ記事から生成していたが、トップの役割は
+// 「頼んで大丈夫か」を確認しに来た人を答えのあるページへ送ることなので、
+// 記事一覧ではなく配下ページへの導線として固定3枚を並べる。
+// 記事には /blog があるため、トップの一等地を重複させる必要がない。
+//
+// 画像は public/images/ のローカルアセットを使う。3Dテクスチャは TextureLoader で
+// 読むため CMS 画像だと別オリジンになり CORS 依存になること、
+// VideoCard3D.tsx の読み込み失敗ハンドラが空で失敗に気づけないことが理由。
+// 差し替え頻度も年に数回なのでデプロイで足りる。
 export const SHOWCASE_CARDS: VideoSlide[] = [
 	{
 		id: "service-issues",
@@ -17,8 +20,7 @@ export const SHOWCASE_CARDS: VideoSlide[] = [
 		description:
 			"作って終わりのホームページ、伸びないネット販売、社内の手間、AIの使いどころ。「こうしたい」から一緒に進めます。",
 		category: "サービス",
-		// コピー刷新中のためリンクは一時的に外している（/service/issues 本体は残置・noindex）
-		// 正式公開時に liveUrl: "/service/issues" を戻すこと
+		liveUrl: "/service/issues",
 	},
 	{
 		id: "service-menu",
@@ -28,17 +30,18 @@ export const SHOWCASE_CARDS: VideoSlide[] = [
 		description:
 			"Webサイトの制作・改善、AI活用の相談、業務ツールの開発。どれも「まず話を聞いてから」始めます。",
 		category: "サービス",
-		// コピー刷新中のためリンクは一時的に外している（/service 本体は残置・noindex）
-		// 正式公開時に liveUrl: "/service" を戻すこと
+		liveUrl: "/service",
 	},
 	{
-		id: "works-internal-tool",
-		title: "実際の取り組み",
+		// TANEBI CREATIVE の詳細ページは未作成のため、暫定でトップ内の ABOUT セクションへ送る。
+		// 詳細ページができたら liveUrl を差し替えるだけでよい。
+		id: "about",
+		title: "TANEBI CREATIVEについて",
 		mediaType: "image",
 		imageSrc: "/images/hero_sync_human_app.webp",
 		description:
-			"待機確認の業務を自作のWebツールに置き換えました。今も毎日使っています。",
-		category: "事例",
-		// ページ再設計中のためリンクは一時的に外している（/works 本体は残置）
+			"岩手県奥州市を拠点に、Web・アプリ・AIの相談を受けています。何をしている人間なのかは、ここを見てください。",
+		category: "About",
+		liveUrl: "/#about",
 	},
 ];
