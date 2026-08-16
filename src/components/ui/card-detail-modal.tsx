@@ -122,7 +122,11 @@ export function CardDetailModal({
 												slide.liveUrl.startsWith("/") &&
 												!slide.liveUrl.startsWith("//")
 											) {
-												// 内部リンクは同一タブで遷移させる（"//"はプロトコル相対URLのため除外）
+												// 内部リンクは同一タブで遷移させる（"//"はプロトコル相対URLのため除外）。
+												// 別ページへ移る場合はページごと差し替わるので閉じる必要はないが、
+												// /#about のような同一ページ内のハッシュ遷移では遷移が起きないため、
+												// 明示的に閉じないとモーダルが開いたまま残る。
+												onClose();
 												window.location.assign(slide.liveUrl);
 											} else {
 												window.open(

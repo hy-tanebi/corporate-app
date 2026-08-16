@@ -11,7 +11,20 @@ import type { VideoSlide } from "../../types/content";
 // 読むため CMS 画像だと別オリジンになり CORS 依存になること、
 // VideoCard3D.tsx の読み込み失敗ハンドラが空で失敗に気づけないことが理由。
 // 差し替え頻度も年に数回なのでデプロイで足りる。
+// 配列の順序がそのままカードの並び順になる。
 export const SHOWCASE_CARDS: VideoSlide[] = [
+	{
+		// TANEBI CREATIVE の詳細ページは未作成のため、暫定でトップ内の ABOUT セクションへ送る。
+		// 詳細ページができたら liveUrl を差し替えるだけでよい。
+		id: "about",
+		title: "TANEBI CREATIVEについて",
+		mediaType: "image",
+		imageSrc: "/images/hero_sync_human_app.webp",
+		description:
+			"岩手県奥州市を拠点に、Webサイトの改善や業務の仕組みづくり、AI活用の相談を受けています。オンラインのほか、県内では訪問しての打ち合わせにも対応します。",
+		category: "About",
+		liveUrl: "/#about",
+	},
 	{
 		id: "service-issues",
 		title: "その課題、ここから伸ばせます",
@@ -28,20 +41,8 @@ export const SHOWCASE_CARDS: VideoSlide[] = [
 		mediaType: "image",
 		imageSrc: "/images/hero_human_app.webp",
 		description:
-			"Webサイトの制作・改善、AI活用の相談、業務ツールの開発。どれも「まず話を聞いてから」始めます。",
+			"Webサイトの改善、AIを使った業務の見直し、社内ツールの開発。集客から日々の仕事まで、使える仕組みに整えます。",
 		category: "サービス",
 		liveUrl: "/service",
-	},
-	{
-		// TANEBI CREATIVE の詳細ページは未作成のため、暫定でトップ内の ABOUT セクションへ送る。
-		// 詳細ページができたら liveUrl を差し替えるだけでよい。
-		id: "about",
-		title: "TANEBI CREATIVEについて",
-		mediaType: "image",
-		imageSrc: "/images/hero_sync_human_app.webp",
-		description:
-			"岩手県奥州市を拠点に、Web・アプリ・AIの相談を受けています。何をしている人間なのかは、ここを見てください。",
-		category: "About",
-		liveUrl: "/#about",
 	},
 ];
