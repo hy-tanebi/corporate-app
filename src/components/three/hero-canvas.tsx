@@ -363,10 +363,21 @@ function HeroScene({
 		const isMobileFrame = state.size.width < 768;
 
 		// ★パフォーマンス最適化: 条件付きFBO更新
-		// - ホバー中（hoverStrength > 0.1）: 毎フレーム更新
-		// - アイドル時: 3フレームに1回更新（約66%のGPU負荷削減）
+		// - カードに実際にホバー中: 毎フレーム更新
+		// - それ以外（アイドル時・液体演出の揺れがscroll<0.97のほぼ全域で反応中でも）: 3フレームに1回更新
+		//
+		// 以前は hoverStrength > 0.1 を条件にしていたが、hoverStrength は液体演出の
+		// 「揺れ」の強さで、isTop（scroll < 0.97、1000vhのほぼ全区間）や isSpace が
+		// 真になるだけで1になる。つまりトップページ上でマウスを動かすだけで
+		// ほぼ常時「毎フレームFBO更新」になり、画面全体を毎フレーム2回描画していた。
+		//
+		// 液体演出の揺れそのもの（uIntensity、見た目）はこれまでどおり広い範囲で
+		// 反応させたいという経緯があるため hoverStrength は変更せず、
+		// 一番コストの高い「FBOを毎フレーム更新するか」の判定だけをカードへの
+		// 実際のホバーに絞る。カードから離れた場所での揺れは、3フレームに1回の
+		// 更新でも見た目の破綻はほぼ無い（背景の星・星雲はゆっくりとしか動かないため）。
 		frameCountRef.current++;
-		const isHoverActive = hoverStrength.current > 0.1;
+		const isHoverActive = isCardHoveringRef.current;
 		const shouldUpdateFbo =
 			isHoverActive || frameCountRef.current - lastFboUpdateRef.current >= 3;
 
