@@ -39,11 +39,28 @@ interface MissionSectionProps {
 	// onProgressChange?: (progress: number) => void; // Removed - avoiding parent re-renders
 }
 
-export interface MissionSidebarHandle {
-	scrollToAbout: () => void;
-	scrollToMission: () => void;
-	scrollToContact: () => void;
+export interface SectionSnapOptions {
+	/**
+	 * "smooth"（既定）= 従来のスムーズスクロール。トップページ上でのメニュー操作向け。
+	 * "auto" = 瞬時に着地。他ページからのハッシュ遷移向けで、黒カバーの下で位置を決める。
+	 */
+	behavior?: ScrollBehavior;
 }
+
+export interface MissionSidebarHandle {
+	scrollToAbout: (options?: SectionSnapOptions) => void;
+	scrollToMission: () => void;
+	scrollToContact: (options?: SectionSnapOptions) => void;
+}
+
+/**
+ * 着地直後に位置を測り直して貼り直す時間。
+ *
+ * MissionContent / ContactExperience / AboutThreeImage はいずれも動的インポートで、
+ * 他ページからのクライアント遷移ではチャンクが未取得のことがある。解決した瞬間に
+ * 上のコンテンツが伸びて着地点がずれるため、この間だけ追従させる。
+ */
+const REANCHOR_DURATION_MS = 600;
 
 // ユーティリティ
 const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
@@ -78,6 +95,11 @@ function MissionSection(
 
 	// Ref to track logic state without causing re-renders
 	const showDescriptionStateRef = useRef(false);
+
+	// スナップ着地の直後、親の isCircleFullyExpanded が伝わるまで1〜2フレームの遅れが出うる。
+	// その隙に rawTarget が 0 に落ちると進行度が巻き戻り、overflow-hidden が復帰して
+	// 着地が失われるため、この時刻までは進行度の算出を続ける。
+	const holdProgressUntilRef = useRef(0);
 
 	useEffect(() => {
 		const checkMobile = () => {
@@ -126,7 +148,7 @@ function MissionSection(
 
 			// --- 1. Calculate Target based on Window Scroll ---
 			let rawTarget = 0;
-			if (isCircleFullyExpanded) {
+			if (isCircleFullyExpanded || now < holdProgressUntilRef.current) {
 				rawTarget = remap01(
 					scrollProgressRef.current,
 					SECTION_START,
@@ -291,35 +313,96 @@ function MissionSection(
 	const contactTitleRef = useRef<HTMLHeadingElement>(null);
 	const contactFormRef = useRef<HTMLDivElement>(null);
 	const backgroundRef = useRef<HTMLDivElement>(null); // 背景要素へのRef
-	const scrollPositionRef = useRef(0);
 	// 自動スクロール中かどうかを判定するフラグ
 	const isAutoScrollingToContact = useRef(false);
 	const lastScrollTopRef = useRef(0);
+	// 実行中の再アンカー処理を止めるための後始末関数
+	const reanchorCleanupRef = useRef<(() => void) | null>(null);
+
+	/**
+	 * 着地位置を REANCHOR_DURATION_MS のあいだ測り直して貼り直す。
+	 * 遅延読み込みの解決でコンテンツが伸びても着地点がずれないようにするための処理で、
+	 * ユーザーがホイール・タッチ・キー操作をしたら即座に打ち切る。
+	 */
+	const keepAnchored = useCallback((measureTop: () => number | null) => {
+		reanchorCleanupRef.current?.();
+
+		const container = containerRef.current;
+		if (!container) return;
+
+		const start = performance.now();
+		let raf = 0;
+		let stopped = false;
+
+		const stop = () => {
+			if (stopped) return;
+			stopped = true;
+			cancelAnimationFrame(raf);
+			container.removeEventListener("wheel", stop);
+			container.removeEventListener("touchstart", stop);
+			window.removeEventListener("keydown", stop);
+			reanchorCleanupRef.current = null;
+		};
+
+		const tick = () => {
+			const top = measureTop();
+			if (top !== null && Math.abs(container.scrollTop - top) > 1) {
+				container.scrollTop = top;
+			}
+			if (performance.now() - start >= REANCHOR_DURATION_MS) {
+				stop();
+				return;
+			}
+			raf = requestAnimationFrame(tick);
+		};
+
+		container.addEventListener("wheel", stop, { passive: true });
+		container.addEventListener("touchstart", stop, { passive: true });
+		window.addEventListener("keydown", stop);
+		raf = requestAnimationFrame(tick);
+		reanchorCleanupRef.current = stop;
+	}, []);
+
+	// アンマウント時に再アンカーのRAFとリスナーを確実に片付ける
+	useEffect(() => () => reanchorCleanupRef.current?.(), []);
 
 	useImperativeHandle(ref, () => ({
-		scrollToAbout: () => {
+		scrollToAbout: (options) => {
 			if (containerRef.current && aboutWrapperRef.current) {
-				// Aboutセクションの開始位置
-				const top = aboutWrapperRef.current.offsetTop;
 				// Aboutセクションのスクロール進捗0.5あたりで画像が完全に表示される
-				const wrapperHeight = aboutWrapperRef.current.clientHeight;
-				const windowHeight = window.innerHeight;
-				const targetScrollAndOffset = (wrapperHeight - windowHeight) * 0.5;
+				const measureTop = () => {
+					const wrapper = aboutWrapperRef.current;
+					if (!wrapper) return null;
+					const centeringOffset =
+						(wrapper.clientHeight - window.innerHeight) * 0.5;
+					return wrapper.offsetTop + centeringOffset;
+				};
 
-				// スムーズスクロール
-				containerRef.current.scrollTo({
-					top: top + targetScrollAndOffset,
-					behavior: "smooth",
-				});
+				const behavior = options?.behavior ?? "smooth";
+				const top = measureTop();
+				if (top !== null) {
+					containerRef.current.scrollTo({ top, behavior });
+				}
 
 				// Physicsを即座に完了させて、内部スクロール(overflow-y-auto)を有効化する
 				currentRef.current = 1.0;
 				targetRef.current = 1.0;
 				// Note: DOM updates will be picked up by RAF loop next frame
+
+				// 瞬時着地のときだけ追従させる。smooth はブラウザ側のスクロール
+				// アニメーションと競合するため行わない
+				if (behavior === "auto") {
+					holdProgressUntilRef.current =
+						performance.now() + REANCHOR_DURATION_MS;
+					keepAnchored(measureTop);
+				}
 			}
 		},
 		scrollToMission: () => {
 			if (containerRef.current) {
+				// 進行中の再アンカーがあれば止める（別セクションへ移るため）
+				reanchorCleanupRef.current?.();
+				holdProgressUntilRef.current = 0;
 				// 自動スクロールフラグを解除
 				isAutoScrollingToContact.current = false;
 
@@ -345,7 +428,7 @@ function MissionSection(
 				targetRef.current = 0.95;
 			}
 		},
-		scrollToContact: () => {
+		scrollToContact: (options) => {
 			if (containerRef.current && contactFormRef.current) {
 				// 自動スクロールフラグを立てて、即座にContact表示モードにする
 				isAutoScrollingToContact.current = true;
@@ -358,15 +441,24 @@ function MissionSection(
 				containerRef.current.classList.remove("overflow-hidden");
 				containerRef.current.classList.add("overflow-y-auto");
 
-				const top = contactFormRef.current.offsetTop;
-				containerRef.current.scrollTo({
-					top: top,
-					behavior: "smooth",
-				});
+				const measureTop = () => contactFormRef.current?.offsetTop ?? null;
+				const behavior = options?.behavior ?? "smooth";
+				const top = measureTop();
+				if (top !== null) {
+					containerRef.current.scrollTo({ top, behavior });
+				}
 
 				// Physicsを即座に完了させる
 				currentRef.current = 1.0;
 				targetRef.current = 1.0;
+
+				// 瞬時着地のときだけ追従させる。smooth はブラウザ側のスクロール
+				// アニメーションと競合するため行わない
+				if (behavior === "auto") {
+					holdProgressUntilRef.current =
+						performance.now() + REANCHOR_DURATION_MS;
+					keepAnchored(measureTop);
+				}
 
 				// しばらくしたらフラグを戻す
 				setTimeout(() => {
@@ -622,13 +714,12 @@ function MissionSection(
 		const container = containerRef.current;
 		if (!container) return;
 
-		if (isCircleFullyExpanded && scrollPositionRef.current > 0) {
-			container.scrollTop = scrollPositionRef.current;
-		}
-
 		if (!isCircleFullyExpanded) {
+			// 進行中の再アンカーを止めてから畳む（止めないとリセット直後に貼り直される）
+			reanchorCleanupRef.current?.();
+			holdProgressUntilRef.current = 0;
+
 			container.scrollTop = 0;
-			scrollPositionRef.current = 0;
 
 			currentRef.current = 0;
 			targetRef.current = 0;
