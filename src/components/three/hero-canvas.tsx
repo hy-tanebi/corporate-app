@@ -336,14 +336,6 @@ function HeroScene({
 	const smoothedTheta = useRef(0);
 	const circleTRef = useRef(0);
 
-	// ヒーロー領域算出ワーク
-	const box = useMemo(() => new THREE.Box3(), []);
-	const tmp = useMemo(() => new THREE.Vector3(), []);
-	const corners = useMemo(
-		() => Array.from({ length: 8 }, () => new THREE.Vector3()),
-		[],
-	);
-
 	// ===== 毎フレーム =====
 	useFrame((state, delta) => {
 		// ★パフォーマンス最適化: Missionセクション表示中（スクロール完了後）で、かつContactが表示されていない時は、
@@ -377,43 +369,19 @@ function HeroScene({
 		velSmoothed.current.lerp(velNow, kVel);
 		lastMouseFiltered.current.copy(mouseFiltered.current);
 
-		// HoverFluid のヒーロー領域更新
+		// HoverFluid の uniform 更新
+		//
+		// ★パフォーマンス最適化: ヒーロー領域（uHeroCenter / uHeroSize / uHeroRadius）の
+		// 毎フレーム計算を撤去した。
+		// これらは液体エフェクトを画面の一部に限定するためのものだったが、
+		// シェーダー側は `float heroMask = 1.0;` と直書きされていて
+		// roundRectMask() の呼び出しがコメントアウトされており、実際には使われていない。
+		// にもかかわらず毎フレーム、三角形グループとカードグループに対して
+		// Box3.expandByObject（サブツリー全体を走査してバウンディングボックスを再計算）を行い、
+		// 8頂点をカメラへ射影していた。結果を誰も読まない計算だった。
+		// 領域限定を復活させるときは、シェーダー側の heroMask を戻したうえでここも戻すこと。
 		const u = hoverMatRef.current?.uniforms;
 		if (u) {
-			let minX = 1,
-				minY = 1;
-			let maxX = -1,
-				maxY = -1;
-			box.makeEmpty();
-			if (triangleGroupRef.current)
-				box.expandByObject(triangleGroupRef.current);
-			if (videoCardsRef.current) box.expandByObject(videoCardsRef.current);
-
-			const bmin = box.min,
-				bmax = box.max;
-			const pts = corners;
-			pts[0].set(bmin.x, bmin.y, bmin.z);
-			pts[1].set(bmax.x, bmin.y, bmin.z);
-			pts[2].set(bmin.x, bmax.y, bmin.z);
-			pts[3].set(bmax.x, bmax.y, bmin.z);
-			pts[4].set(bmin.x, bmin.y, bmax.z);
-			pts[5].set(bmax.x, bmin.y, bmax.z);
-			pts[6].set(bmin.x, bmax.y, bmax.z);
-			pts[7].set(bmax.x, bmax.y, bmax.z);
-
-			for (let i = 0; i < 8; i++) {
-				tmp.copy(pts[i]).project(state.camera);
-				minX = Math.min(minX, tmp.x);
-				maxX = Math.max(maxX, tmp.x);
-				minY = Math.min(minY, tmp.y);
-				maxY = Math.max(maxY, tmp.y);
-			}
-
-			const cx = (minX + maxX) * 0.5 + 0.5;
-			const cy = (minY + maxY) * 0.5 + 0.5;
-			const hx = (maxX - minX) * 0.5;
-			const hy = (maxY - minY) * 0.5;
-
 			const dpr = state.gl.getPixelRatio();
 			u.uTime.value += delta;
 			u.uScene.value = fbo.texture;
@@ -435,15 +403,7 @@ function HeroScene({
 			u.uBaseAmp.value = 0.013;
 			u.uBaseScale.value = 1.18;
 
-			u.uHeroCenter.value.set(
-				THREE.MathUtils.clamp(cx, 0.0, 1.0),
-				THREE.MathUtils.clamp(cy, 0.0, 1.0),
-			);
-			u.uHeroSize.value.set(
-				THREE.MathUtils.clamp(hx + 0.15, 0.0, 0.8),
-				THREE.MathUtils.clamp(hy + 0.15, 0.0, 0.8),
-			);
-			u.uHeroRadius.value = 0.06;
+			// uHeroCenter / uHeroSize / uHeroRadius はシェーダーが参照していないため更新しない
 			u.uChromAb.value = 0.0;
 			// 一時的にデバッグモードを有効化
 			u.uShowMask.value = 0; // 0: エフェクト表示, 1: デバッグ表示
