@@ -1,7 +1,7 @@
 // src/components/three/hero-canvas.tsx
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, createPortal, useFrame } from "@react-three/fiber";
 import { useFBO } from "@react-three/drei";
 import { useRef, useMemo, Suspense, useState, useEffect } from "react";
 import * as THREE from "three";
@@ -201,9 +201,11 @@ function HeroScene({
 	const fboHeight = typeof window !== "undefined" ? window.innerHeight : 1024;
 	const fbo = useFBO(fboWidth, fboHeight, { samples: 0 });
 
-	// ★パフォーマンス最適化: アイドル時は3フレームに1回のみFBO更新
-	const frameCountRef = useRef(0);
-	const lastFboUpdateRef = useRef(0);
+	// 合成パス専用のシーンとカメラ。
+	// 液体メッシュの頂点シェーダーは gl_Position に NDC を直接出力しており
+	// ビュー・射影行列を参照しないため、カメラは種類を問わない素の Camera でよい。
+	const postScene = useMemo(() => new THREE.Scene(), []);
+	const postCamera = useMemo(() => new THREE.Camera(), []);
 
 	// FBO を Linear に（色ズレ防止）
 	useEffect(() => {
@@ -358,42 +360,11 @@ function HeroScene({
 			return;
 		}
 
-		// 1) FBO描画（液体メッシュは一時非表示）
-		// ★モバイル最適化: モバイルではFBO処理をスキップして負荷軽減
+		// ★モバイル最適化: モバイルでは液体エフェクト自体を描画しない
 		const isMobileFrame = state.size.width < 768;
-
-		// ★パフォーマンス最適化: 条件付きFBO更新
-		// - カードに実際にホバー中: 毎フレーム更新
-		// - それ以外（アイドル時・液体演出の揺れがscroll<0.97のほぼ全域で反応中でも）: 3フレームに1回更新
-		//
-		// 以前は hoverStrength > 0.1 を条件にしていたが、hoverStrength は液体演出の
-		// 「揺れ」の強さで、isTop（scroll < 0.97、1000vhのほぼ全区間）や isSpace が
-		// 真になるだけで1になる。つまりトップページ上でマウスを動かすだけで
-		// ほぼ常時「毎フレームFBO更新」になり、画面全体を毎フレーム2回描画していた。
-		//
-		// 液体演出の揺れそのもの（uIntensity、見た目）はこれまでどおり広い範囲で
-		// 反応させたいという経緯があるため hoverStrength は変更せず、
-		// 一番コストの高い「FBOを毎フレーム更新するか」の判定だけをカードへの
-		// 実際のホバーに絞る。カードから離れた場所での揺れは、3フレームに1回の
-		// 更新でも見た目の破綻はほぼ無い（背景の星・星雲はゆっくりとしか動かないため）。
-		frameCountRef.current++;
-		const isHoverActive = isCardHoveringRef.current;
-		const shouldUpdateFbo =
-			isHoverActive || frameCountRef.current - lastFboUpdateRef.current >= 3;
-
-		if (fluidRef.current && !isMobileFrame && shouldUpdateFbo) {
-			lastFboUpdateRef.current = frameCountRef.current;
-			const wasVisible = fluidRef.current.visible;
-			fluidRef.current.visible = false;
-			state.gl.setRenderTarget(fbo);
-			state.gl.clear();
-			state.gl.render(state.scene, state.camera);
-			state.gl.setRenderTarget(null);
-			fluidRef.current.visible = wasVisible;
-		} else if (fluidRef.current && isMobileFrame) {
-			// モバイルではFluidを非表示にする
-			fluidRef.current.visible = false;
-		}
+		// 液体メッシュは postScene 側にあるので、シーンを FBO へ撮るときに
+		// visible を切り替える必要はない（自分自身は写り込まない）
+		const useFluid = !isMobileFrame && fluidRef.current !== null;
 
 		// ポインタ・速度の指数平滑
 		const kMouse = 1 - Math.exp(-delta * 12.0);
@@ -761,7 +732,24 @@ function HeroScene({
 		if (starGroupRef.current) {
 			starGroupRef.current.rotation.y += 0.0005;
 		}
-	});
+
+		// ===== 描画（2パス） =====
+		// このコールバックは renderPriority 1 で登録しているため R3F の自動描画は止まっており、
+		// 描画の責任はここにある。以降で必ず canvas へ描くこと（描かないと前フレームが残る）。
+		// 明示的な gl.clear() は不要。autoClear が既定の true なので render() が描画先をクリアする。
+		if (useFluid) {
+			// パス1: シーンを FBO へ。液体メッシュは postScene 側なので写り込まない
+			state.gl.setRenderTarget(fbo);
+			state.gl.render(state.scene, state.camera);
+			// パス2: FBO を歪ませて canvas へ。canvas に描くのは全画面メッシュ1枚だけ
+			state.gl.setRenderTarget(null);
+			state.gl.render(postScene, postCamera);
+		} else {
+			// モバイルなど液体エフェクトを使わない場合は、シーンをそのまま canvas へ
+			state.gl.setRenderTarget(null);
+			state.gl.render(state.scene, state.camera);
+		}
+	}, 1);
 
 	return (
 		<>
@@ -887,31 +875,35 @@ function HeroScene({
 				</mesh>
 			</group>
 
-			{/* ===== 画面の液体屈折（ヒーロー内のみ作用） ===== */}
+			{/* ===== 画面の液体屈折 =====
+			    メインのシーンではなく postScene（合成専用シーン）へポータルで送る。
+			    このメッシュは FBO に撮ったシーンを歪ませて全画面に出す「合成パス」であり、
+			    シーンの一部ではないため。同じシーンに置くと、
+			    (a) FBO へ撮る際に自分自身が写り込まないよう visible を切り替える必要があり、
+			    (b) canvas への通常描画でシーンを描いた直後にこのメッシュが全画面を
+			        上書きするため、そのシーン描画が丸ごと無駄になる。
+			    分離することで描画を「シーン→FBO」「FBO→canvas」の2パスに固定できる。 */}
 			{/* Mobile: Disable fluid effect for performance */}
-			{!isMobile && (
-				<mesh
-					ref={fluidRef}
-					renderOrder={10000}
-					frustumCulled={false}
-					raycast={() => null}
-				>
-					<planeGeometry args={[2, 2, 1, 1]} />
-					<hoverFluidMaterial
-						ref={hoverMatRef}
-						attach="material"
-						transparent={true}
-						depthTest={false}
-						depthWrite={false}
-						// biome-ignore lint/suspicious/noExplicitAny: Blending type
-						blending={THREE.NoBlending as any}
-						toneMapped={false}
-						uTexture={fbo.texture}
-						uMouse={mouseFiltered.current}
-						uStrength={0} // 初期値
-					/>
-				</mesh>
-			)}
+			{!isMobile &&
+				createPortal(
+					<mesh ref={fluidRef} frustumCulled={false} raycast={() => null}>
+						<planeGeometry args={[2, 2, 1, 1]} />
+						<hoverFluidMaterial
+							ref={hoverMatRef}
+							attach="material"
+							transparent={true}
+							depthTest={false}
+							depthWrite={false}
+							// biome-ignore lint/suspicious/noExplicitAny: Blending type
+							blending={THREE.NoBlending as any}
+							toneMapped={false}
+							uTexture={fbo.texture}
+							uMouse={mouseFiltered.current}
+							uStrength={0} // 初期値
+						/>
+					</mesh>,
+					postScene,
+				)}
 		</>
 	);
 }
