@@ -98,18 +98,32 @@ void main() {
   float tail = 1.0 - smoothstep(uRadius * 1.7, uRadius * 1.7 + uFalloff * 1.3, length(uv - tailC));
   float ghost = tail * smoothstep(0.28, 0.6, vlen) * 0.55;
 
-  // とろみノイズ
-  vec2 nUv = uv * vec2(6.0 * aspect, 6.0) + vec2(uTime * 0.55, -uTime * 0.48) + vel * 1.4;
-  float n1 = fbm(nUv);
-  float n2 = fbm(nUv + vec2(19.3, -11.7));
-  vec2 flow = (vec2(n1, n2) - 0.5) * 2.0;
+  // ★パフォーマンス最適化: ポインター由来の変位を局所化
+  //
+  // disp の各項は bulge（= mask を掛けた値）、mask、ghost のいずれかに掛かる。
+  // つまり mask も ghost も 0 の画素では disp は厳密に 0 になり、
+  // ここで計算する fbm 2回（= noise 6回 = hash 24回）は結果に一切寄与しない。
+  //
+  // ポインターの影響半径は uRadius(0.095) + uFalloff(0.165) 程度で画面の一部にすぎず、
+  // さらに mask には uIntensity が掛かるため、マウスが止まって uIntensity が減衰すると
+  // 全画面で 0 になる。したがって大半の画素・大半の時間でこの計算を丸ごと省ける。
+  //
+  // 出力は分岐前と完全に一致する（見た目は変わらない）。
+  vec2 disp = vec2(0.0);
+  if(mask > 0.0 || ghost > 0.0) {
+    // とろみノイズ
+    vec2 nUv = uv * vec2(6.0 * aspect, 6.0) + vec2(uTime * 0.55, -uTime * 0.48) + vel * 1.4;
+    float n1 = fbm(nUv);
+    float n2 = fbm(nUv + vec2(19.3, -11.7));
+    vec2 flow = (vec2(n1, n2) - 0.5) * 2.0;
 
-  vec2 ndir = normalize(rel + 1e-6);
-  vec2 tangent = vec2(-ndir.y, ndir.x);
-  vec2 disp = ndir * (0.70 * bulge) +
-    tangent * (0.38 * bulge) +
-    flow * (uNoiseAmp * mask) +
-    (-dir) * (0.30 * ghost);
+    vec2 ndir = normalize(rel + 1e-6);
+    vec2 tangent = vec2(-ndir.y, ndir.x);
+    disp = ndir * (0.70 * bulge) +
+      tangent * (0.38 * bulge) +
+      flow * (uNoiseAmp * mask) +
+      (-dir) * (0.30 * ghost);
+  }
 
   vec2 dispCombined = baseDisp * uBaseAmp + disp * uDispAmp;
 
