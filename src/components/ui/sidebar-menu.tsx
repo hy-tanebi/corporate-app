@@ -10,9 +10,11 @@ import {
 	Rocket,
 	User,
 	Bird,
-	// Wrench / Lightbulb は SERVICE / ISSUES をナビに戻すときに再度使う
+	Wrench,
+	Lightbulb,
 } from "lucide-react";
 import gsap from "gsap";
+import { markHashJump } from "@/lib/hash-jump";
 
 interface SidebarMenuProps {
 	onNavigate?: (path: string) => void;
@@ -38,13 +40,20 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 	// href はハッシュ形式にしておくことで、LP等の別ページから開いたときも
 	// 通常のリンクとして /#hash 経由でトップの該当セクションへ飛べるようにする。
 	// トップページ上での挙動（スムーズスクロール）は onClick 側で別途インターセプトする。
-	// SERVICE / ISSUES は事業ポジショニングの見直しに伴いコピーを刷新中のため、
-	// 確定するまでナビから外している（ページ本体は残置・noindex）。
-	// 正式公開時に下記を TOP の直後に戻すこと:
-	//   { href: "/service",        label: "SERVICE", icon: Wrench,    description: "できること・ご相談メニュー" },
-	//   { href: "/service/issues", label: "ISSUES",  icon: Lightbulb, description: "その課題、ここから伸ばせます" },
 	const menuItems = [
 		{ href: "/", label: "TOP", icon: Home, description: "トップページ" },
+		{
+			href: "/service",
+			label: "SERVICE",
+			icon: Wrench,
+			description: "できること・ご相談メニュー",
+		},
+		{
+			href: "/service/issues",
+			label: "ISSUES",
+			icon: Lightbulb,
+			description: "その課題、ここから伸ばせます",
+		},
 		{
 			href: "/#mission",
 			label: "MISSION",
@@ -254,7 +263,7 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 						    CONTACTとUFOボタン(ChatWidget)の衝突は Menu Content Container の
 						    pb-28（下部クリアランス）で対処している。
 						    PCの項目間隔(gap)は画面の高さに応じて可変（詳細はitem labelのコメント参照） */}
-						<nav className="flex flex-col space-y-4 md:space-y-[clamp(0.5rem,2dvh,1.5rem)] flex-1 justify-center items-center w-full">
+							<nav className="flex flex-col space-y-4 md:space-y-[clamp(0.5rem,2dvh,1.5rem)] flex-1 justify-center items-center w-full">
 								{menuItems.map((item, i) => (
 									<motion.div
 										key={item.href}
@@ -295,9 +304,8 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 												} else if (item.href.startsWith("/#")) {
 													// LP等の別ページからハッシュ付きでトップへ遷移するとき、
 													// HomeClient が初回レンダリングから黒カバーを出せるように
-													// フラグを立てる（スナップ完了までの中間状態を見せないため）。
-													// キーはHomeClient.tsxのHASH_JUMP_FLAGと一致させること
-													sessionStorage.setItem("tanebi:hash-jump", "1");
+													// フラグを立てる（スナップ完了までの中間状態を見せないため）
+													markHashJump();
 												}
 												setIsOpen(false);
 											}}

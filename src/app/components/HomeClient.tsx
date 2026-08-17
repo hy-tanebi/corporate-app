@@ -11,13 +11,18 @@ const SidebarMenu = dynamic(
 );
 import ContactSection from "./ContactSection";
 import { useHeroState } from "@/contexts/HeroStateContext";
+import { HASH_JUMP_FLAG } from "@/lib/hash-jump";
 
-// ハッシュ付きでトップに遷移してきたとき、スナップ完了までの中間状態を隠すためのフラグ。
-// sidebar-menu.tsx が LP 等でのクリック時に sessionStorage に立て、ここで消費する。
-// sessionStorage を経由するのは、SSR/直接アクセス時の hydration とずらすため
-// （直接アクセスはクリックを経ないのでフラグが無く、LoadingScreen が代わりに覆う）。
-export const HASH_JUMP_FLAG = "tanebi:hash-jump";
 const HASH_TARGETS: readonly string[] = ["#mission", "#about", "#contact"];
+
+// #mission の着地点。スクロール量の 0.999 相当（MissionSection の SECTION_END と対応）
+const MISSION_SCROLL_RATIO = 0.999;
+
+// 着地してから黒カバーを開けるまでの待ち。
+// 着地自体は瞬時に終わるが、動的インポートが直後に解決するとコンテンツが伸びて
+// 位置がわずかに動く。MissionSection 側の再アンカーが直すので破綻はしないが、
+// その調整が視界に入らないよう少しだけ引っ張る。
+const REVEAL_DELAY_MS = 250;
 
 export default function HomeClient() {
 	// Optimization: Removed scrollProgress state to prevent re-renders
@@ -56,80 +61,21 @@ export default function HomeClient() {
 		return () => window.removeEventListener("resize", checkMobile);
 	}, []);
 
-	// 経路3: トップページ上でのナビクリック。
-	// 到達処理（スムーズスクロール）は従来どおりで、URLの更新だけを足す。
-	// これまでURLを一切変えていなかったため、共有もブックマークも戻るボタンも効かなかった。
-	// popstate 側で navigateToHash を呼ぶので、戻る/進むでも位置が追従する。
-	const handleNavigate = (path: string) => {
-		// URLを履歴に積む。トップ(/)はハッシュを外す
-		const hash = path === "/" ? "" : `#${path.replace(/^\//, "")}`;
-		if (hash === "" || HASH_TARGETS.includes(hash)) {
-			const nextUrl = hash === "" ? window.location.pathname : hash;
-			if (window.location.hash !== hash) {
-				window.history.pushState(null, "", nextUrl);
-			}
-		}
-
-		if (path === "/about") {
-			// AboutセクションはMissionSectionの中にあるため、
-			// まずはメインのスクロールをMissionSectionが表示される位置（＝一番下）まで持っていく
-			window.scrollTo({
-				top: document.documentElement.scrollHeight,
-				behavior: "smooth",
-			});
-
-			// その後、MissionSection内部でAboutまでスクロール
-			// 少し遅延させて、メインスクロールが始まった後に実行（あるいは完了後が良いが、並行でも動くはず）
-			setTimeout(() => {
-				missionRef.current?.scrollToAbout();
-			}, 500);
-		} else if (path === "/contact") {
-			window.scrollTo({
-				top: document.documentElement.scrollHeight,
-				behavior: "smooth",
-			});
-			// 遅延なしで即時実行（MissionSection側でフラグ制御による即時表示を行う）
-			missionRef.current?.scrollToContact();
-		} else if (path === "/mission") {
-			const docHeight =
-				document.documentElement.scrollHeight - window.innerHeight;
-			// MissionSectionの定数と合わせる (Mobile: 0.85, Desktop: 0.94)
-			// 少し余裕を持たせて、アニメーションが開始した直後の状態(0.15付近)にするなら
-			// Start + (End - Start) * 0.15 くらいが適切だが、
-			// シンプルにセクション開始位置(Start)へ遷移させる
-			// const SECTION_START = isMobile ? 0.85 : 0.94;
-			// 0.95進んだ位置を計算 (TECHNICAL PARTNERが完全に横に並んだ状態)
-			const SECTION_END = 0.999;
-			// New mapping adjustment:
-			// The video section is now much longer, pushing the Mission/About transition to the very end.
-			// Target near the end of the scroll range.
-			const targetScroll = docHeight * SECTION_END;
-
-			// ミッション表示に必要なフラグを強制的にONにする
-			setIsCircleFullyExpanded(true);
-
-			// ★アニメーションのスムージングを無効化（スナップ）
-			setShouldSnapAnimation(true);
-
-			window.scrollTo({
-				top: targetScroll,
-				behavior: "auto",
-			});
-
-			// 即座に実行してグレー背景などの状態をリセット
-			missionRef.current?.scrollToMission();
-
-			// 少し遅れてスナップフラグを解除
-			setTimeout(() => {
-				setShouldSnapAnimation(false);
-			}, 100);
-		} else if (path === "/") {
-			window.scrollTo({
-				top: 0,
-				behavior: "smooth",
-			});
-		}
-	};
+	// window.scrollTo({ behavior: "auto" }) の直後に必ず呼ぶ。
+	//
+	// 下の Animation Loop はスクロール量を1フレームあたり差分の8%ずつ補間して追う。
+	// そのため瞬間移動したスクロール位置に追いつくまで約43フレーム（60fpsで約717ms）かかり、
+	// その間ループは「まだ画面上部にいる」と判断して isCircleFullyExpanded を false に戻す。
+	// false になると MissionSection 側の進行度が巻き戻され、overflow-hidden が復帰して
+	// 内部スクロールが無効化されるため、セクションへの着地が丸ごと失われる。
+	// 補間の途中経過を捨てて即座に実位置と一致させることで、この巻き戻しを断つ。
+	const syncScrollLerp = useCallback(() => {
+		const docHeight =
+			document.documentElement.scrollHeight - window.innerHeight;
+		const scrolled = docHeight > 0 ? window.scrollY / docHeight : 0;
+		targetScrollRef.current = scrolled;
+		currentScrollRef.current = scrolled;
+	}, []);
 
 	// セクションへの到達処理をここ1箇所に集約する。
 	// トップは1000vhのスクロール演出ページで、セクションの表示はスクロール量に紐づくため、
@@ -161,7 +107,11 @@ export default function HomeClient() {
 			if (hash === "#mission") {
 				const docHeight =
 					document.documentElement.scrollHeight - window.innerHeight;
-				window.scrollTo({ top: docHeight * 0.999, behavior: "auto" });
+				window.scrollTo({
+					top: docHeight * MISSION_SCROLL_RATIO,
+					behavior: "auto",
+				});
+				syncScrollLerp();
 				missionRef.current?.scrollToMission();
 				setTimeout(revealAfterSnap, 100);
 				return;
@@ -171,17 +121,48 @@ export default function HomeClient() {
 				top: document.documentElement.scrollHeight,
 				behavior: "auto",
 			});
-			// MissionSectionが展開レンダリングされた後でないと内部スクロールが空振りするため遅延
-			setTimeout(() => {
-				if (hash === "#about") {
-					missionRef.current?.scrollToAbout();
-				} else {
-					missionRef.current?.scrollToContact();
-				}
-				revealAfterSnap();
-			}, 300);
+			syncScrollLerp();
+
+			// 1フレーム目でスタイル・レイアウトを確定させ、2フレーム目で offsetTop を測る。
+			// 以前はここが固定300msだったが、根拠のない待ち時間であり、
+			// 遅延読み込みの解決タイミングとも噛み合っていなかった。
+			// チャンク解決による着地点のずれは MissionSection 側の再アンカーが吸収する。
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					if (hash === "#about") {
+						missionRef.current?.scrollToAbout({ behavior: "auto" });
+					} else {
+						missionRef.current?.scrollToContact({ behavior: "auto" });
+					}
+					setTimeout(revealAfterSnap, REVEAL_DELAY_MS);
+				});
+			});
 		},
-		[setShouldSnapAnimation],
+		[setShouldSnapAnimation, syncScrollLerp],
+	);
+
+	// 経路3: トップページ上でのナビクリック。
+	// 以前はここに navigateToHash とは別の到達処理（smoothスクロール + 固定遅延）があり、
+	// 同じ目的の実装が2つ存在していた。URLの更新だけを行い、到達は navigateToHash に委ねる。
+	const handleNavigate = useCallback(
+		(path: string) => {
+			// URLを履歴に積む。トップ(/)はハッシュを外す
+			const hash = path === "/" ? "" : `#${path.replace(/^\//, "")}`;
+			if (hash !== "" && !HASH_TARGETS.includes(hash)) return;
+
+			const nextUrl = hash === "" ? window.location.pathname : hash;
+			if (window.location.hash !== hash) {
+				window.history.pushState(null, "", nextUrl);
+			}
+
+			if (hash === "") {
+				window.scrollTo({ top: 0, behavior: "smooth" });
+				return;
+			}
+
+			navigateToHash(hash);
+		},
+		[navigateToHash],
 	);
 
 	// 経路1: 初回ロード。他ページ（LPのCTAやグローバルナビ）から /#contact 等で来た場合
@@ -197,21 +178,51 @@ export default function HomeClient() {
 		return () => clearTimeout(timer);
 	}, []);
 
-	// 経路2: ブラウザの戻る/進む。pushStateで積んだ履歴を辿ったとき、
-	// これが無いとURLだけ変わって表示位置が追従しない
+	// 経路2: ブラウザの戻る/進む（popstate）と、
+	// 経路4: トップページ上で location.assign 等によりハッシュだけが変わったとき（hashchange）。
+	//
+	// 経路4は3Dカードの詳細モーダルから ABOUT カードを開いたときに起きる。
+	// 同一ページ内のフラグメント変更はページ遷移にならないため、これが無いと
+	// URLが /#about になるだけで表示位置が動かない。
+	//
+	// 履歴を辿ったときは popstate → hashchange の順に両方発火するため、
+	// popstate で処理したことをフラグで記録して二重実行を防ぐ。
 	useEffect(() => {
-		const handlePopState = () => {
+		const handledByPopState = { current: false };
+
+		const goToCurrentHash = () => {
 			const hash = window.location.hash;
 			if (HASH_TARGETS.includes(hash)) {
 				navigateToHash(hash);
 			} else {
-				// ハッシュ無しの履歴項目（トップ）へ戻ったとき
+				// ハッシュ無しの履歴項目（トップ）へ戻ったとき。
+				// ここでも補間を同期しないと、下に居たままの値で数百ms判定が続く
 				window.scrollTo({ top: 0, behavior: "auto" });
+				syncScrollLerp();
 			}
 		};
+
+		const handlePopState = () => {
+			handledByPopState.current = true;
+			// 直後に発火する hashchange をやり過ごしたらフラグを戻す
+			setTimeout(() => {
+				handledByPopState.current = false;
+			}, 0);
+			goToCurrentHash();
+		};
+
+		const handleHashChange = () => {
+			if (handledByPopState.current) return;
+			goToCurrentHash();
+		};
+
 		window.addEventListener("popstate", handlePopState);
-		return () => window.removeEventListener("popstate", handlePopState);
-	}, [navigateToHash]);
+		window.addEventListener("hashchange", handleHashChange);
+		return () => {
+			window.removeEventListener("popstate", handlePopState);
+			window.removeEventListener("hashchange", handleHashChange);
+		};
+	}, [navigateToHash, syncScrollLerp]);
 
 	// 黒い円の開始タイミング（hero-canvas.tsxのCIRCLE_SCROLL_STARTと同期）
 	const CIRCLE_START = 0.92;

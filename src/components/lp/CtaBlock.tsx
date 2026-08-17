@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { anton } from "./fonts";
+import { HashJumpLink } from "./hash-jump-link";
 
 export function CtaBlock() {
 	return (
@@ -17,7 +17,7 @@ export function CtaBlock() {
 				<br className="hidden lg:inline" />
 				初回の相談は無料です。
 			</p>
-			<Link
+			<HashJumpLink
 				href="/#contact"
 				className="group inline-flex items-center gap-3 rounded-full bg-white px-10 py-5 text-base font-bold text-[#1c50a1] transition-transform hover:scale-[1.03] active:scale-95"
 			>
@@ -28,7 +28,7 @@ export function CtaBlock() {
 				>
 					→
 				</span>
-			</Link>
+			</HashJumpLink>
 		</section>
 	);
 }

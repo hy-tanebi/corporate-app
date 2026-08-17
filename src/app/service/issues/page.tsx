@@ -20,10 +20,6 @@ export const metadata: Metadata = {
 	title: "その課題、ここから伸ばせます | TANEBI CREATIVE",
 	description:
 		"ホームページを作って終わりにしない改善、ネット販売の立て直し、社内業務のツール化、増えすぎたツール費用の見直し、社内でAIを使える状態にすること。「こうしたい」から一緒に進めます。初回相談は無料です。",
-	// 事業ポジショニングの見直しに伴いコピーを刷新中のため、確定するまで検索エンジンには載せない。
-	// パフォーマンス改善を先に本番へ出すための一時措置。
-	// 正式公開時にこの robots を削除し、sitemap.ts と showcase-cards.ts のリンクも戻すこと。
-	robots: { index: false, follow: false },
 };
 
 /** menuLabel / menuHref は /service の該当メニューへの送り先。見出しの文言も向こうに揃える */
