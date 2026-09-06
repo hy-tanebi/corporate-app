@@ -86,6 +86,12 @@ export interface BlogPostsResponse {
 	limit: number;
 }
 
+/**
+ * ブログ一覧の Data Cache の保持時間（秒）。
+ * Webhook が飛ばなかった場合の保険であり、通常の反映は revalidatePath が行う。
+ */
+const BLOG_LIST_REVALIDATE_SECONDS = 600;
+
 // ブログ記事一覧を取得
 export const getBlogPosts = async (
 	limit = 12,
@@ -108,6 +114,12 @@ export const getBlogPosts = async (
 				"id,title,content,eyecatch,category,mediaType,videoUrl,isShowcase,liveUrl,githubUrl,techStack,createdAt,updatedAt,publishedAt,revisedAt",
 			depth: 1, // 関連コンテンツを展開
 		},
+		// /blog は searchParams を読むため動的レンダリングで、Next.js 15 の fetch は
+		// 既定でキャッシュしない。素のままだとページを開くたびに microCMS を叩くので、
+		// Data Cache に載せて API リクエスト数を抑える。
+		// 記事の公開・更新時は microCMS の Webhook → /api/revalidate の
+		// revalidatePath("/blog") がこのキャッシュも無効化するため、反映は即時のまま。
+		customRequestInit: { next: { revalidate: BLOG_LIST_REVALIDATE_SECONDS } },
 	});
 	return response;
 };
