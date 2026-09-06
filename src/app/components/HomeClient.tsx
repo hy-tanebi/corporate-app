@@ -5,9 +5,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import MissionSection, { type MissionSidebarHandle } from "./MissionSection";
 
-const SidebarMenu = dynamic(
-	() => import("@/components/ui/sidebar-menu").then((mod) => mod.SidebarMenu),
-	{ ssr: false },
+// ssr: false にしないこと。グローバルメニューはトップページから配下ページへの
+// 唯一の内部リンク経路で、ssr: false だとリンクが初期HTMLに1本も出力されない。
+// SidebarMenu が window を触るのは useEffect の中だけなので SSR しても安全。
+// dynamic のままなのはコード分割の維持が目的。
+const SidebarMenu = dynamic(() =>
+	import("@/components/ui/sidebar-menu").then((mod) => mod.SidebarMenu),
 );
 import ContactSection from "./ContactSection";
 import { useHeroState } from "@/contexts/HeroStateContext";

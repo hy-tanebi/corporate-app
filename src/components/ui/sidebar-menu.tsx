@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
 	Menu,
 	X,
@@ -12,6 +12,7 @@ import {
 	Bird,
 	Wrench,
 	Lightbulb,
+	Newspaper,
 } from "lucide-react";
 import gsap from "gsap";
 import { markHashJump } from "@/lib/hash-jump";
@@ -65,6 +66,12 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 			label: "ABOUT",
 			icon: User,
 			description: "TANEBI CREATIVEについて",
+		},
+		{
+			href: "/blog",
+			label: "BLOG",
+			icon: Newspaper,
+			description: "技術やお役立ち情報の発信",
 		},
 		{
 			href: "/#contact",
@@ -215,60 +222,77 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 				</div>
 			</button>
 
-			{/* Expanded Overlay & Menu Content */}
-			<AnimatePresence>
-				{isOpen && (
-					<>
-						{/* Backdrop */}
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							onClick={toggleMenu}
-							className="fixed inset-0 bg-black/40 z-40 backdrop-blur-[2px] pointer-events-auto"
-						/>
+			{/* Expanded Overlay & Menu Content
 
-						{/* Menu Content Container */}
-						{/* pb-28 は ChatWidget の UFOボタン(bottom-6 right-6, 64px四方)との衝突を避けるための下部クリアランス。
+			    条件マウント（{isOpen && ...}）にはせず、常に DOM に置いて visibility で出し分ける。
+			    条件マウントだとメニュー内の <Link> が初期HTMLにもレンダリング後のDOMにも存在せず、
+			    トップページから配下ページへの内部リンクが1本も無い状態になる（Googlebot は
+			    クリックしないので、JSを実行してもハンバーガー内のリンクには到達できない）。
+			    visibility:hidden は要素をフォーカス対象からも外すため、閉じている間の
+			    キーボード操作でリンクを踏んでしまうこともない。 */}
+			{/* Backdrop */}
+			<motion.div
+				initial={false}
+				animate={{ opacity: isOpen ? 1 : 0 }}
+				onClick={toggleMenu}
+				className={`fixed inset-0 bg-black/40 z-40 backdrop-blur-[2px] ${
+					isOpen ? "pointer-events-auto" : "pointer-events-none"
+				}`}
+			/>
+
+			{/* Menu Content Container */}
+			{/* pb-28 は ChatWidget の UFOボタン(bottom-6 right-6, 64px四方)との衝突を避けるための下部クリアランス。
 						    overflow-y-auto は項目数が増えた場合の保険（100dvh に収まらなくても隠れずスクロールできる）。
 						    md:p-12 は使わない。PCもSPと同じ2rem(p-8)にする（devtoolsでの確認・指示どおり） */}
-						<div
-							className="fixed top-0 right-0 w-full max-w-[450px] z-50 flex flex-col overflow-y-auto p-8 pb-28 pointer-events-auto"
-							style={{ height: "100dvh" }} // モバイルアドレスバー対応
-						>
-							{/* Close Button Area
+			<motion.div
+				// inert は React 19 のネイティブ属性。閉じている間はこの subtree 全体が
+				// フォーカス・ヒットテスト・支援技術の対象から外れる（DOM には残るので
+				// クローラからは見える）。visibility の transitionEnd に頼ると初回
+				// レンダリングで適用されるか不確実なため、こちらで決定的に制御する。
+				inert={!isOpen}
+				initial={false}
+				animate={{ opacity: isOpen ? 1 : 0 }}
+				transition={{ duration: 0.25 }}
+				className={`fixed top-0 right-0 w-full max-w-[450px] z-50 flex flex-col overflow-y-auto p-8 pb-28 ${
+					isOpen ? "pointer-events-auto" : "pointer-events-none"
+				}`}
+				style={{ height: "100dvh" }} // モバイルアドレスバー対応
+			>
+				{/* Close Button Area
 							    top-8 right-2 は SP(position:absolute)用。md:static になるPCでは
 							    position:static のため top/right は効かない。PC側の余白は md:mb-12 が
 							    作っていたが不要とのことなので削除した */}
-							<div className="absolute top-8 right-2 w-[50px] h-[50px] flex items-center justify-center z-50 md:static md:w-full md:h-auto md:block md:text-right">
-								<button
-									onClick={handleClose}
-									className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors text-white"
-									type="button"
-									aria-label="Close menu"
-								>
-									<motion.div
-										animate={{ rotate: isClosing ? 90 : 0 }}
-										transition={{ duration: 0.4, ease: "easeInOut" }}
-									>
-										<X className="w-8 h-8" strokeWidth={1.5} />
-									</motion.div>
-								</button>
-							</div>
+				<div className="absolute top-8 right-2 w-[50px] h-[50px] flex items-center justify-center z-50 md:static md:w-full md:h-auto md:block md:text-right">
+					<button
+						onClick={handleClose}
+						className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors text-white"
+						type="button"
+						aria-label="Close menu"
+					>
+						<motion.div
+							animate={{ rotate: isClosing ? 90 : 0 }}
+							transition={{ duration: 0.4, ease: "easeInOut" }}
+						>
+							<X className="w-8 h-8" strokeWidth={1.5} />
+						</motion.div>
+					</button>
+				</div>
 
-							{/* SP・PCとも上下左右中央寄せ。
+				{/* SP・PCとも上下左右中央寄せ。
 						    justify-center は内容が溢れると上端が見切れて到達できなくなる懸念があるが、
 						    nav は flex-1（min-height:auto）なので内容が多い場合は nav 自体が伸び、
 						    親コンテナ側の overflow-y-auto によるスクロールになる。よって見切れは起きない。
 						    CONTACTとUFOボタン(ChatWidget)の衝突は Menu Content Container の
 						    pb-28（下部クリアランス）で対処している。
 						    PCの項目間隔(gap)は画面の高さに応じて可変（詳細はitem labelのコメント参照） */}
-							<nav className="flex flex-col space-y-4 md:space-y-[clamp(0.5rem,2dvh,1.5rem)] flex-1 justify-center items-center w-full">
-								{menuItems.map((item, i) => (
-									<motion.div
-										key={item.href}
-										initial={{ x: 50, opacity: 0 }}
-										animate={{
+				<nav className="flex flex-col space-y-4 md:space-y-[clamp(0.5rem,2dvh,1.5rem)] flex-1 justify-center items-center w-full">
+					{menuItems.map((item, i) => (
+						<motion.div
+							key={item.href}
+							initial={false}
+							animate={
+								isOpen
+									? {
 											x: 0,
 											opacity: 1,
 											transition: {
@@ -276,60 +300,61 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 												type: "spring",
 												stiffness: 100,
 											},
-										}}
-										exit={{
+										}
+									: {
 											x: 50,
 											opacity: 0,
 											transition: { delay: 0, duration: 0.2 },
-										}}
-										className="w-full"
-									>
-										<Link
-											href={item.href}
-											onClick={(e) => {
-												if (onNavigate) {
-													// トップページ上でのみ、これらはスムーズスクロールにインターセプトする。
-													// onNavigate 側は従来どおり /about 等の非ハッシュ形式で判定しているため、
-													// ここで # を外してから渡す（LP側の href 自体はハッシュ形式のまま維持する）
-													const topPageTargets = [
-														"/",
-														"/#mission",
-														"/#about",
-														"/#contact",
-													];
-													if (topPageTargets.includes(item.href)) {
-														e.preventDefault();
-														onNavigate(item.href.replace(/^\/#/, "/"));
-													}
-												} else if (item.href.startsWith("/#")) {
-													// LP等の別ページからハッシュ付きでトップへ遷移するとき、
-													// HomeClient が初回レンダリングから黒カバーを出せるように
-													// フラグを立てる（スナップ完了までの中間状態を見せないため）
-													markHashJump();
-												}
-												setIsOpen(false);
-											}}
-											className="group relative block w-full md:w-[400px]"
-										>
-											{/* Desktop Hover Card: White Background, Icon Pops Up */}
-											{/* md:py-[clamp(...)] は p-6 の上下だけを打ち消す指定。
+										}
+							}
+							className="w-full"
+						>
+							<Link
+								href={item.href}
+								onClick={(e) => {
+									if (onNavigate) {
+										// トップページ上でのみ、これらはスムーズスクロールにインターセプトする。
+										// onNavigate 側は従来どおり /about 等の非ハッシュ形式で判定しているため、
+										// ここで # を外してから渡す（LP側の href 自体はハッシュ形式のまま維持する）
+										const topPageTargets = [
+											"/",
+											"/#mission",
+											"/#about",
+											"/#contact",
+										];
+										if (topPageTargets.includes(item.href)) {
+											e.preventDefault();
+											onNavigate(item.href.replace(/^\/#/, "/"));
+										}
+									} else if (item.href.startsWith("/#")) {
+										// LP等の別ページからハッシュ付きでトップへ遷移するとき、
+										// HomeClient が初回レンダリングから黒カバーを出せるように
+										// フラグを立てる（スナップ完了までの中間状態を見せないため）
+										markHashJump();
+									}
+									setIsOpen(false);
+								}}
+								className="group relative block w-full md:w-[400px]"
+							>
+								{/* Desktop Hover Card: White Background, Icon Pops Up */}
+								{/* md:py-[clamp(...)] は p-6 の上下だけを打ち消す指定。
 											    p-6(上下24pxずつ=1項目あたり48px)を6項目ぶん固定で積むと、
 											    ノートPC相当の画面高さ(800px前後)でメニューが画面内に収まらなくなるため、
 											    上下パディングも画面の高さに応じて可変にしている。左右のpaddingはp-6のまま */}
-											<div
-												className="
+								<div
+									className="
                                                 hidden md:flex flex-col items-center justify-center p-6 md:py-[clamp(0.375rem,1.5dvh,1.5rem)] rounded-xl transition-all duration-300
                                                 text-white
                                                 md:hover:text-[#60d5fa]
                                             "
-											>
-												{/* Icon: Pops up ("Nyutto") on hover */}
-												<div className="h-0 overflow-hidden md:group-hover:h-auto md:group-hover:mb-4 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 md:group-hover:opacity-100 flex justify-center origin-bottom">
-													<item.icon className="w-10 h-10" strokeWidth={1.5} />
-												</div>
+								>
+									{/* Icon: Pops up ("Nyutto") on hover */}
+									<div className="h-0 overflow-hidden md:group-hover:h-auto md:group-hover:mb-4 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] opacity-0 md:group-hover:opacity-100 flex justify-center origin-bottom">
+										<item.icon className="w-10 h-10" strokeWidth={1.5} />
+									</div>
 
-												{/* Label */}
-												{/* PC(md:)は画面の高さに応じて文字サイズが可変。項目が6個になり、低い画面高さでは
+									{/* Label */}
+									{/* PC(md:)は画面の高さに応じて文字サイズが可変。項目が6個になり、低い画面高さでは
 												    text-5xl(48px)固定だと下スクロールが発生しうるため、
 												    clamp(下限28px, 4dvh+16px, 上限48px=text-5xl相当) にした。
 												    画面高さ800px以上ではこれまで通り48pxのまま、低い画面だけ縮んで
@@ -338,41 +363,41 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 												    セットで定義されるが、text-[clamp(...)] のようなアービトラリ値は font-size しか
 												    指定されず、html の line-height:1.5 を継承してしまう（48px想定が実際72pxになり、
 												    計算上収まるはずの高さでも下スクロールが発生していた） */}
-												<span className="text-4xl md:text-[clamp(1.75rem,5dvh,3rem)] md:leading-none font-bold tracking-wider font-sans md:group-hover:mb-2 transition-all duration-300">
-													{item.label}
-												</span>
+									<span className="text-4xl md:text-[clamp(1.75rem,5dvh,3rem)] md:leading-none font-bold tracking-wider font-sans md:group-hover:mb-2 transition-all duration-300">
+										{item.label}
+									</span>
 
-												{/* Description: Hidden by default, appears on hover */}
-												<div className="h-0 overflow-hidden md:group-hover:h-auto transition-all duration-300 opacity-0 md:group-hover:opacity-100">
-													<span className="text-sm font-bold tracking-wide">
-														{item.description}
-													</span>
-												</div>
-											</div>
+									{/* Description: Hidden by default, appears on hover */}
+									<div className="h-0 overflow-hidden md:group-hover:h-auto transition-all duration-300 opacity-0 md:group-hover:opacity-100">
+										<span className="text-sm font-bold tracking-wide">
+											{item.description}
+										</span>
+									</div>
+								</div>
 
-											{/* Mobile Styles (Visible on Mobile) */}
-											<div className="md:hidden text-center">
-												<span className="text-4xl font-bold text-white tracking-wider font-sans">
-													{item.label}
-												</span>
-											</div>
-										</Link>
-									</motion.div>
-								))}
-							</nav>
+								{/* Mobile Styles (Visible on Mobile) */}
+								<div className="md:hidden text-center">
+									<span className="text-4xl font-bold text-white tracking-wider font-sans">
+										{item.label}
+									</span>
+								</div>
+							</Link>
+						</motion.div>
+					))}
+				</nav>
 
-							<motion.div
-								className="mt-auto text-white/50 text-sm w-full text-center"
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1, transition: { delay: 0.8 } }}
-								exit={{ opacity: 0, transition: { duration: 0.2, delay: 0 } }}
-							>
-								<p>&copy; TANEBI CREATIVE</p>
-							</motion.div>
-						</div>
-					</>
-				)}
-			</AnimatePresence>
+				<motion.div
+					className="mt-auto text-white/50 text-sm w-full text-center"
+					initial={false}
+					animate={
+						isOpen
+							? { opacity: 1, transition: { delay: 0.8 } }
+							: { opacity: 0, transition: { duration: 0.2, delay: 0 } }
+					}
+				>
+					<p>&copy; TANEBI CREATIVE</p>
+				</motion.div>
+			</motion.div>
 		</>
 	);
 }
