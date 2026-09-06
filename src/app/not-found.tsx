@@ -1,13 +1,24 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+// metadata が無いとルートの robots（index, follow）と canonical（トップページ）を
+// 継承し、Next.js が not-found に自動付与する noindex と矛盾したシグナルになる。
+// canonical: null で「トップの正規版である」という誤った主張も打ち消す。
+export const metadata: Metadata = {
+	title: "ページが見つかりません",
+	robots: { index: false, follow: false },
+	alternates: { canonical: null },
+};
 
 export default function NotFound() {
 	return (
 		<div className="fixed inset-0 bg-black">
 			<div className="absolute inset-0 flex flex-col items-center justify-center">
 				<div className="text-center space-y-8 px-4">
-					<h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+					{/* 屋号は見出しにしない。h2 が h1 より先に出て順序が逆転するため */}
+					<p className="text-2xl md:text-3xl font-bold text-white mb-4">
 						TANEBI CREATIVE
-					</h2>
+					</p>
 
 					<h1 className="text-6xl md:text-8xl font-bold text-white tracking-wider">
 						404
