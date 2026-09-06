@@ -12,7 +12,6 @@ import {
 	Bird,
 	Wrench,
 	Lightbulb,
-	Newspaper,
 } from "lucide-react";
 import gsap from "gsap";
 import { markHashJump } from "@/lib/hash-jump";
@@ -66,12 +65,6 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 			label: "ABOUT",
 			icon: User,
 			description: "TANEBI CREATIVEについて",
-		},
-		{
-			href: "/blog",
-			label: "BLOG",
-			icon: Newspaper,
-			description: "技術やお役立ち情報の発信",
 		},
 		{
 			href: "/#contact",
