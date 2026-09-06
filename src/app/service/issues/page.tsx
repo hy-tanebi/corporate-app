@@ -15,9 +15,12 @@ import { CtaBlock } from "@/components/lp/CtaBlock";
 import { anton, notoSansJp } from "@/components/lp/fonts";
 import { LpSection } from "@/components/lp/LpSection";
 import { PageHero } from "@/components/lp/PageHero";
+import { SITE_CONFIG } from "@/lib/seo";
 
 export const metadata: Metadata = {
-	title: "その課題、ここから伸ばせます | TANEBI CREATIVE",
+	// 屋号は seo.ts の title.template が付けるのでここには書かない
+	title: "その課題、ここから伸ばせます",
+	alternates: { canonical: `${SITE_CONFIG.url}/service/issues` },
 	description:
 		"ホームページを作って終わりにしない改善、ネット販売の立て直し、社内業務のツール化、増えすぎたツール費用の見直し、社内でAIを使える状態にすること。「こうしたい」から一緒に進めます。初回相談は無料です。",
 };

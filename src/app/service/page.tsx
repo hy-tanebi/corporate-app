@@ -13,9 +13,12 @@ import { anton, notoSansJp } from "@/components/lp/fonts";
 import { LpSection } from "@/components/lp/LpSection";
 import { PageHero } from "@/components/lp/PageHero";
 import { ExampleListAccordion } from "./components/example-list-accordion";
+import { SITE_CONFIG } from "@/lib/seo";
 
 export const metadata: Metadata = {
-	title: "できること ─ ご相談メニュー | TANEBI CREATIVE",
+	// 屋号は seo.ts の title.template が付けるのでここには書かない
+	title: "できること ─ ご相談メニュー",
+	alternates: { canonical: `${SITE_CONFIG.url}/service` },
 	description:
 		"問い合わせを取りこぼさないWebサイトの制作・改善、AI活用の相談、業務ツールの開発。受け取ったあとの社内の流れまで含めて設計します。どれも「まず話を聞いてから」始められます。初回相談は無料です。",
 };
