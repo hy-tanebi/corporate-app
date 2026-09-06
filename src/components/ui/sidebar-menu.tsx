@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
 	Menu,
 	X,
@@ -223,15 +223,24 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 			    クリックしないので、JSを実行してもハンバーガー内のリンクには到達できない）。
 			    visibility:hidden は要素をフォーカス対象からも外すため、閉じている間の
 			    キーボード操作でリンクを踏んでしまうこともない。 */}
-			{/* Backdrop */}
-			<motion.div
-				initial={false}
-				animate={{ opacity: isOpen ? 1 : 0 }}
-				onClick={toggleMenu}
-				className={`fixed inset-0 bg-black/40 z-40 backdrop-blur-[2px] ${
-					isOpen ? "pointer-events-auto" : "pointer-events-none"
-				}`}
-			/>
+			{/* Backdrop
+			    これは常時マウントにしないこと。backdrop-filter は opacity 0 でも
+			    ビューポート全体に合成レイヤーを作るため、下にある3Dキャンバスや
+			    MissionSection(z-20) の描画が壊れる（ブラックホールが出ない・
+			    MISSIONがセクションごと点滅する、という症状が出た）。
+			    クローラに見せたいリンクは下のメニュー本体にあるので、
+			    背景だけ従来どおり開いている間だけ描画すれば足りる。 */}
+			<AnimatePresence>
+				{isOpen && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						onClick={toggleMenu}
+						className="fixed inset-0 bg-black/40 z-40 backdrop-blur-[2px] pointer-events-auto"
+					/>
+				)}
+			</AnimatePresence>
 
 			{/* Menu Content Container */}
 			{/* pb-28 は ChatWidget の UFOボタン(bottom-6 right-6, 64px四方)との衝突を避けるための下部クリアランス。
