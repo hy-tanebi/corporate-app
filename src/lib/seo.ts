@@ -56,6 +56,12 @@ export function generateBlogMetadata(post: BlogPost): Metadata {
 		console.warn("Date parsing error in generateBlogMetadata", e);
 	}
 
+	// アイキャッチが無ければサイト共通のOGP画像。og と twitter で同じ画像を指すこと
+	// （twitter を定義しないとルートの ogp.png が継承され、og:image と食い違う）
+	const imageUrl = post.eyecatch?.url
+		? post.eyecatch.url
+		: `${SITE_CONFIG.url}${SITE_CONFIG.ogImage}`;
+
 	return {
 		title: post.title,
 		description: description,
@@ -67,15 +73,23 @@ export function generateBlogMetadata(post: BlogPost): Metadata {
 			title: post.title,
 			description: description,
 			type: "article",
+			// openGraph は親とマージされず丸ごと置換されるので url / siteName / locale も自前で持つ
+			url: `${SITE_CONFIG.url}/blog/${post.id}`,
+			siteName: SITE_CONFIG.name,
+			locale: "ja_JP",
 			publishedTime: publishedTime,
 			modifiedTime: modifiedTime,
 			authors: [SITE_CONFIG.author],
 			tags: post.category,
-			images: [
-				{
-					url: post.eyecatch?.url || SITE_CONFIG.ogImage,
-				},
-			],
+			images: [{ url: imageUrl }],
+		},
+		twitter: {
+			card: "summary_large_image",
+			site: SITE_CONFIG.twitterHandle,
+			creator: SITE_CONFIG.twitterHandle,
+			title: post.title,
+			description: description,
+			images: [imageUrl],
 		},
 	};
 }
@@ -135,25 +149,20 @@ export function generateBlogJsonLd(
 	};
 }
 
+const BLOG_LIST_DESCRIPTION =
+	"Webサイトの制作・改善、AI活用、業務ツールの開発について、実際に手を動かして分かったことを記事にしています。";
+
 export const BLOG_LIST_METADATA: Metadata = {
 	title: "ブログ一覧",
-	description: "技術記事やプロジェクトについての情報を発信しています。",
-	openGraph: {
-		type: "website",
-		title: `ブログ | ${SITE_CONFIG.name}`,
-		description: "技術記事やプロジェクトについての情報を発信しています。",
-		url: `${SITE_CONFIG.url}/blog`,
-		siteName: SITE_CONFIG.name,
-	},
-	twitter: {
-		card: "summary",
-		site: SITE_CONFIG.twitterHandle,
-		title: `ブログ | ${SITE_CONFIG.name}`,
-		description: "技術記事やプロジェクトについての情報を発信しています。",
-	},
+	description: BLOG_LIST_DESCRIPTION,
 	alternates: {
 		canonical: `${SITE_CONFIG.url}/blog`,
 	},
+	...buildPageSocialMetadata({
+		title: "ブログ | TANEBI CREATIVE",
+		description: BLOG_LIST_DESCRIPTION,
+		path: "/blog",
+	}),
 };
 
 // サイト全体のデフォルトメタデータ
@@ -292,4 +301,86 @@ export function generateSiteJsonLd(): Record<string, unknown> {
 /** JSON-LD を `<script>` に埋めるための文字列化。`</script>` ブレイクアウト対策として `<` をエスケープする。 */
 export function serializeJsonLd(jsonLd: Record<string, unknown>): string {
 	return JSON.stringify(jsonLd).replace(/</g, "\\u003c");
+}
+
+/**
+ * パンくずの構造化データ。`path` はサイトルートからの相対パス（先頭スラッシュ込み）。
+ * 末尾（現在地）まで含めて渡すこと。
+ */
+export function generateBreadcrumbJsonLd(
+	items: { name: string; path: string }[],
+): Record<string, unknown> {
+	return {
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		itemListElement: items.map((item, index) => ({
+			"@type": "ListItem",
+			position: index + 1,
+			name: item.name,
+			item: `${SITE_CONFIG.url}${item.path}`,
+		})),
+	};
+}
+
+/**
+ * /service の提供メニューの構造化データ。
+ * ページ上に実際に書かれている3メニュー（Web / AI / Tools）と対応させること。
+ * provider はトップページの Organization ノードを @id で参照する。
+ */
+export function generateServiceCatalogJsonLd(
+	services: { id: string; name: string; description: string }[],
+): Record<string, unknown> {
+	return {
+		"@context": "https://schema.org",
+		"@graph": services.map((service) => ({
+			"@type": "Service",
+			"@id": `${SITE_CONFIG.url}/service#${service.id}`,
+			name: service.name,
+			description: service.description,
+			provider: { "@id": `${SITE_CONFIG.url}/#organization` },
+			areaServed: { "@type": "AdministrativeArea", name: "岩手県" },
+		})),
+	};
+}
+
+/**
+ * 下層ページ用の openGraph / twitter を組み立てる。
+ *
+ * Next.js の Metadata は openGraph を「親とマージ」ではなく「丸ごと置換」するため、
+ * ページ側で openGraph を定義するときは images や siteName も必ず自前で持たせる必要がある。
+ * ここを通さないと、下層ページのOGPがトップページのもの（og:title / og:url がトップ）のままになる。
+ */
+export function buildPageSocialMetadata({
+	title,
+	description,
+	path,
+	image,
+}: {
+	title: string;
+	description: string;
+	/** サイトルートからの相対パス（先頭スラッシュ込み） */
+	path: string;
+	/** 未指定ならサイト共通のOGP画像 */
+	image?: string;
+}): Pick<Metadata, "openGraph" | "twitter"> {
+	const imageUrl = image ?? `${SITE_CONFIG.url}${SITE_CONFIG.ogImage}`;
+	return {
+		openGraph: {
+			type: "website",
+			locale: "ja_JP",
+			url: `${SITE_CONFIG.url}${path}`,
+			siteName: SITE_CONFIG.name,
+			title,
+			description,
+			images: [{ url: imageUrl, width: 1200, height: 630, alt: title }],
+		},
+		twitter: {
+			card: "summary_large_image",
+			site: SITE_CONFIG.twitterHandle,
+			creator: SITE_CONFIG.twitterHandle,
+			title,
+			description,
+			images: [imageUrl],
+		},
+	};
 }

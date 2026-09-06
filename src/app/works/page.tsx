@@ -3,14 +3,21 @@ import { CtaBlock } from "@/components/lp/CtaBlock";
 import { notoSansJp } from "@/components/lp/fonts";
 import { LpSection } from "@/components/lp/LpSection";
 import { PageHero } from "@/components/lp/PageHero";
-import { SITE_CONFIG } from "@/lib/seo";
+import { buildPageSocialMetadata, SITE_CONFIG } from "@/lib/seo";
+
+const WORKS_DESCRIPTION =
+	"待機確認の業務を自作のWebツールに置き換え、今も毎日使っています。何に困り、何を整理し、どう作ったか。小さく作って使いながら育てる進め方を紹介します。";
 
 export const metadata: Metadata = {
 	// 屋号は seo.ts の title.template が付けるのでここには書かない
 	title: "実際の取り組み ─ 自社の業務を、自作ツールで改善した話",
 	alternates: { canonical: `${SITE_CONFIG.url}/works` },
-	description:
-		"待機確認の業務を自作のWebツールに置き換え、今も毎日使っています。何に困り、何を整理し、どう作ったか。小さく作って使いながら育てる進め方を紹介します。",
+	description: WORKS_DESCRIPTION,
+	...buildPageSocialMetadata({
+		title: "実際の取り組み | TANEBI CREATIVE",
+		description: WORKS_DESCRIPTION,
+		path: "/works",
+	}),
 	// ページ再設計中のため検索エンジンには載せない（再公開時にこの robots を削除する）
 	robots: { index: false, follow: false },
 };
