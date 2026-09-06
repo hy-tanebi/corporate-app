@@ -62,14 +62,18 @@ export default function LoadingScreen({
 		>
 			{/* ローディングUI */}
 			<div className="absolute inset-0 flex flex-col items-center justify-center">
-				<div className="text-center space-y-8 px-4">
-					<h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+				{/* ここは見出し要素にしないこと。
+				    ローディング画面はトップページの初期HTMLに含まれるため、h1 を置くと
+				    文書順で最初の h1 が「LOADING」になり、HomeClient 側の h1 と合わせて
+				    1ページに h1 が2つある状態になる（h2 → h1 の順序逆転も起きていた）。 */}
+				<div className="text-center space-y-8 px-4" aria-hidden="true">
+					<p className="text-2xl md:text-3xl font-bold text-white mb-4">
 						TANEBI CREATIVE
-					</h2>
+					</p>
 
-					<h1 className="text-xl md:text-2xl font-bold text-white tracking-wider animate-pulse">
+					<p className="text-xl md:text-2xl font-bold text-white tracking-wider animate-pulse">
 						LOADING
-					</h1>
+					</p>
 
 					<div className="w-64 md:w-96 mx-auto">
 						<div className="h-2 bg-gray-800 rounded-full overflow-hidden">

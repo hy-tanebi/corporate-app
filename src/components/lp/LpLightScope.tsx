@@ -7,9 +7,10 @@ import type { ReactNode } from "react";
 // onNavigate は渡さない。LP上ではトップページ内セクションへのリンクは
 // 通常のリンク（/#hash）としてナビゲートすればよく、トップページ限定のスムーズスクロール
 // インターセプトは不要なため（sidebar-menu.tsx 側で onNavigate 有無により分岐している）。
-const SidebarMenu = dynamic(
-	() => import("@/components/ui/sidebar-menu").then((mod) => mod.SidebarMenu),
-	{ ssr: false },
+// ssr: false にしないこと（HomeClient 側と同じ理由）。メニュー内のリンクが
+// 初期HTMLに出力されなくなり、クローラがページ間を辿れなくなる。
+const SidebarMenu = dynamic(() =>
+	import("@/components/ui/sidebar-menu").then((mod) => mod.SidebarMenu),
 );
 
 /**
