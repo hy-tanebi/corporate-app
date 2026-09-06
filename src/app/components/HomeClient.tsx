@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import MissionSection, { type MissionSidebarHandle } from "./MissionSection";
 
 // ssr: false にしないこと。グローバルメニューはトップページから配下ページへの
@@ -159,13 +160,18 @@ export default function HomeClient() {
 			}
 
 			if (hash === "") {
-				window.scrollTo({ top: 0, behavior: "smooth" });
+				// smooth だと 1000vh を延々とスクロールすることになり、その間ずっと
+				// 平滑化ループが追従を続けるため、CONTACT のように最下部から呼ぶと
+				// 先頭に着かない。auto で瞬時に飛ばし、直後に補間値を実位置へ揃える
+				// （doc/progress.md の「scrollTo の直後は必ず syncScrollLerp」に従う）。
+				window.scrollTo({ top: 0, behavior: "auto" });
+				syncScrollLerp();
 				return;
 			}
 
 			navigateToHash(hash);
 		},
-		[navigateToHash],
+		[navigateToHash, syncScrollLerp],
 	);
 
 	// 経路1: 初回ロード。他ページ（LPのCTAやグローバルナビ）から /#contact 等で来た場合
@@ -266,18 +272,16 @@ export default function HomeClient() {
 			const isCircleExpanded = scrolled >= CIRCLE_SCROLL_END;
 
 			// --- Text 1 Animation ("WEBの困りごとに...") ---
-			// Timing Shifted Later & Smoothed
-			// Desktop: In 8-15%, Out 22-28%
-			// Mobile: In 3-10%, Out 17-23% (Earlier to reduce scroll)
-			// Multiplier ~14 (1/0.07) for 7% range
-			const text1Start = isMobile ? 0.03 : 0.08;
+			// ファーストビューのコピーは最初から表示する（フェードインさせない）。
+			// 以前は 8%（PC）/ 3%（スマホ）スクロールしてから現れる設定で、
+			// スクロール0では opacity 0 だった。Googlebot はスクロールしないため、
+			// レンダリング結果が可視テキスト0文字の真っ黒な画面になっていた
+			// （3Dは WebGL なので Googlebot の環境では描画されない）。
+			// フェードアウト側のタイミングは変更していないので、スクロール後の演出は従来どおり。
+			// Desktop: Out 22-28% / Mobile: Out 17-23%
 			const text1End = isMobile ? 0.23 : 0.28;
-			const text1FadeIn = Math.max(
-				0,
-				Math.min(1, (scrolled - text1Start) * 14),
-			);
 			const text1FadeOut = Math.max(0, Math.min(1, (text1End - scrolled) * 16));
-			const text1Opacity = Math.min(text1FadeIn, text1FadeOut);
+			const text1Opacity = text1FadeOut;
 
 			if (text1Ref.current) {
 				const opacity = isCircleExpanded ? 0 : text1Opacity;
@@ -356,10 +360,23 @@ export default function HomeClient() {
 
 	return (
 		<main>
-			{/* 屋号を左上に固定配置 */}
-			<div className="fixed top-8 left-6 md:left-8 z-10 h-[50px]">
+			{/* 屋号を左上に固定配置。クリックでページ先頭へ戻る。
+			    h1 の pointer-events-none は背後の3Dがマウス操作を受け取れるようにするための指定。
+			    リンクにだけ pointer-events-auto を付けて、文字の上だけクリックできるようにしている。 */}
+			<div className="fixed top-8 left-6 md:left-8 z-30 h-[50px]">
 				<h1 className="text-2xl md:text-[28px] font-bold text-white pointer-events-none">
-					TANEBI CREATIVE
+					<Link
+						href="/"
+						onClick={(e) => {
+							// トップページ上ではブラウザ遷移させず、既存のスナップ処理で先頭へ戻す
+							e.preventDefault();
+							handleNavigate("/");
+						}}
+						className="pointer-events-auto inline-block transition-opacity duration-200 hover:opacity-70"
+						aria-label="ページの先頭に戻る"
+					>
+						TANEBI CREATIVE
+					</Link>
 				</h1>
 			</div>
 
