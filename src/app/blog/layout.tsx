@@ -1,3 +1,4 @@
+import { BlogFooter } from "@/components/blog/blog-footer";
 import { MousePointer } from "@/components/three/mouse-pointer";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -12,6 +13,7 @@ export default function BlogLayout({
 				<ThemeToggle />
 			</div>
 			{children}
+			<BlogFooter />
 			<MousePointer />
 		</div>
 	);
