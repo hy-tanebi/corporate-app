@@ -62,3 +62,6 @@ public/models/*.fbx
 
 # 計測用ビルドの出力先（dev サーバーと .next を取り合わないため）
 .next-measure/
+# 検証用ビルドの出力先（doc/progress.md の検証手順で使う）。
+# ここを無視しないと biome が成果物まで lint/format しに行く
+.next-verify/

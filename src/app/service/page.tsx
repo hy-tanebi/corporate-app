@@ -13,11 +13,27 @@ import { anton, notoSansJp } from "@/components/lp/fonts";
 import { LpSection } from "@/components/lp/LpSection";
 import { PageHero } from "@/components/lp/PageHero";
 import { ExampleListAccordion } from "./components/example-list-accordion";
+import {
+	generateBreadcrumbJsonLd,
+	generateServiceCatalogJsonLd,
+	buildPageSocialMetadata,
+	serializeJsonLd,
+	SITE_CONFIG,
+} from "@/lib/seo";
+
+const SERVICE_DESCRIPTION =
+	"問い合わせを取りこぼさないWebサイトの制作・改善、AI活用の相談、業務ツールの開発。受け取ったあとの社内の流れまで含めて設計します。どれも「まず話を聞いてから」始められます。初回相談は無料です。";
 
 export const metadata: Metadata = {
-	title: "できること ─ ご相談メニュー | TANEBI CREATIVE",
-	description:
-		"問い合わせを取りこぼさないWebサイトの制作・改善、AI活用の相談、業務ツールの開発。受け取ったあとの社内の流れまで含めて設計します。どれも「まず話を聞いてから」始められます。初回相談は無料です。",
+	// 屋号は seo.ts の title.template が付けるのでここには書かない
+	title: "できること ─ ご相談メニュー",
+	alternates: { canonical: `${SITE_CONFIG.url}/service` },
+	description: SERVICE_DESCRIPTION,
+	...buildPageSocialMetadata({
+		title: "できること ─ ご相談メニュー | TANEBI CREATIVE",
+		description: SERVICE_DESCRIPTION,
+		path: "/service",
+	}),
 };
 
 type Menu = {
@@ -149,8 +165,32 @@ const steps = [
 ];
 
 export default function ServicePage() {
+	// 構造化データ。name / description はページ本文と対応させること
+	// （ページに書いていない内容をマークアップしない）。
+	const jsonLd = [
+		generateBreadcrumbJsonLd([
+			{ name: "ホーム", path: "/" },
+			{ name: "できること ─ ご相談メニュー", path: "/service" },
+		]),
+		generateServiceCatalogJsonLd(
+			menus.map((menu) => ({
+				id: menu.id,
+				name: menu.title,
+				description: menu.body[0],
+			})),
+		),
+	];
+
 	return (
 		<div className={`${notoSansJp.className} container mx-auto max-w-5xl px-4`}>
+			{jsonLd.map((data) => (
+				<script
+					key={String(data["@type"] ?? data["@graph"])}
+					type="application/ld+json"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD（< はエスケープ済み）
+					dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
+				/>
+			))}
 			<PageHero
 				label="What we can do"
 				english="Service"

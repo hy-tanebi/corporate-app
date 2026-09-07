@@ -26,10 +26,11 @@
 		"**/*.d.ts",
 		"**/*.ts",
 		"**/*.tsx",
+		".next-measure/types/**/*.ts",
 		".next/types/**/*.ts",
 		"next-env.d.ts",
 		"next.config.js",
-		".next-measure/types/**/*.ts"
+		".next-verify/types/**/*.ts"
 	],
 	"exclude": ["node_modules"]
 }
