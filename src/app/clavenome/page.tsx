@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notoSansJp } from "@/components/lp/fonts";
+import { HashJumpLink } from "@/components/lp/hash-jump-link";
 import { LpSection } from "@/components/lp/LpSection";
 import { PageHero } from "@/components/lp/PageHero";
 import { buildPageSocialMetadata, SITE_CONFIG } from "@/lib/seo";
@@ -13,8 +14,9 @@ import { buildPageSocialMetadata, SITE_CONFIG } from "@/lib/seo";
 // このページには解析タグ・外部リソースを載せない（アプリが「通信ゼロ・収集ゼロ」を掲げているため）。
 // GTM は src/components/GTMScript.tsx で /clavenome を除外している。
 
-/** 問い合わせ先 */
-const CONTACT_EMAIL = "CONTACT_EMAIL";
+// 問い合わせ先は専用メールを持たず、サイト共通のお問い合わせフォーム（/#contact）に一本化する。
+// /#contact へのリンクは HashJumpLink（doc/progress.md「実装時に必ず守ること」）。
+const CONTACT_HREF = "/#contact";
 
 /** 公開日に合わせる。文面を変えたときはここも更新する */
 const LAST_UPDATED = "2026-09-15";
@@ -55,19 +57,25 @@ export default function ClavenomePage() {
 					{ label: "プライバシーポリシー", href: "#privacy" },
 					{ label: "English", href: "#support-en" },
 				]}
+				visual={{
+					src: "/images/icon-1024.png",
+					alt: "Clavenome のアプリアイコン",
+					width: 1024,
+					height: 1024,
+				}}
 			/>
 
 			<LpSection id="support" eyebrow="Support" title="サポート">
 				<div className="max-w-2xl space-y-4">
 					<p className={bodyText}>
-						不具合の報告や質問は、下記のメールアドレスまでお送りください。
+						不具合の報告や質問は、下記のお問い合わせフォームからお送りください。
 					</p>
 					<ul className={bulletList}>
 						<li>
 							お問い合わせ:{" "}
-							<a href={`mailto:${CONTACT_EMAIL}`} className={externalLink}>
-								{CONTACT_EMAIL}
-							</a>
+							<HashJumpLink href={CONTACT_HREF} className={externalLink}>
+								お問い合わせフォーム
+							</HashJumpLink>
 						</li>
 						<li>
 							お使いの iPhone の機種と iOS
@@ -127,10 +135,10 @@ export default function ClavenomePage() {
 			<LpSection id="support-en" eyebrow="English" title="Support">
 				<div className="max-w-2xl space-y-4">
 					<p className={bodyText}>
-						For bug reports or questions, email us at{" "}
-						<a href={`mailto:${CONTACT_EMAIL}`} className={externalLink}>
-							{CONTACT_EMAIL}
-						</a>
+						For bug reports or questions, use our{" "}
+						<HashJumpLink href={CONTACT_HREF} className={externalLink}>
+							contact form
+						</HashJumpLink>
 						. Including your iPhone model and iOS version helps.
 					</p>
 				</div>
