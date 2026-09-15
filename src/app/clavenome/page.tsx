@@ -4,6 +4,7 @@ import { HashJumpLink } from "@/components/lp/hash-jump-link";
 import { LpSection } from "@/components/lp/LpSection";
 import { PageHero } from "@/components/lp/PageHero";
 import { buildPageSocialMetadata, SITE_CONFIG } from "@/lib/seo";
+import { JaText } from "./components/ja-text";
 
 // iOS アプリ Clavenome のサポート・プライバシーポリシーページ。
 // App Store Connect の「サポート URL」「プライバシーポリシー URL」に登録する。
@@ -25,7 +26,7 @@ const APPLE_PURCHASE_HISTORY_JA = "https://support.apple.com/ja-jp/HT204084";
 const APPLE_PURCHASE_HISTORY_EN = "https://support.apple.com/en-us/HT204084";
 
 const CLAVENOME_DESCRIPTION =
-	"iOS アプリ Clavenome（ブラジルのリズムを鳴らす練習用メトロノーム）のサポート窓口とプライバシーポリシー。利用者に関する情報を一切収集しません。";
+	"iOS アプリ Clavenome（アフロリズムに特化した練習用メトロノーム）のサポート窓口とプライバシーポリシー。利用者に関する情報を一切収集しません。";
 
 export const metadata: Metadata = {
 	// 屋号は seo.ts の title.template が付けるのでここには書かない
@@ -39,6 +40,10 @@ export const metadata: Metadata = {
 	}),
 };
 
+// JaText でゼロ幅スペースを入れた文節の切れ目だけで折り返す。
+// 文節1つが行幅を超える場合（極端に狭い画面）だけ overflow-wrap で逃がす。
+const jaBlock =
+	"max-w-2xl space-y-4 [word-break:keep-all] [overflow-wrap:anywhere]";
 const bodyText = "text-base lg:text-lg leading-loose";
 const bulletList = `space-y-2 pl-5 list-disc ${bodyText} marker:text-[#e8590c]`;
 const subHeading = "mt-10 mb-3 text-lg lg:text-xl font-bold";
@@ -50,8 +55,8 @@ export default function ClavenomePage() {
 			<PageHero
 				label="Support & Privacy"
 				english="Clavenome"
-				title="ブラジルのリズムを鳴らす練習用メトロノーム"
-				lead="A practice metronome for Brazilian rhythm patterns"
+				title="アフロリズムに特化した練習用メトロノーム"
+				lead="A practice metronome for Afro rhythm patterns"
 				pills={[
 					{ label: "サポート", href: "#support" },
 					{ label: "プライバシーポリシー", href: "#privacy" },
@@ -66,9 +71,11 @@ export default function ClavenomePage() {
 			/>
 
 			<LpSection id="support" eyebrow="Support" title="サポート">
-				<div className="max-w-2xl space-y-4">
+				<div className={jaBlock}>
 					<p className={bodyText}>
-						不具合の報告や質問は、下記のお問い合わせフォームからお送りください。
+						<JaText>
+							不具合の報告や質問は、下記のお問い合わせフォームからお送りください。
+						</JaText>
 					</p>
 					<ul className={bulletList}>
 						<li>
@@ -78,38 +85,52 @@ export default function ClavenomePage() {
 							</HashJumpLink>
 						</li>
 						<li>
-							お使いの iPhone の機種と iOS
-							のバージョンを添えていただけると助かります
+							<JaText>
+								お使いの iPhone の機種と iOS
+								のバージョンを添えていただけると助かります
+							</JaText>
 						</li>
 					</ul>
 				</div>
 			</LpSection>
 
 			<LpSection id="privacy" eyebrow="Privacy" title="プライバシーポリシー">
-				<div className="max-w-2xl space-y-4">
+				<div className={jaBlock}>
 					<p className={bodyText}>
 						<strong>
-							Clavenome は、利用者に関する情報を一切収集しません。
+							<JaText>
+								Clavenome は、利用者に関する情報を一切収集しません。
+							</JaText>
 						</strong>
 					</p>
 					<ul className={bulletList}>
-						<li>アカウント登録はありません</li>
 						<li>
-							インターネット通信を行いません。アプリはオフラインで完結します
+							<JaText>アカウント登録はありません</JaText>
 						</li>
 						<li>
-							アクセス解析・広告・トラッキングの仕組みを組み込んでいません
+							<JaText>
+								インターネット通信を行いません。アプリはオフラインで完結します
+							</JaText>
 						</li>
 						<li>
-							端末に保存するのは「最後に選んだリズム」と「音色」の設定だけで、外部には送信されません。アプリを削除すると消えます
+							<JaText>
+								アクセス解析・広告・トラッキングの仕組みを組み込んでいません
+							</JaText>
+						</li>
+						<li>
+							<JaText>
+								端末に保存するのは「最後に選んだリズム」と「音色」の設定だけで、外部には送信されません。アプリを削除すると消えます
+							</JaText>
 						</li>
 					</ul>
 
 					<h3 className={subHeading}>アプリ内購入について</h3>
 					<p className={bodyText}>
-						アプリ内購入がある場合、決済はすべて Apple が処理します。Clavenome
-						は氏名・住所・支払い情報を受け取りません。購入の履歴や返金は Apple
-						の{" "}
+						<JaText>
+							アプリ内購入がある場合、決済はすべて Apple が処理します。Clavenome
+							は氏名・住所・支払い情報を受け取りません。購入の履歴や返金は Apple
+							の
+						</JaText>{" "}
 						<a
 							href={APPLE_PURCHASE_HISTORY_JA}
 							className={externalLink}
@@ -118,12 +139,14 @@ export default function ClavenomePage() {
 						>
 							「購入履歴を確認する」
 						</a>
-						から確認できます。
+						<JaText>から確認できます。</JaText>
 					</p>
 
 					<h3 className={subHeading}>このポリシーの変更</h3>
 					<p className={bodyText}>
-						収集する情報が変わる場合は、このページを更新し、アプリの更新履歴に記載します。
+						<JaText>
+							収集する情報が変わる場合は、このページを更新し、アプリの更新履歴に記載します。
+						</JaText>
 					</p>
 
 					<p className="pt-6 text-sm text-muted-foreground">
