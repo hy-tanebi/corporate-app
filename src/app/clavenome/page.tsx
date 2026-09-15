@@ -52,7 +52,11 @@ const externalLink = "underline underline-offset-4 hover:text-[#e8590c]";
 
 export default function ClavenomePage() {
 	return (
-		<div className={`${notoSansJp.className} container mx-auto max-w-5xl px-4`}>
+		// data-smooth-scroll: globals.css でこのページだけページ内リンクをスムーススクロールにする
+		<div
+			data-smooth-scroll
+			className={`${notoSansJp.className} container mx-auto max-w-5xl px-4`}
+		>
 			<PageHero
 				label="Support & Privacy"
 				english="Clavenome"
