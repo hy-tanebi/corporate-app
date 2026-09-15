@@ -40,11 +40,12 @@ export const metadata: Metadata = {
 	}),
 };
 
+// 本文の幅は絞らない（/works などは max-w-2xl で絞っているが、このページは
+// 1文を1行に収めたいというオーナー指定・2026-09-15）。文字サイズも 16px 固定にして行幅を稼ぐ。
 // JaText でゼロ幅スペースを入れた文節の切れ目だけで折り返す。
 // 文節1つが行幅を超える場合（極端に狭い画面）だけ overflow-wrap で逃がす。
-const jaBlock =
-	"max-w-2xl space-y-4 [word-break:keep-all] [overflow-wrap:anywhere]";
-const bodyText = "text-base lg:text-lg leading-loose";
+const jaBlock = "space-y-4 [word-break:keep-all] [overflow-wrap:anywhere]";
+const bodyText = "text-base leading-loose";
 const bulletList = `space-y-2 pl-5 list-disc ${bodyText} marker:text-[#e8590c]`;
 const subHeading = "mt-10 mb-3 text-lg lg:text-xl font-bold";
 const externalLink = "underline underline-offset-4 hover:text-[#e8590c]";
@@ -156,7 +157,7 @@ export default function ClavenomePage() {
 			</LpSection>
 
 			<LpSection id="support-en" eyebrow="English" title="Support">
-				<div className="max-w-2xl space-y-4">
+				<div className="space-y-4">
 					<p className={bodyText}>
 						For bug reports or questions, use our{" "}
 						<HashJumpLink href={CONTACT_HREF} className={externalLink}>
@@ -168,7 +169,7 @@ export default function ClavenomePage() {
 			</LpSection>
 
 			<LpSection id="privacy-en" eyebrow="English" title="Privacy Policy">
-				<div className="max-w-2xl space-y-4">
+				<div className="space-y-4">
 					<p className={bodyText}>
 						<strong>
 							Clavenome does not collect any information about you.
