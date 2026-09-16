@@ -20,7 +20,7 @@ import { JaText } from "./components/ja-text";
 const CONTACT_HREF = "/#contact";
 
 /** 公開日に合わせる。文面を変えたときはここも更新する */
-const LAST_UPDATED = "2026-09-15";
+const LAST_UPDATED = "2026-09-16";
 
 const APPLE_PURCHASE_HISTORY_JA = "https://support.apple.com/ja-jp/HT204084";
 const APPLE_PURCHASE_HISTORY_EN = "https://support.apple.com/en-us/HT204084";
