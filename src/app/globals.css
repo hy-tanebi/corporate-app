@@ -358,3 +358,13 @@ body {
 .animate-slide-in-right {
 	animation: slide-in-right 0.25s ease-out;
 }
+
+/* ページ内リンク（#support など）をスムーススクロールにする。
+   html 全体に scroll-behavior: smooth を当てると、トップページの
+   window.scrollTo({ behavior: "auto" }) まで smooth になりスナップ処理が壊れるため、
+   data-smooth-scroll を持つページ（/clavenome）が表示されているときだけ有効にする。 */
+@media (prefers-reduced-motion: no-preference) {
+	html:has([data-smooth-scroll]) {
+		scroll-behavior: smooth;
+	}
+}

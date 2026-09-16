@@ -28,6 +28,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			changeFrequency: "monthly",
 			priority: 0.8,
 		},
+		{
+			// iOS アプリ Clavenome のサポート・プライバシーポリシー（App Store Connect 登録用）
+			url: `${SITE_URL}/clavenome`,
+			lastModified: new Date("2026-09-16"),
+			changeFrequency: "yearly",
+			priority: 0.3,
+		},
 		// /works は再設計中のため noindex（src/app/works/page.tsx を参照）。
 		// noindex のページを sitemap に載せると Search Console で警告になるため除外している。
 	];
