@@ -1,0 +1,4 @@
+# npm サプライチェーン対策（本社 CLAUDE.md「依存パッケージの取り扱い」）
+minimumReleaseAge: 10080   # 公開から7日経過するまで新バージョンを解決しない
+blockExoticSubdeps: true   # 推移的依存の git / URL 経由を禁止
+verifyDepsBeforeRun: error # pnpm run 時の暗黙 install を禁止
