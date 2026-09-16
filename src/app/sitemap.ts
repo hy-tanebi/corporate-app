@@ -31,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		{
 			// iOS アプリ Clavenome のサポート・プライバシーポリシー（App Store Connect 登録用）
 			url: `${SITE_URL}/clavenome`,
-			lastModified: new Date("2026-09-15"),
+			lastModified: new Date("2026-09-16"),
 			changeFrequency: "yearly",
 			priority: 0.3,
 		},
