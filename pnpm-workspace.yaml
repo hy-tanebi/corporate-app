@@ -2,3 +2,16 @@
 minimumReleaseAge: 10080   # 公開から7日経過するまで新バージョンを解決しない
 blockExoticSubdeps: true   # 推移的依存の git / URL 経由を禁止
 verifyDepsBeforeRun: error # pnpm run 時の暗黙 install を禁止
+
+# 推移的依存の脆弱性を修正版に固定する（2026-10-23 の osv-scanner HIGH 対応）。
+# いずれもビルド時のツリー（tailwindcss 3 / autoprefixer / next の optional peer）由来で、
+# 同一メジャー内の修正版へ寄せるだけ。上流が修正版を取り込んだらこの節は削除してよい。
+overrides:
+  picomatch@<2.3.2: ^2.3.2
+  brace-expansion@>=2.0.0 <2.1.3: ^2.1.3
+  minimatch@>=9.0.0 <9.0.7: ^9.0.7
+  glob@>=10.0.0 <10.5.0: ^10.5.0
+  browserslist@<4.28.7: ^4.28.7
+  # next が postcss 8.4.31 を完全固定しているため上書きする
+  postcss@<8.5.18: ^8.5.18
+  '@playwright/test@<1.55.1': ^1.55.1
