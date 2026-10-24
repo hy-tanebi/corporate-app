@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 /**
  * /service, /service/issues 用の「上に戻る」ボタン。
  *
- * ルートレイアウトの ChatWidget（UFOボタン、fixed bottom-6 right-6, 64px四方）と
- * 重ならないよう、その上に表示する。既存の src/components/blog/scroll-to-top.tsx は
- * bottom-6 right-6 のままで ChatWidget と重なる位置にあるため、そちらは真似ていない。
+ * bottom-28 は、以前ルートレイアウトにあった ChatWidget（UFOボタン、bottom-6 right-6,
+ * 64px四方）を避けるための位置。ChatWidget は 2026-10-24 に削除したが、見た目を
+ * 変えないよう据え置いている。
  *
  * デスクトップ(md:)では sidebar-menu.tsx の折りたたみ状態が画面右端に
  * 常時 80px 幅の帯として表示される（md:w-[80px] md:h-screen）。right-6 のままだと
