@@ -167,7 +167,7 @@ export function Astronaut({
 if (typeof window !== "undefined") {
 	const doPreload = () => useGLTF.preload("/models/artro_draco.glb");
 	if ("requestIdleCallback" in window) {
-		window.requestIdleCallback(doPreload);
+		window.requestIdleCallback(doPreload, { timeout: 1000 });
 	} else {
 		setTimeout(doPreload, 1000);
 	}
