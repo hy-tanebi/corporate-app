@@ -18,12 +18,6 @@ export default function RootLayout({
 				<GTMScript />
 				<Providers>
 					<ThemeProvider>{children}</ThemeProvider>
-					{/* ChatWidget（Dify iframe版・右下のUFOボタン）は検証中のため本番では出さない。
-					    src/components/ChatWidget.tsx は残置してあるので、公開するときは
-					    import と <ChatWidget /> を戻し、Vercel に NEXT_PUBLIC_DIFY_CHATBOT_URL を設定する。
-					    UFOボタンとの重なりを避けるための余白指定が sidebar-menu.tsx と
-					    service/components/scroll-to-top-button.tsx に残っているが、
-					    再開時にそのまま効くよう据え置いている。 */}
 				</Providers>
 			</body>
 		</html>

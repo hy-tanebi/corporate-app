@@ -243,7 +243,8 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 			</AnimatePresence>
 
 			{/* Menu Content Container */}
-			{/* pb-28 は ChatWidget の UFOボタン(bottom-6 right-6, 64px四方)との衝突を避けるための下部クリアランス。
+			{/* pb-28 は以前あった ChatWidget の UFOボタン(bottom-6 right-6, 64px四方)を避けるための下部クリアランス。
+						    ChatWidget は 2026-10-24 に削除したが、見た目を変えないよう据え置いている。
 						    overflow-y-auto は項目数が増えた場合の保険（100dvh に収まらなくても隠れずスクロールできる）。
 						    md:p-12 は使わない。PCもSPと同じ2rem(p-8)にする（devtoolsでの確認・指示どおり） */}
 			<motion.div
@@ -284,8 +285,6 @@ export function SidebarMenu({ onNavigate }: SidebarMenuProps) {
 						    justify-center は内容が溢れると上端が見切れて到達できなくなる懸念があるが、
 						    nav は flex-1（min-height:auto）なので内容が多い場合は nav 自体が伸び、
 						    親コンテナ側の overflow-y-auto によるスクロールになる。よって見切れは起きない。
-						    CONTACTとUFOボタン(ChatWidget)の衝突は Menu Content Container の
-						    pb-28（下部クリアランス）で対処している。
 						    PCの項目間隔(gap)は画面の高さに応じて可変（詳細はitem labelのコメント参照） */}
 				<nav className="flex flex-col space-y-4 md:space-y-[clamp(0.5rem,2dvh,1.5rem)] flex-1 justify-center items-center w-full">
 					{menuItems.map((item, i) => (
